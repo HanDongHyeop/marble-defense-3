@@ -1,0 +1,114 @@
+<!doctype html>
+<!-- 마블 디펜스 3 판(4×4 직사각형 밀어 합치기 · 캐릭터 아군 · 매끈한 톤). v3/outgame.html이 ?embed=1로 iframe에 연다(단독으로도 열림).
+     규칙(sim)은 본편 js + v3/js 층, 그리기는 v3/js/view3.js(본편 render*.js를 쓰지 않음) -->
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="robots" content="noindex">
+<base href="../">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+<meta name="theme-color" content="#1b1838">
+<title>마블 디펜스 3</title>
+<link rel="stylesheet" href="css/font.css?v=202611181752">
+<link rel="stylesheet" href="css/style.css?v=202611181752">
+<link rel="stylesheet" href="css/v54.css?v=202611181752">
+<link rel="stylesheet" href="css/v56.css?v=202611181752">
+<link rel="stylesheet" href="css/v57.css?v=202611181752">
+<link rel="stylesheet" href="css/v58.css?v=202611181752">
+<link rel="stylesheet" href="css/v59.css?v=202611181752">
+<link rel="stylesheet" href="v3/lab.css?v=202611181752">
+<link rel="stylesheet" href="v3/game.css?v=202611181752">
+<link rel="stylesheet" href="v3/game3.css?v=202611181752">
+</head>
+<body class="v3">
+<div id="wrap">
+  <div id="stage">
+    <canvas id="world"></canvas>
+
+    <!-- 위 HUD -->
+    <div id="topbar">
+      <div class="pill" id="roundPill"><span class="die mini"><i></i><i></i><i></i></span><b id="roundTxt">0 / 20</b></div>
+      <div class="pill" id="gauge"><img id="gaugeIco" alt=""><div class="bar"><i id="gaugeFill"></i></div><b id="gaugeTxt">20 / 20</b></div>
+      <button class="pill sq" id="pauseBtn" aria-label="일시정지"><span class="pz"></span><span class="pz"></span></button>
+    </div>
+    <div id="subbar">
+      <div id="chips"></div>
+      <div id="timeGrp"><div class="pill small" id="timerPill"><span class="clock"></span><b id="timerTxt">0:21</b></div></div>
+    </div>
+    <div id="waveChip" class="v3chip"></div>
+    <div id="bossBar" hidden><b id="bossName">보스</b><span id="bossInfo"></span><div class="bar"><i id="bossFill"></i></div></div>
+    <div id="warnFx" hidden><div class="vig"></div><div class="dim"></div><div class="info"><b id="warnName">보스</b><span id="warnDesc"></span><small id="warnSub"></small></div><div class="band"><div class="stripes"></div><div class="mid"><b class="wt">WARNING</b><img id="warnImg" alt=""></div><div class="stripes"></div></div></div>
+    <div id="missionBox" class="hudbox" hidden><div class="hd">미션 <span id="missionTime"></span></div><div id="missionName"></div><div class="bar"><i id="missionFill"></i></div><div id="missionProg"></div></div>
+    <div id="comboBox" class="hudbox" hidden><div class="hd">연속 출동</div><div id="comboN">×0</div><div id="comboPct">+0%</div><div id="stackTxt" hidden></div></div>
+
+    <button id="p2Btn" hidden><span class="p2tag">2P</span><span class="dice2"><span class="die" id="p2A"></span><span class="die" id="p2B"></span></span><b id="p2Cost">20</b><i id="p2Gold">금화 0</i></button>
+    <button id="truckBtn" class="roundbtn" aria-label="현금 수송차"><img src="v3/img/obj/cart.png" alt="" onerror="this.src='assets/img/x_truck.png'"><div class="cd" id="truckCd"></div><span class="tag">수송차</span></button>
+
+    <div id="offerCard" hidden>
+      <div class="oc-imgs"><img id="ocFrom" alt=""><span class="arr">▶</span><img id="ocTo" alt=""></div>
+      <div class="oc-mid"><div class="oc-k">단계업</div><div class="oc-n" id="ocName"></div><label class="oc-auto"><input type="checkbox" id="ocAuto"> 자동</label></div>
+      <div class="oc-btns"><button id="offerBtn"><span class="up">▲</span><span class="cc"><span class="coin"></span><b id="offerCost">0</b></span></button><button id="ocNo">넘기기</button></div>
+      <i id="offerBar"></i>
+    </div>
+
+    <!-- 아래 조작 패널: 금화 · [지휘관] [소환] [강화] — 강화(능력치 업)는 단추를 눌러야 뜨는 창(랜덤다이스2 · 운빨존많겜처럼 상시 노출 X) -->
+    <div id="panel">
+      <div id="goldRow"><span class="coin big"></span><b id="goldTxt">0</b></div>
+      <div id="mainRow">
+        <button id="cmdBtn" class="roundbtn" aria-label="지휘관"><img id="cmdImg" alt=""><div class="cd" id="cmdCd"></div><span class="tag" id="cmdTag">지휘관</span></button>
+        <button id="gdBtn" class="slot" hidden><img id="gdImg" alt=""><b id="gdN">×0</b><span class="lab">황금 주사위</span></button>
+        <button id="rollBtn"><div class="dice2"><span class="die" id="dieA"></span><span class="die" id="dieB"></span></div><div class="cost"><span class="coin"></span><b id="rollCost">10</b></div><span id="autoBtn" role="switch" aria-checked="false" aria-label="자동 소환"><i class="kn"></i><b>AUTO</b></span></button>
+        <div id="pawnSlot" class="slot" hidden><img id="pawnImg" alt=""><span class="lab" id="pawnName"></span></div>
+        <button id="upBtn" aria-label="강화" aria-expanded="false"><span class="ico"></span><b>강화</b><i class="dot" hidden></i></button>
+      </div>
+      <!-- [v3.1] 아래 줄(랜다2 · 운빨존많겜 아래 줄처럼): 미션 · 조합(전설 · 신화) · 신화석 · 배속 -->
+      <div id="subRow">
+        <button id="misBtn" class="sub"><span class="si mis"></span><b>미션</b><i id="misN">0/6</i></button>
+        <button id="mixBtn" class="sub"><span class="si mix"></span><b>조합</b><i id="mixN" hidden>!</i></button>
+        <div id="mythChip" class="sub chip3"><span class="si gem"></span><b id="mythN">0</b><small>신화석</small></div>
+        <button id="spdBtn" class="sub"><b id="spdTxt">1x</b><small>배속</small></button>
+      </div>
+      <div id="v3Sheet" hidden><div class="us-hd"><b id="v3SheetT">조합</b><span id="v3SheetS"></span><button id="v3SheetX" aria-label="닫기">✕</button></div><div id="v3SheetB"></div></div>
+      <div id="upSheet" hidden>
+        <div class="us-hd"><b>아군 강화</b><span>강화는 판이 끝날 때까지 유지돼요</span><button id="upClose" aria-label="닫기">✕</button></div>
+        <div id="deckRow"></div>
+      </div>
+    </div>
+
+    <canvas id="top"></canvas>
+    <div id="infoBox" hidden></div>
+    <div id="toast" hidden></div>
+    <div id="modal" hidden></div>
+    <div id="errbox" hidden></div>
+    <div id="loading"><div class="ld">불러오는 중…</div></div>
+  </div>
+</div>
+<script src="v3/js/manifest3.js?v=202611181752"></script>
+<script src="js/data.js?v=202611181752"></script>
+<script src="v3/js/geom3.js?v=202611181752"></script>
+<script src="js/meta.js?v=202611181752"></script>
+<script src="v3/js/v2_data.js?v=202611181752"></script>
+<script src="v3/js/v3_data.js?v=202611181752"></script>
+<script src="js/behave.js?v=202611181752"></script>
+<script src="js/coop.js?v=202611181752"></script>
+<script src="js/sim.js?v=202611181752"></script>
+<script src="v3/js/lab_cfg.js?v=202611181752"></script>
+<script src="v3/js/lab_core.js?v=202611181752"></script>
+<script src="v3/js/lab_geo.js?v=202611181752"></script>
+<script src="v3/js/lab_slide.js?v=202611181752"></script>
+<script>LAB_CORE(SIM, DATA, GEOM, LAB); LAB_SLIDE(SIM, DATA, GEOM, LAB, LAB_GEO);</script>
+<script src="v3/js/grade3.js?v=202611181752"></script>
+<script>GRADE3.install(SIM, DATA);</script>
+<script src="v3/js/lab_botlogic.js?v=202611181752"></script>
+<script src="js/audio.js?v=202611181752"></script>
+<script src="js/haptic.js?v=202611181752"></script>
+<script src="js/net.js?v=202611181752"></script>
+<script src="v3/js/view3.js?v=202611181752"></script>
+<script src="v3/js/fx3.js?v=202611181752"></script>
+<script src="js/ui.js?v=202611181752"></script>
+<script src="v3/js/lab_app.js?v=202611181752"></script>
+<script src="v3/js/lab_ui.js?v=202611181752"></script>
+<script src="v3/js/ui3.js?v=202611181752"></script>
+<script src="js/main.js?v=202611181752"></script>
+</body>
+</html>

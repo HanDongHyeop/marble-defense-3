@@ -1,0 +1,53 @@
+/* 마블 디펜스 실험실 — 본편 css 위에 덮음 */
+/* 위 바: 12시 수정이 가리지 않게 수정 게이지를 가운데 · 좁게 */
+body.lab #topbar { justify-content: space-between; }
+body.lab #gauge { flex: 0 0 236px; position: absolute; left: 50%; top: 0; transform: translateX(-50%); }
+body.lab #gauge img { width: 30px; height: 40px; }
+body.lab #gauge .bar i { background: linear-gradient(#e7a6ff, #9a4ad8); }
+body.lab #gauge.warn .bar i { background: linear-gradient(#ff7a9a, #c0204a); }
+body.lab #gauge.cryhit { animation: cryShake .45s cubic-bezier(.3,.7,.4,1); }
+@keyframes cryShake { 0%,100% { transform: translateX(-50%); } 20% { transform: translateX(calc(-50% - 7px)); } 45% { transform: translateX(calc(-50% + 6px)); } 70% { transform: translateX(calc(-50% - 3px)); } }
+body.lab #chips { display: none; }
+
+/* 다이얼 · 밀어 합치기: 주사위 · 황금 주사위 · 말 칸 숨김 → 소환 단추 + 맵별 조작 칸 */
+body.lab-dial #gdBtn, body.lab-dial #pawnSlot, body.lab-slide #gdBtn, body.lab-slide #pawnSlot { display: none; }
+body.lab-dial #missionBox, body.lab-slide #missionBox, body.lab-dial #comboBox, body.lab-slide #comboBox { display: none !important; }
+body.lab-dial #rollBtn .dice2, body.lab-slide #rollBtn .dice2 { display: none; }
+#rollBtn .labSumm { display: flex; align-items: center; gap: 10px; font-size: 44px; color: #fff; text-shadow: 0 3px 0 #a04a10, 0 0 1px #6a2a08; letter-spacing: 2px; }
+#rollBtn .labSumm .sp { width: 40px; height: 40px; position: relative; display: inline-block; }
+#rollBtn .labSumm .sp::before, #rollBtn .labSumm .sp::after { content: ''; position: absolute; left: 50%; top: 50%; background: #fff6d8; border-radius: 3px; transform: translate(-50%, -50%); box-shadow: 0 2px 0 #a04a10; }
+#rollBtn .labSumm .sp::before { width: 10px; height: 38px; }
+#rollBtn .labSumm .sp::after { width: 38px; height: 10px; }
+body.lab-dial #rollBtn.tut::after, body.lab-slide #rollBtn.tut::after { content: '눌러서 소환!'; }
+
+/* 다이얼 ⟲ ⟳ */
+.slot.labrot { cursor: pointer; color: #fff4dc; font-family: inherit; touch-action: none; user-select: none; -webkit-user-select: none; }
+.slot.labrot .ico { font-size: 66px; line-height: 70px; color: #ffe9a8; text-shadow: 0 4px 0 #6a3a10, 0 0 14px rgba(255,210,90,.45); }
+.slot.labrot.press { transform: translateY(3px) scale(.97); background: linear-gradient(#433878, #2e2660); }
+.slot.labrot .lab { font-size: 15px; }
+
+/* 밀어 합치기: 웨이브 미리보기 · 방향 단추 */
+#labWave { flex-direction: column; justify-content: center; gap: 2px; color: #fff4dc; }
+#labWave .wk { font-size: 14px; color: var(--sub); }
+#labWave b { font-size: 25px; color: #ffcf8a; }
+#labWave .lab { font-size: 13px; }
+#labPad { position: relative; display: block; touch-action: none; cursor: pointer; user-select: none; -webkit-user-select: none; }
+#labPad .pd { position: absolute; width: 74px; height: 52px; border-radius: 13px; background: linear-gradient(#ffd98a, #f2a640); color: #5a2a08; font: 700 32px/52px Jua, sans-serif; text-align: center; box-shadow: 0 4px 0 #a0581a, 0 6px 10px rgba(0,0,0,.35); pointer-events: none; }
+#labPad .pd.hit { animation: pdHit .22s ease-out; }
+@keyframes pdHit { 0% { transform: translateY(3px); box-shadow: 0 1px 0 #a0581a; filter: brightness(1.15); } 100% { transform: none; } }
+#labPad .pd.lt { left: 6px; top: 6px; } #labPad .pd.rt { right: 6px; top: 6px; }
+#labPad .pd.lb { left: 6px; bottom: 10px; } #labPad .pd.rb { right: 6px; bottom: 10px; }
+#labPad .mid { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); padding: 3px 8px; border-radius: 999px; background: #2b1426; color: #fff4dc; font-size: 14px; pointer-events: none; }
+
+/* 규칙 카드 · 결과 */
+#modal.labrule .mbox { width: 640px; }
+.labrule .lr-tag { display: inline-block; padding: 4px 14px; border-radius: 999px; background: #3a2f6a; color: #d8ccff; font-size: 16px; margin-bottom: 6px; }
+.labrule h2 { font-size: 42px; color: #ffd23a; }
+.labrule .howto li, .labres .sub, #toast { word-break: keep-all; }
+.labrule .howto li { font-size: 21px; line-height: 1.45; margin: 10px 0; text-align: left; }
+.labrule .howto b { color: #ffcf8a; }
+
+/* 보스 바: 12시 수정을 가리지 않게 오른쪽 위로(수정은 가운데 x 325~395) */
+body.lab #bossBar { left: 410px; right: 14px; top: 72px; text-align: right; font-size: 18px; }
+body.lab #bossBar #bossName { display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+body.lab #bossBar #bossInfo { display: inline-block; margin-top: 4px; }

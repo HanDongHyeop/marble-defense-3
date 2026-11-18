@@ -1,0 +1,8 @@
+/* v5.7 기다림 건너뛰기 → [v5.9] 삭제(사용자 2026-11-11: '스킵 버튼은 다시 삭제. 웨이브 몬스터가 없어지면 3초 후 자동으로 다음 웨이브')
+   남은 것 = 시간 묶음 자리 · 다 잡았을 때 시간 칸이 금빛(3초 동안) */
+#timeGrp { display: flex; gap: 8px; align-items: center; pointer-events: none; }
+#timerPill { transition: color .2s, box-shadow .2s; }
+#timerPill.clear { color: var(--gold); text-shadow: 0 0 10px #ffd23a99; animation: tClear .4s cubic-bezier(.2,1.6,.4,1); }   /* 테두리 실선 없이 글자색 · 빛 · 켜질 때 톡 */
+@keyframes tClear { 0% { transform: scale(.85); } 100% { transform: none; } }
+/* 카드 칩이 많아져도(최대 5장 + 길어진 이름) 시간 칸 밑으로 안 들어가게 */
+#chips { max-width: calc(100% - 130px); }

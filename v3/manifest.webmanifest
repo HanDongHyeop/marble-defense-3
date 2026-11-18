@@ -1,0 +1,19 @@
+{
+  "name": "마블 디펜스 3",
+  "short_name": "마블 디펜스 3",
+  "description": "판을 밀어 같은 단계 캐릭터를 합치고 12시 수정을 지키는 디펜스",
+  "lang": "ko",
+  "id": "./outgame.html?app=v3",
+  "start_url": "./outgame.html",
+  "scope": "./",
+  "display": "fullscreen",
+  "display_override": ["fullscreen", "standalone"],
+  "orientation": "portrait",
+  "background_color": "#1a1236",
+  "theme_color": "#1a1236",
+  "icons": [
+    { "src": "../proto/img/app/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "../proto/img/app/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "../proto/img/app/icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}

@@ -1,0 +1,31 @@
+/* 마블 디펜스 3 아웃게임 — 캐릭터 그림 · 매끈한 톤(랜덤다이스2풍) 덮기 */
+img { image-rendering: auto !important; }
+/* 덱 탭: 계열 칩(원소 · 기계 …)은 캐릭터 5계열에선 의미 없음 → 숨김 */
+.trayhead .chips { visibility: hidden; }
+/* 캐릭터 카드 그림은 정사각(발 아래 정렬) */
+.tcard img, .ecard img, .swapbar img { object-fit: contain; object-position: center bottom; }
+/* 단추 · 판: 굵은 실선 대신 그늘 · 아래 두께 */
+.btn { border: 0 !important; border-radius: 22px !important; box-shadow: 0 6px 0 rgba(0,0,0,.32), inset 0 2px 0 rgba(255,255,255,.4) !important; }
+.panel { border-radius: 24px; }
+/* 전투 탭 큰 수정: 새 그림은 정사각(받침 포함) → 칸(220×250) 안에 맞춤 */
+.bigcrystal img { height: 236px; width: 216px; object-fit: contain; object-position: center bottom; }
+/* 출석 도장 보상 글자: 15px 이상(폰 약 8pt) */
+.stamp em { font-size: 15px; letter-spacing: -.3px; }
+/* [v3.1] 성장 탭 — 신화 각성 해금 */
+.mythpanel { display: flex; flex-direction: column; gap: 8px; margin: 0 4px 14px; }
+.mythrow { display: flex; align-items: center; gap: 12px; padding: 10px 12px; border-radius: 20px; background: linear-gradient(#3a2a5a, #2a1f48); box-shadow: 0 5px 0 #18122e; }
+.mythrow.on { background: linear-gradient(#5a2a3a, #3e1d2c); box-shadow: 0 5px 0 #24101a, 0 0 0 2px rgba(255,120,140,.35) inset; }
+.mythrow .mpic { width: 64px; height: 64px; flex: none; border-radius: 16px; background: rgba(255,90,110,.15); display: flex; align-items: flex-end; justify-content: center; overflow: hidden; }
+.mythrow .mpic img { width: 64px; height: 64px; object-fit: contain; object-position: center bottom; }
+.mythrow .tx { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+.mythrow .tx b { font-size: 19px; }
+.mythrow .tx small { font-size: 15px; color: var(--sub, #b9b0dc); word-break: keep-all; }
+.mythrow .mok { font-size: 15px; padding: 4px 12px; border-radius: 999px; background: rgba(255,120,140,.25); color: #ffd0d8; white-space: nowrap; }
+/* [v3.3] 지휘관 고르기: 스킬 심볼 + 등급(희귀 · 영웅 · 전설) */
+.cmdgrid .pick { position: relative; border: 0; }
+.cmdgrid .pick img { width: 96px; height: 96px; object-fit: contain; }
+.cmdgrid .pick .cg { position: absolute; left: 8px; top: 8px; font-size: 14px; padding: 2px 10px; border-radius: 999px; color: #fff; }
+.cmdgrid .cmd-rare { background: linear-gradient(#2f4f8a, #22386a); } .cmdgrid .cmd-rare .cg { background: #4a8ae0; }
+.cmdgrid .cmd-epic { background: linear-gradient(#573a8a, #3e2868); } .cmdgrid .cmd-epic .cg { background: #9a5ae0; }
+.cmdgrid .cmd-legend { background: linear-gradient(#8a6420, #5e4212); box-shadow: 0 0 0 2px rgba(255,210,90,.6) inset, 0 0 18px rgba(255,200,80,.35); } .cmdgrid .cmd-legend .cg { background: #f0a020; }
+.cmdgrid .pick small { word-break: keep-all; }
