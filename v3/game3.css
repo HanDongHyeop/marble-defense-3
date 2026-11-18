@@ -168,3 +168,57 @@ body.v3 #cmdBtn[data-grade=rare] { background: linear-gradient(#6aa8f0, #3a6fc8)
 body.v3 #cmdBtn[data-grade=epic] { background: linear-gradient(#b07cf0, #7a44c8); box-shadow: 0 8px 0 #4a2490, 0 14px 20px rgba(0,0,0,.4), inset 0 3px 0 rgba(255,255,255,.35); }
 body.v3 #cmdBtn[data-grade=legend] { background: linear-gradient(#ffd86a, #f09a20); box-shadow: 0 8px 0 #a85a08, 0 14px 20px rgba(0,0,0,.4), 0 0 22px rgba(255,210,90,.7), inset 0 3px 0 rgba(255,255,255,.5); }
 body.v3 #cmdBtn img { width: 98px; height: 98px; border-radius: 0; object-fit: contain; }
+
+/* [v3.5] 방향 단추(십자) · 강화 단추는 아래 줄로 */
+#dpad { position: relative; flex: none; width: 150px; height: 138px; touch-action: none; }
+#dpad .dp { position: absolute; width: 52px; height: 46px; border: 0; border-radius: 15px; background: linear-gradient(#ffd98a, #f2a640); box-shadow: 0 5px 0 #a0581a, inset 0 2px 0 rgba(255,255,255,.5); cursor: pointer; }
+#dpad .dp::after { content: ''; position: absolute; left: 50%; top: 50%; border: 11px solid transparent; }
+#dpad .dp.up { left: 49px; top: 0; } #dpad .dp.up::after { border-bottom-color: #5a2a08; margin: -17px 0 0 -11px; }
+#dpad .dp.dn { left: 49px; bottom: 5px; } #dpad .dp.dn::after { border-top-color: #5a2a08; margin: -5px 0 0 -11px; }
+#dpad .dp.lf { left: 0; top: 44px; } #dpad .dp.lf::after { border-right-color: #5a2a08; margin: -11px 0 0 -17px; }
+#dpad .dp.rt { right: 0; top: 44px; } #dpad .dp.rt::after { border-left-color: #5a2a08; margin: -11px 0 0 -5px; }
+#dpad .dp.hit { animation: dpHit .2s ease-out; }
+@keyframes dpHit { 0% { transform: translateY(4px); box-shadow: 0 1px 0 #a0581a; filter: brightness(1.2); } 100% { transform: none; } }
+#dpad .dpc { position: absolute; left: 50%; top: 46%; transform: translate(-50%, -50%); font: 13px Jua, sans-serif; color: #c8bfff; pointer-events: none; }
+#subRow #upBtn { width: auto; height: 66px; flex: 1.15; flex-direction: row; gap: 8px; border-radius: 20px; background: linear-gradient(#ffd36a, #ffab2a 55%, #f08a10); box-shadow: 0 5px 0 #b05a08, inset 0 2px 0 rgba(255,255,255,.5); }
+#subRow #upBtn .ico { width: 30px; height: 30px; }
+#subRow #upBtn .ico::before { top: 4px; border-width: 9px; border-bottom-width: 11px; } #subRow #upBtn .ico::after { top: 14px; width: 7px; height: 10px; }
+#subRow #upBtn b { font-size: 22px; }
+#subRow #upBtn .dot { right: 4px; top: 4px; width: 16px; height: 16px; padding: 0; background: radial-gradient(circle at 35% 30%, #ffb0b0, #ff3a4a); }
+#subRow { gap: 8px; padding: 4px 12px 0; }
+#subRow .sub b { font-size: 20px; } #subRow .sub small { font-size: 12px; }
+/* [v3.5] 행운 뽑기(조합 창 아래) */
+.gbrow { display: flex; gap: 10px; }
+.gb { flex: 1; height: 70px; border: 0; border-radius: 18px; background: rgba(255,255,255,.08); color: #b9b0dc; font-family: Jua, sans-serif; display: grid; grid-template-columns: 1fr auto; align-items: center; padding: 0 14px; text-align: left; cursor: pointer; }
+.gb b { font-size: 19px; font-weight: 400; } .gb span { grid-row: 2; font-size: 14px; } .gb em { grid-row: 1 / span 2; grid-column: 2; font-style: normal; font-size: 15px; padding: 4px 10px; border-radius: 999px; background: rgba(0,0,0,.3); }
+.gb.go.rare { background: linear-gradient(#6aa8f0, #3a6fc8); color: #fff; box-shadow: 0 4px 0 #234a90; }
+.gb.go.hero { background: linear-gradient(#b07cf0, #7a44c8); color: #fff; box-shadow: 0 4px 0 #4a2490; }
+
+/* ===== [v3.5] 튜토리얼: 어둡게 + 뚫린 곳 + 손가락 + 말풍선 ===== */
+#tut3 { position: absolute; inset: 0; z-index: 60; pointer-events: none; font-family: Jua, sans-serif; }
+#tut3 .tb { position: absolute; background: rgba(10,8,26,.74); pointer-events: auto; transition: background .25s; }
+#tut3 .th { position: absolute; pointer-events: auto; display: none; }
+#tut3 .hole { position: absolute; border-radius: 26px; pointer-events: none; box-shadow: 0 0 0 4px #ffe08a, 0 0 0 10px rgba(255,224,138,.35), 0 0 34px rgba(255,210,90,.8); animation: tutPulse 1s ease-in-out infinite alternate; }
+#tut3.block .hole { box-shadow: 0 0 0 4px #a8d4ff, 0 0 26px rgba(140,200,255,.7); }
+#tut3.ok .hole { box-shadow: 0 0 0 6px #8ff28a, 0 0 40px rgba(120,240,120,.9); animation: none; }
+#tut3.nudge .hole { animation: tutNudge .35s ease-out; }
+@keyframes tutPulse { from { transform: scale(1); } to { transform: scale(1.035); } }
+@keyframes tutNudge { 0% { transform: scale(1.12); } 100% { transform: scale(1); } }
+/* 손가락: 둥근 손끝 + 손등(도형) — 누르기 / 쓸기 */
+#tut3 .hand { position: absolute; width: 0; height: 0; pointer-events: none; display: none; }
+#tut3 .hand::before { content: ''; position: absolute; left: -17px; top: 0; width: 34px; height: 62px; border-radius: 17px 17px 12px 12px; background: linear-gradient(#fff6e6, #ffd9b0); box-shadow: 0 0 0 4px #1d1b3a, 0 8px 0 4px rgba(0,0,0,.25); }
+#tut3 .hand::after { content: ''; position: absolute; left: -26px; top: 40px; width: 62px; height: 46px; border-radius: 14px 18px 20px 20px; background: linear-gradient(#ffe6c8, #f5c394); box-shadow: 0 0 0 4px #1d1b3a; }
+#tut3[data-hand=tap] .hand { display: block; animation: tutTap .9s ease-in-out infinite; }
+#tut3[data-hand=swipe] .hand { display: block; animation: tutSwipe 1.5s ease-in-out infinite; }
+#tut3.ok .hand { display: none; }
+@keyframes tutTap { 0%, 100% { transform: translate(18px, 34px) scale(1); } 45% { transform: translate(18px, 14px) scale(.9); } }
+@keyframes tutSwipe { 0% { transform: translate(150px, 40px); opacity: 0; } 15% { transform: translate(150px, 20px); opacity: 1; } 75% { transform: translate(-150px, 20px); opacity: 1; } 100% { transform: translate(-150px, 40px); opacity: 0; } }
+#tut3 .bub { position: absolute; left: 40px; right: 40px; padding: 18px 24px 20px; border-radius: 28px; background: linear-gradient(#3a3080, #2a2260); box-shadow: 0 14px 34px rgba(0,0,0,.55), inset 0 2px 0 rgba(255,255,255,.16); color: #fff4dc; text-align: center; pointer-events: auto; }
+#tut3.in .bub { animation: tutBub .32s cubic-bezier(.2,.9,.3,1.3); }
+@keyframes tutBub { from { transform: translateY(18px) scale(.94); opacity: 0; } to { transform: none; opacity: 1; } }
+#tut3 .bub .st { position: absolute; left: 20px; top: 14px; font-size: 15px; color: #b9b0dc; }
+#tut3 .bub .tt { display: block; font-size: 36px; font-weight: 400; color: #ffd86a; text-shadow: 0 3px 0 #1d1b3a; margin-bottom: 6px; }
+#tut3 .bub .tx { margin: 0; font-size: 27px; line-height: 1.45; word-break: keep-all; }
+#tut3 .bub .tx b { color: #ffe08a; font-weight: 400; }
+#tut3 .bub .nx { margin-top: 14px; min-width: 220px; height: 64px; border: 0; border-radius: 22px; background: linear-gradient(#8ff28a, #3fcf5a 52%, #23b04a); box-shadow: 0 6px 0 #178a38, inset 0 2px 0 rgba(255,255,255,.5); color: #fff; font: 26px Jua, sans-serif; text-shadow: 0 2px 0 #127a30; cursor: pointer; }
+#tutSkip { position: absolute; right: 16px; top: 76px; height: 48px; padding: 0 18px; border: 0; border-radius: 999px; background: rgba(255,255,255,.14); color: #e6defc; font: 17px Jua, sans-serif; pointer-events: auto; cursor: pointer; }

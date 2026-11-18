@@ -41,6 +41,7 @@
         continue;
       }
       if (e.ev === 'upgrade' && e.type) { for (const t of game.tiles) if (t.tower && t.tower.type === e.type && !t.blocked) this.fx3.push({ k: 'buff', i: t.i, f: famOf(e.type), t: this.time + Math.random() * 0.12, life: 0.95, s: Math.random() }); }
+      if (e.ev === 'gamble') { if (e.win && e.i >= 0) { const t = game.tiles[e.i]; if (t.tower) { this.summonFx(game, e.i); const h = G.tiles[e.i].tower; this.fx3.push({ k: 'buff', i: e.i, f: famOf(t.tower.type), t: this.time, life: 0.9, s: Math.random() }); this.say(e.tier === 3 ? '영웅!' : '희귀!', e.tier === 3 ? '#d8b0ff' : '#a8d4ff', h[0], h[1] - 80, 1, 30); } } else this.burst(360, 560, 40, '#b9b0dc'); }
       if (e.ev === 'commander') { const C = D.COMMANDERS[e.id] || {}; this.cmdFx = { id: e.id, grade: C.grade || 'rare', i: e.i, t: this.time }; if (C.grade === 'legend') { this.shake = Math.max(this.shake, 14); this.flash = 0.4; } else if (C.grade === 'epic') this.shake = Math.max(this.shake, 6); }
       rest.push(e);
     }

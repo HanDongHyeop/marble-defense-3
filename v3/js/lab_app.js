@@ -81,6 +81,7 @@
     if (LAB.V3) ch.deck = root.DATA.V3_DECK.slice();   // [v3] 아군 = 캐릭터 5계열 고정
     baseStart.call(this, ch, seed);
     { const ci = $('cmdImg'), id = this.game.cmd.id; ci.src = 'v3/img/cmd/' + id + '.png'; ci.onerror = () => { ci.onerror = null; ci.src = 'assets/img/c_cheer.png'; }; $('cmdBtn').dataset.grade = root.DATA.COMMANDERS[id].grade || 'rare'; }
+    if (this.game.applyRelics) this.game.applyRelics(this.embed ? ((this.embedMeta && this.embedMeta.relics) || {}) : {});   // [v3.5] 유물(아웃게임 S.relics)
     // [v3.1] 신화 각성 해금(판 밖 성장 탭 'myth.<종류>') — 첫 계열(불)은 처음부터 열림. 단독으로 연 판(시험용)은 모두 열림
     if (this.game && this.game.mythOpen) {
       const nodes = (this.embedMeta && this.embedMeta.nodes) || {};

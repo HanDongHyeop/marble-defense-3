@@ -71,11 +71,11 @@
       'arc.dmg': 7, 'arc.aps': 4, 'arc.crit': 1, 'arc.gold0': 1, 'elem.dmg': 3, 'mech.dmg': 2, 'holy.dmg': 2, 'abyss.dmg': 4 },
     att: { day: 10, rolled: false, pos: 9, got: [1, 2, 3, 4, 5, 7, 8], claimed: { 7: true } },   // v2: rolled = 오늘 도장 찍음 · day = 찍은 날 수
     starChest: {},
-    daily: [{ id: 'play', n: '판 2번 하기', cur: 1, max: 2, rw: { gold: 300 }, ic: 'gdice' }, { id: 'tier4', n: '4단계 아군 3개 만들기', cur: 3, max: 3, rw: { core: 3 }, ic: 'tier4' }, { id: 'key', n: '한 번 밀어 2번 합치기', cur: 0, max: 2, rw: { gold: 300 }, ic: 'key', sub: '같은 단계가 줄줄이 부딪히게 밀어요' }],
+    daily: [{ id: 'play', n: '판 2번 하기', cur: 1, max: 2, rw: { gold: 300 }, ic: 'gdice' }, { id: 'tier4', n: '영웅 아군 3개 만들기', cur: 3, max: 3, rw: { core: 3 }, ic: 'tier4' }, { id: 'key', n: '한 번 밀어 2번 합치기', cur: 0, max: 2, rw: { gold: 300 }, ic: 'key', sub: '같은 단계가 줄줄이 부딪히게 밀어요' }],
     dailyGot: {}, dailyChest: false,
     weekly: [{ id: 'w1', n: '판 10번 하기', cur: 10, max: 10, rw: { gem: 30 } }, { id: 'w2', n: '보스 20마리 잡기', cur: 12, max: 20, rw: { core: 10 } }, { id: 'w3', n: '아군 300번 합치기', cur: 140, max: 300, rw: { gold: 3000 } }, { id: 'w4', n: '판 100번 밀기', cur: 66, max: 100, rw: { gem: 20 } }],
     weeklyGot: {},
-    ach: [{ id: 'a1', n: '6단계 아군 10개 만들기', cur: 9, max: 10, rw: { gem: 50, title: '전설 제작자' } }, { id: 'a2', n: '보스 8종 모두 잡기', cur: 6, max: 8, rw: { core: 20 }, sub: '남은 보스: 마술사 · 사기꾼' }, { id: 'a3', n: '판 30번 이기기', cur: 30, max: 30, rw: { gem: 30 } }, { id: 'a4', n: '출석 28일', cur: 10, max: 28, rw: { gem: 60 } }],
+    ach: [{ id: 'a1', n: '전설 아군 10개 만들기', cur: 9, max: 10, rw: { gem: 50, title: '전설 제작자' } }, { id: 'a2', n: '보스 8종 모두 잡기', cur: 6, max: 8, rw: { core: 20 }, sub: '남은 보스: 마술사 · 사기꾼' }, { id: 'a3', n: '판 30번 이기기', cur: 30, max: 30, rw: { gem: 30 } }, { id: 'a4', n: '출석 28일', cur: 10, max: 28, rw: { gem: 60 } }],
     achGot: {},
     pass: { lv: 7, star: 82, premium: false, gotF: { 1: 1, 2: 1, 3: 1, 4: 1, 5: 1, 6: 1 }, gotP: {} },
     shop: { free: false, goldBuy: 0, coreBuy: false, vip: false },
@@ -90,6 +90,7 @@
   if (!S || !S.att) S = BASE_STATE();
   if (!D.COMMANDERS[S.cmd]) S.cmd = 'cheer';   // [v3.3] 도박사 · 건축가 없음   // v2: 도박사(황금 주사위)는 없음
   if (S.miss == null) S.miss = 0;
+  if (!S.relics) S.relics = {};   // [v3.5] 유물 레벨
   S.decks = S.decks.map(() => D.DECK.slice());   // [v3] 덱 = 캐릭터 5계열 고정
   // [v5.4] 로비 소리: 배경음(본편 bgm_lobby) · 단추 톡 · 주사위 · 혜택. 폰은 첫 터치 때 켜진다(자동 재생 막힘). 판에 들어가면 멈추고 나오면 다시
   const SFXD = '../assets/sfx/';
@@ -298,7 +299,7 @@
 
   // 아군 상세(아래 판)
   function towerSheet(md) {
-    const k = md.k, T = D.TOWERS[k], own = owned(k), lv = tgl(k), t = ui.tier[k] || (own ? Math.min(6, 3 + Math.floor(lv / 10)) : 3), sp = M.TRAIT_SP[k];
+    const k = md.k, T = D.TOWERS[k], own = owned(k), lv = tgl(k), t = [1, 2, 3, 5, 6].includes(ui.tier[k]) ? ui.tier[k] : 3, sp = M.TRAIT_SP[k];
     const s1 = !!S.nodes['trait.' + k + '.s1'], s2 = !!S.nodes['trait.' + k + '.s2'], inDeck = deck().includes(k);
     const pairs = (PAIR[k] || D.ALL.filter(q => q !== k && D.TOWERS[q].fam === T.fam).slice(0, 3)).slice(0, 3);
     const u = M.UNLOCK[k], need = !own && u ? M.unlockNeed(m(), k) : null;
@@ -308,10 +309,10 @@
       : B('unlock', k, 'btn ' + (need.lvOk && need.coreOk ? 'gold' : 'off'), `${og('core')} 코어 ${need.core}로 열기`);
     return `<div class="dim${md.anim ? ' in' : ''}" data-act="close"></div><div class="sheet${md.anim ? ' in' : ''}" style="--fc:${fc(k)}"><span class="grab"></span>${B('close', null, 'xbtn', '✕')}
       <div class="sbody">
-      <div class="dhead"><div class="dpic ${own ? '' : 'lock'}"><span class="tg">${t}단계 ${D.TIER.name[t]}</span><img src="${tw(k, t)}" alt=""></div>
+      <div class="dhead"><div class="dpic ${own ? '' : 'lock'}"><span class="tg">${D.TIER.name[t]}</span><img src="${tw(k, t)}" alt=""></div>
         <div class="dname"><span class="fam">${T.fam} 계열</span><h3>${T.name}</h3><p>${T.desc}</p></div></div>
-      <div class="tiers">${[1, 2, 3, 4, 5, 6].map(n => B('tierView', k + ':' + n, `tier ${n === t ? 'on' : ''}`, `<i>${n}단계</i><img src="${tw(k, n)}" alt="">`)).join('')}</div>
-      <div class="kv"><div><span>공격(1단계)</span>${T.atk}</div><div><span>공속</span>${T.aps}회/초</div><div><span>사거리</span>앞뒤 ${T.range || 2.5}칸</div></div>
+      <div class="tiers">${[1, 2, 3, 5, 6].map(n => B('tierView', k + ':' + n, `tier ${n === t ? 'on' : ''}`, `<i>${D.TIER.name[n]}</i><img src="${tw(k, n)}" alt="">`)).join('')}</div>
+      <div class="kv"><div><span>공격(일반)</span>${T.atk}</div><div><span>등급 힘</span>1 · 3 · 9 · 30 · 90</div><div><span>역할</span>${T.role || ''}</div></div>
       <div class="line aw"><b>각성</b>${D.AWAKEN[k]}</div>
       ${own ? `<div class="sec-t">특성 3칸 <span class="r">강화는 이 아군에만 · 모든 판에 적용</span></div>
       <div class="traits3">
@@ -330,7 +331,15 @@
   const NODE_ICO = { dmg: '⚔', aps: '⚡', crit: '✦', gold0: '◎', life: '♥', rule: '❖', vault: '🏦', cdcut: '⏱', salary: '💰', roll: '🎲' };
   function grow() {
     const fam = ui.famTab;
-    const tabsH = `<div class="famtabs">${M.FAMS.map(f => B('famTab', f.id, `famtab ${f.id === fam ? 'on' : ''}" style="--fc:${f.color}`, `${f.name}<small>Lv ${treeLv(f.id)}</small>${dot(canOpenTower().some(t => M.FAM_OF[t] === f.id))}`)).join('')}${B('famTab', 'common', `famtab ${fam === 'common' ? 'on' : ''}" style="--fc:#6ab0ff`, '공용<small>4칸</small>')}</div>`;
+    const tabsH = `<div class="famtabs">${M.FAMS.map(f => B('famTab', f.id, `famtab ${f.id === fam ? 'on' : ''}" style="--fc:${f.color}`, `${f.name}<small>Lv ${treeLv(f.id)}</small>${dot(canOpenTower().some(t => M.FAM_OF[t] === f.id))}`)).join('')}${B('famTab', 'common', `famtab ${fam === 'common' ? 'on' : ''}" style="--fc:#6ab0ff`, '공용<small>4칸</small>')}${B('famTab', 'relic', `famtab ${fam === 'relic' ? 'on' : ''}" style="--fc:#ffcf5a`, `유물<small>${D.RELICS.reduce((a, r) => a + (S.relics[r.id] || 0), 0)} / ${D.RELICS.length * D.RELIC_MAX}</small>${dot(D.RELICS.some(r => (S.relics[r.id] || 0) < D.RELIC_MAX && S.gold >= D.relicCost(S.relics[r.id] || 0)))}`)}</div>`;
+    if (fam === 'relic') {
+      const rows = D.RELICS.map(R0 => { const lv = S.relics[R0.id] || 0, max = lv >= D.RELIC_MAX, c = D.relicCost(lv);
+        return `<div class="relic ${max ? 'max' : ''}"><span class="rpic"><img src="img/relic/${R0.id}.png" alt=""></span><div class="tx"><b>${R0.name} <i>Lv ${lv}</i></b><small>${R0.desc.replace('{v}', R0.v * Math.max(1, lv))}${lv ? '' : ' (Lv1)'}${max ? '' : ` → 다음 ${R0.v * (lv + 1)}${R0.unit}`}</small><span class="rbar"><i style="width:${lv / D.RELIC_MAX * 100}%"></i></span></div>
+          ${max ? '<span class="mok">최대</span>' : B('relicUp', R0.id, 'btn small ' + (S.gold >= c ? 'gold' : 'off') + '" style="min-width:120px', `${coin()} ${fmt(c)}`)}</div>`; }).join('');
+      return `<div class="bgnavy"></div>${topbar()}<div class="body top96">${tabsH}
+        <div class="note">유물은 <b>모든 판</b>에 적용되는 영구 효과예요. 금화로 Lv ${D.RELIC_MAX}까지 올려요.</div>
+        <div class="relics">${rows}</div></div>${tabs('grow')}`;
+    }
     if (fam === 'common') {
       return `<div class="bgnavy"></div>${topbar()}<div class="body top96">${tabsH}
         <div class="note">공용 칸은 <b>모든 계열</b>에 적용돼요. 나무 레벨 조건이 없어요.</div>
@@ -342,7 +351,7 @@
     if (lockT) { const nd = M.unlockNeed(m(), lockT), can = nd.lvOk && nd.coreOk; goal = `<div class="goal"><span class="tag">다음 목표</span><img src="${tw(lockT, 3)}" alt=""><div class="tx"><b>${tname(lockT)} 열기</b>나무 Lv${nd.lv} ${nd.lvOk ? '✔' : `(지금 ${tl})`} · 코어 ${nd.core} ${nd.coreOk ? '✔' : `(지금 ${S.core})`}${can ? ' — 지금 열 수 있어요' : ''}</div>${B('unlock', lockT, 'btn small ' + (can ? 'gold' : 'off'), `${og('core')} ${nd.core}`)}</div>`; }
     else { const nx = M.FAM_NODES.find(nd => !M.nodeInfo(m(), fam, nd).maxed && !M.nodeInfo(m(), fam, nd).locked); goal = `<div class="goal"><span class="tag">다음 목표</span>${og('star', '')}<div class="tx"><b>${nx ? nx.name + ' 올리기' : '나무 완성!'}</b>${F.name} 아군 3종을 모두 열었어요</div></div>`; }
     const famT = F.towers.map(k => { const own = owned(k), lv = tgl(k), t = own ? Math.min(6, 3 + Math.floor(lv / 10)) : 0;
-      return B('tower', k, `famtower ${own ? '' : 'lock'}" style="--fc:${fc(k)}`, `<span class="tierline">${[1, 2, 3, 4, 5, 6].map(n => `<i class="${n <= t ? 'on' : ''}"></i>`).join('')}</span><span class="see">${own ? '단계 · 특성 ›' : '여는 법 ›'}</span><img src="${tw(k, own ? Math.max(3, t) : 3)}" alt=""><b>${tname(k)}</b><small>${own ? `특성 Lv ${lv}` : '🔒 잠김'}</small>`); }).join('');
+      return B('tower', k, `famtower ${own ? '' : 'lock'}" style="--fc:${fc(k)}`, `<span class="see">${own ? '등급 · 특성 ›' : '여는 법 ›'}</span><img src="${tw(k, 5)}" alt=""><b>${tname(k)}</b><small>${own ? `특성 Lv ${lv}` : '🔒 잠김'}</small>`); }).join('');
     return `<div class="bgnavy"></div>${topbar()}
     <div class="body top96">${tabsH}
       <div class="sec-t">${F.name} 아군 ${F.towers.length}종 <span class="r">눌러서 등급 · 특성 트리 보기</span></div>
@@ -514,8 +523,8 @@
       <div class="chn">${R.endless ? '무한 토벌' : `${R.mode === 'weekly' ? '주간 도전 · ' : ''}${R.ch}장 ${C.name} · ${DIFFN[R.d]}`}${R.mode === 'coop' ? ' · AI 협동' : ''}</div>
       ${R.endless ? `<div class="bigkill">${fmt(R.kills)}<span>마리 처치 · 최고 ${fmt(S.rec.best)}</span></div>`
         : `<div class="bigstars">${[0, 1, 2].map(k => og('star', k < R.stars ? '' : 'off')).join('')}</div>
-      ${R.win ? `<div class="stargoal">${['승리', '수정 70% 이상 지키기', '6단계 아군 만들기'].map((t, k) => `<span class="${k < R.stars ? 'ok' : ''}">${k < R.stars ? '★' : '☆'} ${t}</span>`).join('')}</div>` : `<div class="losewhy">${R.why}<br><small>${R.round}라운드까지 버텼어요 · 보상은 버틴 만큼</small></div>`}`}
-      <div class="rstat"><div>${R.round}<span>라운드</span></div><div>${fmt(R.kills)}<span>처치</span></div><div>${R.maxTier || '-'}<span>최고 단계</span></div><div>${R.time}<span>걸린 시간</span></div></div>
+      ${R.win ? `<div class="stargoal">${['승리', '수정 70% 이상 지키기', '전설 아군 만들기'].map((t, k) => `<span class="${k < R.stars ? 'ok' : ''}">${k < R.stars ? '★' : '☆'} ${t}</span>`).join('')}</div>` : `<div class="losewhy">${R.why}<br><small>${R.round}라운드까지 버텼어요 · 보상은 버틴 만큼</small></div>`}`}
+      <div class="rstat"><div>${R.round}<span>라운드</span></div><div>${fmt(R.kills)}<span>처치</span></div><div>${R.maxTier ? D.TIER.name[R.maxTier] : '-'}<span>최고 등급</span></div><div>${R.time}<span>걸린 시간</span></div></div>
       <div class="rewards">
         <div class="rew">${coin('')}<span>${fmt(R.gold * (R.doubled ? 2 : 1))}</span>${R.doubled ? '<span class="x3">×2</span>' : ''}</div>
         <div class="rew">${R.first ? '<span class="x3">첫 클리어 ×3</span>' : ''}${og('core', '')}<span>${R.core * (R.doubled ? 2 : 1)}</span></div>
@@ -674,10 +683,10 @@
     crystalInfo() {
       open({ type: 'sheet', title: '수정 지키기 · 판 규칙', body: () => `<ol class="v2rules">
         <li>몬스터가 <b>6시 굴</b>에서 양쪽 길로 나와 <b>12시 수정</b>으로 가요. 닿은 만큼 수정이 깎이고(보스 −8) 0이 되면 패배.</li>
-        <li><b>[소환]</b> = 빈 칸에 1단계 아군. <b>판을 쓸어 밀면</b> 모든 아군이 그쪽 끝까지 미끄러지고, <b>같은 단계끼리 부딪히면 합쳐져요</b>(앞에 있던 아군 종류가 남아요).</li>
+        <li><b>[소환]</b> = 빈 칸에 일반(Lv.1) 아군. <b>판을 쓸어 밀면</b> 모든 아군이 그쪽 끝까지 미끄러지고, <b>같은 단계끼리 부딪히면 합쳐져요</b>(앞에 있던 아군 종류가 남아요).</li>
         <li><b>밝은 가장자리 칸</b>이 길에 가까워요. 한쪽으로 몰리는 웨이브는 굴 앞 화살표로 미리 보여요.</li>
         <li>보스: 5 · 10라운드는 1마리(왼쪽 길), 15 · 20라운드는 <b>2마리가 양쪽</b>에서 와요.</li></ol>
-        <div class="note">별 3개 = 승리 · 수정 70% 이상 지키기 · 6단계 아군 만들기</div>` });
+        <div class="note">별 3개 = 승리 · 수정 70% 이상 지키기 · 전설 아군 만들기</div>` });
     },
     stagePick() {
       open({ type: 'sheet', title: '판 고르기', body: () => `<div class="sec-t">난이도</div><div class="diffrow2">${DIFFN.map((nm, k) => B('diff', k, `diff ${DIFFS.indexOf(S.diff) === k ? 'on' : ''} ${diffOpen(S.chapter, k) ? '' : 'lock'}`, diffOpen(S.chapter, k) ? nm : `${nm}<small>🔒 ${k === 1 ? S.chapter + '장 보통' : '3장 보통'}</small>`)).join('')}</div>
@@ -712,6 +721,11 @@
     preset() { open({ type: 'sheet', title: '추천 덱', body: () => `<div class="plist">${D.PRESETS.map((p, i) => { const lock = p.deck.filter(t => !owned(t)); return B('presetUse', i, 'prow2', `<span class="nm">${p.name}${lock.length ? `<br><small style="font-size:15px;color:#ffb0b0">🔒 ${lock.map(tname).join(' · ')}</small>` : ''}</span><span class="tws">${p.deck.map(t => `<img src="${tw(t, 3)}" style="${owned(t) ? '' : 'filter:grayscale(1) brightness(.4)'}" alt="">`).join('')}</span>`); }).join('')}</div><div class="note">누르면 <b>덱 ${S.deckIdx + 1}</b>에 그대로 넣어요.</div>` }); },
     presetUse(i) { const p = D.PRESETS[+i], lock = p.deck.filter(t => !owned(t)); if (lock.length) { toast(`잠긴 아군이 있어요: ${lock.map(tname).join(' · ')}`); return; } S.decks[S.deckIdx] = p.deck.slice(); close(); render(); toast(`덱 ${S.deckIdx + 1} = ${p.name}`); },
     chipFam(f) { ui.chipFam = f; render(); },
+    relicUp(id) {
+      const lv = S.relics[id] || 0, c = D.relicCost(lv); if (lv >= D.RELIC_MAX) return;
+      if (S.gold < c) { toast(`골드가 부족해요 (${fmt(S.gold)} / ${fmt(c)})`); return; }
+      S.gold -= c; S.relics[id] = lv + 1; ui.bump.gold = 1; save(); render(); toast(`${D.RELICS.find(r => r.id === id).name} Lv ${lv + 1}!`);
+    },
     mythOpen(k) {
       if (mythOn(k)) return;
       if (S.core < MYTH_CORE) { toast(`코어가 부족해요 (${S.core} / ${MYTH_CORE})`); return; }
@@ -906,9 +920,9 @@
 
 
   // ------------------------------------------------------------ [v5.3] 진입/전환 막 · 실제 판 · 첫 로딩 · 로비 주사위 안착
-  const TIPS = ['판을 쓸어 밀면 모든 아군이 그쪽 끝까지 미끄러져요', '같은 단계 두 아군이 부딪히면 한 단계 위로 — 종류는 앞에 있던 아군 것', '밝은 가장자리 칸이 길에 가까워요. 가운데 칸은 사거리가 잘 안 닿아요',
-    '굴 앞 화살표 = 이번 웨이브가 많이 오는 쪽이에요', '15 · 20라운드는 보스 둘이 양쪽에서 와요', '수정이 0이 되면 끝 — 몬스터를 12시까지 보내지 마세요',
-    '성장 탭에서 나무를 키우면 그 계열 아군이 세져요', '같은 단계가 줄줄이 있으면 한 번 밀어 여러 번 합쳐요', '빈 칸이 없으면 소환이 안 돼요 — 밀어서 합치세요'];
+  const TIPS = ['판을 쓸거나 방향 단추를 누르면 아군이 그쪽 끝까지 미끄러져요', '같은 레벨 두 아군이 부딪히면 한 레벨 위로 — 종류는 앞에 있던 아군 것', 'Lv.3(영웅)까지는 밀어서 합치고, 전설은 [조합]에서 재료를 모아 만들어요',
+    '전설이 몬스터를 충분히 잡으면 신화석 1개로 신화가 돼요', '신화석은 보스 처치와 판 [미션]에서 얻어요', '성장 탭에서 계열의 신화 각성을 미리 열어 두세요', '유물은 금화로 올리는 영구 효과예요(성장 탭 → 유물)',
+    '[강화]는 한 계열 전체를 세게 — 낮은 레벨일수록 효과가 커요', '행운 뽑기는 [조합] 창 아래에 있어요', '아군을 누르면 공격 범위가 보여요', '어려움 · 지옥은 판에 구멍이 있어요 — 미는 방향을 생각하세요'];
   const STREAK_C = ['#7ec0ff', '#b48aff', '#ffd23a', '#ff9ae0', '#9fe8ff'];
   function xferShow(word) {
     let x = $('xfer');
@@ -949,9 +963,9 @@
     const G0 = ui.inGame = { mode, n: mode === 'endless' ? 1 : n, di, sb, ready: false, shown: false, go: false };
     SND.music();
     const og = { choice: { commander: S.cmd, pawn: S.pawn, mode: mode === 'endless' ? 'endless' : 'conquest', coop: mode === 'coop', deck: deck().slice(), diff: mode === 'endless' ? 'normal' : DIFFS[di], chapter: n },
-      bonus: sb ? sb.fx : null, bonusTxt: sb ? { d: sb.d.join('·'), txt: sb.txt } : null, meta: { nodes: S.nodes, unlocked: S.unlocked } };
+      bonus: sb ? sb.fx : null, bonusTxt: sb ? { d: sb.d.join('·'), txt: sb.txt } : null, meta: { nodes: S.nodes, unlocked: S.unlocked, relics: S.relics } };
     const fr = G0.fr = document.createElement('iframe'); fr.id = 'game'; fr.className = 'pre'; fr.title = '마블 디펜스 판'; fr.setAttribute('allow', 'autoplay; fullscreen');
-    fr.src = 'game.html?v=202611181831&embed=1&og=' + encodeURIComponent(JSON.stringify(og));
+    fr.src = 'game.html?v=202611181911&embed=1&og=' + encodeURIComponent(JSON.stringify(og));
     G0.attach = () => { if (!fr.isConnected && ui.inGame === G0) document.body.appendChild(fr); };
     // 크롬(안드로이드 · PC)은 판을 불러와도 이 화면이 거의 안 멈춤 → 착지 직후 바로. 아이폰(WebKit)은 같은 줄에서 돌아 로비가 멈칫 → 진입 막 아래에서(enterGame)
     const UA = navigator.userAgent, WK = /iPhone|iPad|iPod/.test(UA) || (/AppleWebKit/.test(UA) && !/Chrome|Chromium|Android|Edg/.test(UA)) || (navigator.maxTouchPoints > 1 && /Macintosh/.test(UA));
@@ -996,6 +1010,36 @@
   }
 
   // 첫 로딩(3~5초 무작위 · 진짜 그림 미리 불러오기 · 멈칫/휙 하는 게이지) → 전환 막 → 로비 주사위 안착
+  // [v3.5] 로비 안내(처음 한 번씩): 어둡게 + 뚫린 곳 + 말풍선 — 뚫린 곳만 눌림. ① 첫 방문 = [시작] ② 첫 판 뒤 = 성장 탭(성장 · 유물 · 신화 해금)
+  if (!S.coach) S.coach = {};
+  const COACH = { on: null };
+  function coachShow(key, sel, title, text) {
+    const st = $('stage'), tg = document.querySelector(sel); if (!tg || COACH.on) return;
+    const el = document.createElement('div'); el.id = 'coach3';
+    el.innerHTML = '<i class="tb a"></i><i class="tb b"></i><i class="tb c"></i><i class="tb d"></i><i class="hole"></i><i class="hand"></i><div class="bub"><b class="tt"></b><p class="tx"></p></div>';
+    el.querySelector('.tt').textContent = title; el.querySelector('.tx').innerHTML = text; st.appendChild(el); COACH.on = { key, el, sel, t0: performance.now() };
+    const lay = () => {
+      const c = COACH.on; if (!c || c.el !== el) return; const t2 = document.querySelector(sel); if (!t2 || ui.modal || ui.inGame) { coachEnd(false); return; }
+      const sr = st.getBoundingClientRect(), k = sr.width / 720, r = t2.getBoundingClientRect(), pad = 8;
+      const x = (r.left - sr.left) / k - pad, y = (r.top - sr.top) / k - pad, w = r.width / k + pad * 2, h = r.height / k + pad * 2;
+      const set = (q, l, t, ww, hh) => { const e = el.querySelector(q); e.style.cssText = `left:${l}px;top:${t}px;width:${Math.max(0, ww)}px;height:${Math.max(0, hh)}px`; };
+      set('.tb.a', 0, 0, 720, y); set('.tb.b', 0, y + h, 720, 1280 - y - h); set('.tb.c', 0, y, x, h); set('.tb.d', x + w, y, 720 - x - w, h); set('.hole', x, y, w, h);
+      const hd = el.querySelector('.hand'); hd.style.left = (x + w / 2) + 'px'; hd.style.top = (y + h / 2) + 'px';
+      const bub = el.querySelector('.bub'), bh = bub.offsetHeight || 150; bub.style.top = Math.max(110, y - bh - 30) + 'px';
+      requestAnimationFrame(lay);
+    };
+    lay();
+    for (const b of el.querySelectorAll('.tb')) b.addEventListener('pointerdown', e => { e.stopPropagation(); e.preventDefault(); });
+    try { SND.play('coin', 0.4); } catch (e) { /* 소리 없음 */ }
+  }
+  function coachEnd(done) { const c = COACH.on; if (!c) return; c.el.remove(); COACH.on = null; if (done) { S.coach[c.key] = 1; save(); } }
+  document.addEventListener('click', e => { const c = COACH.on; if (c && performance.now() - c.t0 > 400 && e.target.closest && e.target.closest(c.sel)) coachEnd(true); }, true);
+  setInterval(() => {
+    if (document.getElementById('boot') || ui.modal || ui.inGame || COACH.on || /noboot=1/.test(location.search)) return;   // noboot=1 = 화면 점검 · 캡처용 주소(안내 안 띄움)
+    if (ui.screen === 'home' && !S.coach.start) coachShow('start', '#scr [data-act=start]', '수정을 지켜라!', '<b>[시작]</b>을 눌러 첫 판을 해 보세요.<br>조작은 판에서 차근차근 알려 드려요.');
+    else if (ui.screen === 'home' && ui.lastRes && !S.coach.grow) coachShow('grow', '.tabs [data-arg=grow]', '더 강해지기', '판에서 얻은 <b>금화 · 코어</b>로 <b>성장</b> 탭에서 강해지세요.<br>계열 성장 · 유물 · 신화 각성 해금이 있어요.');
+  }, 700);
+
   function boot(q) {
     const b = $('boot'); if (!b) return;
     if (q.get('noboot')) { b.remove(); setTimeout(prefetchGame, 1500); return; }

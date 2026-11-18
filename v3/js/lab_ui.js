@@ -196,7 +196,7 @@
     // [v2 · 2026-11-17] 밀기 영역을 판 아래로 넓힘: 판(캔버스) + 그 아래 패널 중 '소환 단추 위쪽 절반'까지(사용자 요청).
     //   소환 단추 위에서 시작해도 됨 — 움직임 없이 떼면 소환(탭), 누른 채 움직이면 밀기. 방향 단추 · 지휘관 · 수송차 · 멈춤 · AUTO · 덱 강화 단추는 제 동작 그대로
     const TAP_PX = 10;
-    const NOT_SWIPE = '#world, #labPad, #cmdBtn, #truckBtn, #pauseBtn, #autoBtn, #deckRow, #upBtn, #upSheet, #subRow, #v3Sheet, #modal, #infoBox, #offerCard';
+    const NOT_SWIPE = '#world, #labPad, #cmdBtn, #truckBtn, #pauseBtn, #autoBtn, #deckRow, #upBtn, #upSheet, #subRow, #v3Sheet, #dpad, #modal, #infoBox, #offerCard';
     U.labGestureBind = function () {
       const stage = document.getElementById('stage'), roll = document.getElementById('rollBtn');
       stage.addEventListener('pointerdown', e => {

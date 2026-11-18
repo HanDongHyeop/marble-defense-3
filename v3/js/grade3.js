@@ -74,6 +74,32 @@
       // 행운 합치기(+1) · 건축가가 영웅을 넘지 않게: 합치기로는 영웅까지만
       setTier(i, tier, why, lucky) { if (why !== 'legend' && why !== 'mythic' && why !== 'debug' && tier > this.mergeMax) tier = this.mergeMax; return super.setTier(i, tier, why, lucky); }
 
+      // ---------------------------------------------------------- 유물(판 밖 성장) · 행운 뽑기
+      applyRelics(rl) {
+        const L = this.relics = Object.assign({ purse: 0, heart: 0, blade: 0, clover: 0, scroll: 0, glass: 0 }, rl || {});
+        this.gold += L.purse * 15;
+        if (this.cry) { this.cry.hp += L.heart; this.cry.max += L.heart; }
+        if (L.glass) this.meta = Object.assign({}, this.meta, { cdCut: (this.meta.cdCut || 0) + L.glass * 1.2 });
+      }
+      damage(m, amt, dtype, src, opts) { if (m && m.boss && this.relics && this.relics.blade) amt *= 1 + this.relics.blade * 0.04; return super.damage(m, amt, dtype, src, opts); }
+      // 행운 뽑기(운빨존많겜 도박): 희귀 = 금화 50 · 성공 60% / 영웅 = 신화석 1 · 성공 40%. 꽝이면 아무것도 안 나옴(영웅 꽝은 금화 40 위로금)
+      gambleInfo(kind) {
+        const luck = this.relics ? this.relics.clover * 0.02 : 0, empty = this.tiles.some(t => !t.tower && !t.blocked);
+        const I = kind === 'hero' ? { tier: 3, costGold: 0, costMyth: 1, p: 0.4 + luck } : { tier: 2, costGold: 50, costMyth: 0, p: 0.6 + luck };
+        I.ok = empty && this.gold >= I.costGold && this.mythStones >= I.costMyth && !this.over; I.empty = empty;
+        return I;
+      }
+      gamble(kind) {
+        const I = this.gambleInfo(kind); if (!I.ok) { this.emit('gambleNo', { kind, empty: I.empty }); return false; }
+        this.gold -= I.costGold; this.mythStones -= I.costMyth;
+        const win = this.r() < I.p; let i = -1;
+        if (win) { const t = this.pickOne(this.tiles.filter(q => !q.tower && !q.blocked)); i = t.i; this.build(i, this.buildPick(), I.tier); }
+        else if (kind === 'hero') { this.gold += 40; }
+        this.stats.gambles = (this.stats.gambles || 0) + 1;
+        this.emit('gamble', { kind, win, i, tier: I.tier });
+        return true;
+      }
+
       // ---------------------------------------------------------- 전설 조합
       // 반환: { ok, main, partner, rare, need: [{ what, have }] } — 화면(조합 창)이 재료 표시에 그대로 쓴다
       legendRecipe(type) {
@@ -129,7 +155,7 @@
         if (s.n >= M.goal) {
           s.done = true;
           if (M.reward.myth) this.addMyth(M.reward.myth, M.name);
-          if (M.reward.gold) { this.gold += M.reward.gold; this.emit('gold', { amt: M.reward.gold, why: M.name }); }
+          if (M.reward.gold) { const gg = Math.round(M.reward.gold * (1 + (this.relics ? this.relics.scroll * 0.1 : 0))); this.gold += gg; this.emit('gold', { amt: gg, why: M.name }); }
           this.emit('missionDone', { id, name: M.name, reward: M.reward });
         }
       }

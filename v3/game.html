@@ -9,16 +9,16 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
 <meta name="theme-color" content="#1b1838">
 <title>마블 디펜스 3</title>
-<link rel="stylesheet" href="css/font.css?v=202611181831">
-<link rel="stylesheet" href="css/style.css?v=202611181831">
-<link rel="stylesheet" href="css/v54.css?v=202611181831">
-<link rel="stylesheet" href="css/v56.css?v=202611181831">
-<link rel="stylesheet" href="css/v57.css?v=202611181831">
-<link rel="stylesheet" href="css/v58.css?v=202611181831">
-<link rel="stylesheet" href="css/v59.css?v=202611181831">
-<link rel="stylesheet" href="v3/lab.css?v=202611181831">
-<link rel="stylesheet" href="v3/game.css?v=202611181831">
-<link rel="stylesheet" href="v3/game3.css?v=202611181831">
+<link rel="stylesheet" href="css/font.css?v=202611181911">
+<link rel="stylesheet" href="css/style.css?v=202611181911">
+<link rel="stylesheet" href="css/v54.css?v=202611181911">
+<link rel="stylesheet" href="css/v56.css?v=202611181911">
+<link rel="stylesheet" href="css/v57.css?v=202611181911">
+<link rel="stylesheet" href="css/v58.css?v=202611181911">
+<link rel="stylesheet" href="css/v59.css?v=202611181911">
+<link rel="stylesheet" href="v3/lab.css?v=202611181911">
+<link rel="stylesheet" href="v3/game.css?v=202611181911">
+<link rel="stylesheet" href="v3/game3.css?v=202611181911">
 </head>
 <body class="v3">
 <div id="wrap">
@@ -59,10 +59,11 @@
         <button id="gdBtn" class="slot" hidden><img id="gdImg" alt=""><b id="gdN">×0</b><span class="lab">황금 주사위</span></button>
         <button id="rollBtn"><div class="dice2"><span class="die" id="dieA"></span><span class="die" id="dieB"></span></div><div class="cost"><span class="coin"></span><b id="rollCost">10</b></div><span id="autoBtn" role="switch" aria-checked="false" aria-label="자동 소환"><i class="kn"></i><b>AUTO</b></span></button>
         <div id="pawnSlot" class="slot" hidden><img id="pawnImg" alt=""><span class="lab" id="pawnName"></span></div>
-        <button id="upBtn" aria-label="강화" aria-expanded="false"><span class="ico"></span><b>강화</b><i class="dot" hidden></i></button>
+        <div id="dpad" role="group" aria-label="밀기 방향"><button data-d="-V" class="dp up" aria-label="위로 밀기"></button><button data-d="-U" class="dp lf" aria-label="왼쪽으로 밀기"></button><button data-d="+U" class="dp rt" aria-label="오른쪽으로 밀기"></button><button data-d="+V" class="dp dn" aria-label="아래로 밀기"></button><span class="dpc">밀기</span></div>
       </div>
       <!-- [v3.1] 아래 줄(랜다2 · 운빨존많겜 아래 줄처럼): 미션 · 조합(전설 · 신화) · 신화석 · 배속 -->
       <div id="subRow">
+        <button id="upBtn" class="sub" aria-label="강화" aria-expanded="false"><span class="ico"></span><b>강화</b><i class="dot" hidden></i></button>
         <button id="misBtn" class="sub"><span class="si mis"></span><b>미션</b><i id="misN">0/6</i></button>
         <button id="mixBtn" class="sub"><span class="si mix"></span><b>조합</b><i id="mixN" hidden>!</i></button>
         <div id="mythChip" class="sub chip3"><span class="si gem"></span><b id="mythN">0</b><small>신화석</small></div>
@@ -83,32 +84,33 @@
     <div id="loading"><div class="ld">불러오는 중…</div></div>
   </div>
 </div>
-<script src="v3/js/manifest3.js?v=202611181831"></script>
-<script src="js/data.js?v=202611181831"></script>
-<script src="v3/js/geom3.js?v=202611181831"></script>
-<script src="js/meta.js?v=202611181831"></script>
-<script src="v3/js/v2_data.js?v=202611181831"></script>
-<script src="v3/js/v3_data.js?v=202611181831"></script>
-<script src="js/behave.js?v=202611181831"></script>
-<script src="js/coop.js?v=202611181831"></script>
-<script src="js/sim.js?v=202611181831"></script>
-<script src="v3/js/lab_cfg.js?v=202611181831"></script>
-<script src="v3/js/lab_core.js?v=202611181831"></script>
-<script src="v3/js/lab_geo.js?v=202611181831"></script>
-<script src="v3/js/lab_slide.js?v=202611181831"></script>
+<script src="v3/js/manifest3.js?v=202611181911"></script>
+<script src="js/data.js?v=202611181911"></script>
+<script src="v3/js/geom3.js?v=202611181911"></script>
+<script src="js/meta.js?v=202611181911"></script>
+<script src="v3/js/v2_data.js?v=202611181911"></script>
+<script src="v3/js/v3_data.js?v=202611181911"></script>
+<script src="js/behave.js?v=202611181911"></script>
+<script src="js/coop.js?v=202611181911"></script>
+<script src="js/sim.js?v=202611181911"></script>
+<script src="v3/js/lab_cfg.js?v=202611181911"></script>
+<script src="v3/js/lab_core.js?v=202611181911"></script>
+<script src="v3/js/lab_geo.js?v=202611181911"></script>
+<script src="v3/js/lab_slide.js?v=202611181911"></script>
 <script>LAB_CORE(SIM, DATA, GEOM, LAB); LAB_SLIDE(SIM, DATA, GEOM, LAB, LAB_GEO);</script>
-<script src="v3/js/grade3.js?v=202611181831"></script>
+<script src="v3/js/grade3.js?v=202611181911"></script>
 <script>GRADE3.install(SIM, DATA);</script>
-<script src="v3/js/lab_botlogic.js?v=202611181831"></script>
-<script src="js/audio.js?v=202611181831"></script>
-<script src="js/haptic.js?v=202611181831"></script>
-<script src="js/net.js?v=202611181831"></script>
-<script src="v3/js/view3.js?v=202611181831"></script>
-<script src="v3/js/fx3.js?v=202611181831"></script>
-<script src="js/ui.js?v=202611181831"></script>
-<script src="v3/js/lab_app.js?v=202611181831"></script>
-<script src="v3/js/lab_ui.js?v=202611181831"></script>
-<script src="v3/js/ui3.js?v=202611181831"></script>
-<script src="js/main.js?v=202611181831"></script>
+<script src="v3/js/lab_botlogic.js?v=202611181911"></script>
+<script src="js/audio.js?v=202611181911"></script>
+<script src="js/haptic.js?v=202611181911"></script>
+<script src="js/net.js?v=202611181911"></script>
+<script src="v3/js/view3.js?v=202611181911"></script>
+<script src="v3/js/fx3.js?v=202611181911"></script>
+<script src="js/ui.js?v=202611181911"></script>
+<script src="v3/js/lab_app.js?v=202611181911"></script>
+<script src="v3/js/lab_ui.js?v=202611181911"></script>
+<script src="v3/js/ui3.js?v=202611181911"></script>
+<script src="v3/js/tut3.js?v=202611181911"></script>
+<script src="js/main.js?v=202611181911"></script>
 </body>
 </html>

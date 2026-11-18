@@ -29,3 +29,26 @@ img { image-rendering: auto !important; }
 .cmdgrid .cmd-epic { background: linear-gradient(#573a8a, #3e2868); } .cmdgrid .cmd-epic .cg { background: #9a5ae0; }
 .cmdgrid .cmd-legend { background: linear-gradient(#8a6420, #5e4212); box-shadow: 0 0 0 2px rgba(255,210,90,.6) inset, 0 0 18px rgba(255,200,80,.35); } .cmdgrid .cmd-legend .cg { background: #f0a020; }
 .cmdgrid .pick small { word-break: keep-all; }
+/* [v3.5] 유물(성장 탭) */
+.relics { display: flex; flex-direction: column; gap: 10px; margin: 6px 4px 20px; }
+.relic { display: flex; align-items: center; gap: 12px; padding: 10px 12px; border-radius: 22px; background: linear-gradient(#3a3270, #2a2456); box-shadow: 0 5px 0 #18143a; }
+.relic .rpic { width: 76px; height: 76px; flex: none; border-radius: 18px; background: radial-gradient(circle at 50% 40%, rgba(255,220,120,.3), rgba(0,0,0,.25)); display: grid; place-items: center; }
+.relic .rpic img { width: 64px; height: 64px; object-fit: contain; }
+.relic .tx { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 3px; }
+.relic .tx b { font-size: 20px; } .relic .tx b i { font-style: normal; font-size: 15px; color: #ffd86a; margin-left: 6px; }
+.relic .tx small { font-size: 15px; color: var(--sub, #b9b0dc); word-break: keep-all; }
+.relic .rbar { height: 8px; border-radius: 999px; background: rgba(0,0,0,.4); overflow: hidden; } .relic .rbar i { display: block; height: 100%; background: linear-gradient(90deg, #ffd86a, #f09a20); border-radius: 999px; }
+.relic .mok { font-size: 15px; padding: 4px 12px; border-radius: 999px; background: rgba(255,210,90,.25); color: #ffe9a8; }
+/* [v3.5] 로비 안내(코치) */
+#coach3 { position: absolute; inset: 0; z-index: 80; pointer-events: none; }
+#coach3 .tb { position: absolute; background: rgba(10,8,26,.74); pointer-events: auto; }
+#coach3 .hole { position: absolute; border-radius: 26px; pointer-events: none; box-shadow: 0 0 0 4px #ffe08a, 0 0 0 10px rgba(255,224,138,.35), 0 0 34px rgba(255,210,90,.8); animation: coPulse 1s ease-in-out infinite alternate; }
+@keyframes coPulse { from { transform: scale(1); } to { transform: scale(1.035); } }
+#coach3 .hand { position: absolute; width: 0; height: 0; animation: coTap .9s ease-in-out infinite; }
+#coach3 .hand::before { content: ''; position: absolute; left: -17px; top: 0; width: 34px; height: 62px; border-radius: 17px 17px 12px 12px; background: linear-gradient(#fff6e6, #ffd9b0); box-shadow: 0 0 0 4px #1d1b3a; }
+#coach3 .hand::after { content: ''; position: absolute; left: -26px; top: 40px; width: 62px; height: 46px; border-radius: 14px 18px 20px 20px; background: linear-gradient(#ffe6c8, #f5c394); box-shadow: 0 0 0 4px #1d1b3a; }
+@keyframes coTap { 0%, 100% { transform: translate(18px, 34px); } 45% { transform: translate(18px, 14px) scale(.9); } }
+#coach3 .bub { position: absolute; left: 40px; right: 40px; padding: 18px 24px 20px; border-radius: 28px; background: linear-gradient(#3a3080, #2a2260); box-shadow: 0 14px 34px rgba(0,0,0,.55), inset 0 2px 0 rgba(255,255,255,.16); color: #fff4dc; text-align: center; animation: coBub .32s cubic-bezier(.2,.9,.3,1.3); }
+@keyframes coBub { from { transform: translateY(18px) scale(.94); opacity: 0; } to { transform: none; opacity: 1; } }
+#coach3 .bub .tt { display: block; font-size: 36px; font-weight: 400; color: #ffd86a; text-shadow: 0 3px 0 #1d1b3a; margin-bottom: 6px; }
+#coach3 .bub .tx { margin: 0; font-size: 26px; line-height: 1.45; word-break: keep-all; } #coach3 .bub .tx b { color: #ffe08a; font-weight: 400; }

@@ -23,6 +23,17 @@
     D.CMD_ORDER = ['cheer', 'mechanic', 'teleporter', 'demolish', 'freeze', 'meteor'];
     D.CMD_GRADE = { rare: '희귀', epic: '영웅', legend: '전설' };
   }
+  // [v3.5] 유물(운빨존많겜 '유물'처럼 판 밖에서 금화로 올리는 영구 효과 · 최대 Lv10). 값 = Lv당
+  D.RELICS = [
+    { id: 'purse', name: '금화 주머니', v: 15, unit: '', desc: '시작 금화 +{v}' },
+    { id: 'heart', name: '수정 심장', v: 1, unit: '', desc: '수정 체력 +{v}' },
+    { id: 'blade', name: '보스 사냥검', v: 4, unit: '%', desc: '보스에게 주는 피해 +{v}%' },
+    { id: 'clover', name: '행운의 클로버', v: 2, unit: '%', desc: '행운 뽑기 성공률 +{v}%' },
+    { id: 'scroll', name: '의뢰 두루마리', v: 10, unit: '%', desc: '판 미션 금화 보상 +{v}%' },
+    { id: 'glass', name: '날개 모래시계', v: 2, unit: '%', desc: '지휘관 다시 쓰기 시간 −{v}%' },
+  ];
+  D.RELIC_MAX = 10;
+  D.relicCost = lv => 300 + lv * 350;   // Lv → Lv+1 금화
   D.DECK = ['fire', 'gatling', 'bolt', 'ice', 'light'];
   D.V3_DECK = D.DECK.slice();
   D.ALL = D.DECK.slice();   // 도감 · 덱 목록 = 캐릭터 5계열

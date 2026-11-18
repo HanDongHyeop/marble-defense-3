@@ -46,6 +46,12 @@
     $('upClose').addEventListener('click', e => { e.stopPropagation(); s.click && s.click(); open(false); });
     // 판을 누르면 닫힘(밀기 · 탭과 같이)
     $('world').addEventListener('pointerdown', () => { if (!sheet.hidden) open(false); if (!$('v3Sheet').hidden) this.v3Sheet(null); }, true);
+    // [v3.5] 방향 단추(2048 십자) 복구 — 쓸기와 같은 동작. 누르면 그 방향으로 한 번 밀기
+    $('dpad').addEventListener('pointerdown', e => {
+      const b = e.target.closest('[data-d]'); if (!b) return; e.preventDefault(); e.stopPropagation(); s.init();
+      b.classList.remove('hit'); void b.offsetWidth; b.classList.add('hit');
+      if (this.g && !this.g.over) this.labSlide(b.dataset.d);
+    });
     // [v3.1] 아래 줄: 미션 · 조합 · 배속
     const tog = k => { s.init(); if (s.click) s.click(); this.v3Sheet(this._sheetK === k ? null : k); };
     $('misBtn').addEventListener('click', e => { e.stopPropagation(); tog('mis'); });
@@ -55,7 +61,7 @@
     $('v3SheetB').addEventListener('click', e => {
       const b = e.target.closest('[data-v3]'); if (!b || b.disabled) return; e.stopPropagation(); s.init();
       if (!this.g) return;
-      const ok = b.dataset.v3 === 'legend' ? this.app.cmd('makeLegend', [b.dataset.k]) : this.app.cmd('awakenMythic', [+b.dataset.i]);
+      const ok = b.dataset.v3 === 'legend' ? this.app.cmd('makeLegend', [b.dataset.k]) : b.dataset.v3 === 'gamble' ? this.app.cmd('gamble', [b.dataset.k]) : this.app.cmd('awakenMythic', [+b.dataset.i]);
       if (ok) { if (s.click) s.click(); } else s.error();
       this._sheetSig = null; this.v3SheetFill();
     });
@@ -123,7 +129,9 @@
         return '<div class="lrow myth"><span class="lface">' + face(t.tower.type, 4) + '</span><div class="lmid"><b>' + NAME2[t.tower.type] + ' 전설 → 신화</b><div class="mbar"><i style="width:' + (st.gauge * 100) + '%"></i></div><small>' + why + '</small></div>'
           + '<button class="mk ' + (st.ok ? 'go myth' : '') + '" data-v3="myth" data-i="' + t.i + '" ' + (st.ok ? '' : 'disabled') + '>신화 각성<em>신화석 1</em></button></div>';
       }).join('');
-      html = '<div class="v3mix">' + rows + (legs ? '<div class="lsep">판 위 전설</div>' + legs : '') + '</div>';
+      const gb = kind => { const I = g.gambleInfo(kind), nm = kind === 'hero' ? '영웅 뽑기' : '희귀 뽑기', cost = kind === 'hero' ? '신화석 1' : '금화 50';
+        return '<button class="gb ' + kind + (I.ok ? ' go' : '') + '" data-v3="gamble" data-k="' + kind + '" ' + (I.ok ? '' : 'disabled') + '><b>' + nm + '</b><span>성공 ' + Math.round(I.p * 100) + '%</span><em>' + cost + '</em></button>'; };
+      html = '<div class="v3mix">' + rows + (legs ? '<div class="lsep">판 위 전설</div>' + legs : '') + '<div class="lsep">행운 뽑기 — 성공하면 빈 칸에 그 등급 아군(계열 무작위)</div><div class="gbrow">' + gb('rare') + gb('hero') + '</div></div>';
     }
     if (html !== this._sheetSig) { this._sheetSig = html; $('v3SheetB').innerHTML = html; }
   };
@@ -131,6 +139,8 @@
   U.onEvent = function (e) {
     baseOnEv.call(this, e);
     if (e.ev === 'missionDone') this.toast('미션 완료!', e.name, e.reward.myth ? '신화석 +' + e.reward.myth : e.reward.gold ? '금화 +' + e.reward.gold : '', false, 1.8);
+    if (e.ev === 'gamble') { if (e.win) { this.toast('행운 뽑기', '성공!', (e.tier === 3 ? '영웅' : '희귀') + ' 아군이 나왔어요', false, 1.4); if (root.SFX.jackpot) root.SFX.jackpot(); } else { this.toast('행운 뽑기', '꽝…', e.kind === 'hero' ? '위로금 금화 +40' : '다음엔 될 거예요', true, 1.2); if (root.SFX.bad) root.SFX.bad(); } }
+    if (e.ev === 'gambleNo') this.toast('행운 뽑기', e.empty ? '재화가 모자라요' : '빈 칸이 없어요', '', true, 1.2);
     if (e.ev === 'legendNo' && e.cap) this.toast('전설', '판 위 전설은 최대 ' + this.g.constructor.LEGEND_CAP + '개', '', true, 1.2);
   };
 
