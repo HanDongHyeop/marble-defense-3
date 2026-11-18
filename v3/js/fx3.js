@@ -113,6 +113,8 @@
     else if (max) sc = 1 + Math.sin(T * 5) * 0.05;
     c.save(); c.translate(x, y + lift + 2); c.scale(sc, sc); c.transform(1, 0, -0.14, 1, 0, 0);
     c.font = fs + 'px Jua, sans-serif'; c.textAlign = 'center'; c.textBaseline = 'middle'; c.lineJoin = 'round';
+    // 글씨 뒤 반투명 그늘(테두리 · 판 모양 없음): 글씨 폭만큼만, 가장자리로 갈수록 옅어지게 3겹 — 밝은 칸 · 캐릭터 위에서도 읽히게
+    { const tw2 = c.measureText(txt).width; for (let k = 0; k < 3; k++) { const px = 3 + k * 4, py = 1 + k * 2.5; c.fillStyle = 'rgba(14,10,30,' + (0.2 - k * 0.04) + ')'; this.rr(c, -tw2 / 2 - px, -fs * 0.5 - py + 1, tw2 + px * 2, fs + py * 2, (fs + py * 2) / 2); c.fill(); } }
     c.lineWidth = 7; c.strokeStyle = OUT; c.strokeText(txt, 0, 2.5);          // 아래 두께
     c.lineWidth = 5.5; c.strokeText(txt, 0, 0);
     c.lineWidth = 2; c.strokeStyle = '#ffffff'; if (g >= 2) c.strokeText(txt, 0, 0);   // 흰 속테(희귀부터) — 어두운 판 · 밝은 판 모두에서 읽힘

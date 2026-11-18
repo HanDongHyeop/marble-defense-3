@@ -38,7 +38,9 @@
   D.TIER.name = ['', '견습', '숙련', '정예', '영웅', '전설', '신화'];
   D.TIER.ring = ['', '#c9c4bd', '#7fe07a', '#5fb2ff', '#c08cff', '#ffa53a', '#ffd23a'];
   // [v3 밸런스] 구멍(어려움 2칸 · 지옥 4칸)만큼 판이 좁아 v2보다 크게 어려워짐(봇 성장 중간: 어려움 25% · 지옥 성장 높음 25%) → 체력 배율을 낮춰 v2 수준으로
-  if (D.DIFF && !D.DIFF._v3) { D.DIFF._v3 = 1; D.DIFF.hard.hp *= 0.93; D.DIFF.hell.hp *= 0.95; }
+  if (D.DIFF && !D.DIFF._v3) { D.DIFF._v3 = 1; D.DIFF.hard.hp *= 0.8; D.DIFF.hell.hp *= 0.8; }
+  // [v3.4] 전체 체력을 올린 뒤(hpMul 1.8) 뒤쪽 장이 너무 어려움(6장 성장 높음 8%) → 장 체력 배율의 '1을 넘는 몫'을 40%로
+  if (root.META && root.META.CHAPTERS && !root.META._v34) { root.META._v34 = 1; for (const C of root.META.CHAPTERS) C.hp = 1 + (C.hp - 1) * 0.4; }
   if (D.DIFF) { D.DIFF.normal.desc = '4×4 판 그대로'; D.DIFF.hard.desc = '몬스터 체력 ×1.5 · 판 구멍 2칸'; D.DIFF.hell.desc = '몬스터 체력 ×1.6 · 판 구멍 3칸'; }
   if (D.MONSTERS) { D.MONSTERS.normal.name = '돌블록'; D.MONSTERS.fast.name = '날개돌'; D.MONSTERS.giant.name = '큰바위'; }
 })(typeof window !== 'undefined' ? window : globalThis);

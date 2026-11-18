@@ -187,8 +187,8 @@
       if (this.shake > 0) { c.translate((Math.random() - 0.5) * this.shake, (Math.random() - 0.5) * this.shake); this.shake = Math.max(0, this.shake - dt * 40); }
       this.drawGround(c, game);
       this.drawPath(c, game);
-      this.drawDen(c, game);
       this.drawBoard(c, game);
+      this.drawDen(c, game);   // [v3.4] 굴은 판 위 층(판 아래에 그려 굴 윗부분이 판에 잘렸음 — 사용자 지적)
       this.drawWaveArrows(c, game);
       // 몬스터 · 아군을 y 순서로(아래 있는 것이 앞)
       const list = [];
