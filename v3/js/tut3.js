@@ -1,7 +1,7 @@
 // 마블 디펜스 3.5 — 첫 판 튜토리얼(강제 진행 · 스포트라이트). 랜다2 · 운빨존많겜의 첫 전투 안내처럼 '해 보게' 한다.
 //   화면을 어둡게 덮고 눌러야 할 곳만 뚫음(그곳만 터치가 통함) · 뚫린 곳에 고리 맥박 + 손가락 · 말풍선(제목 · 설명) · 단계마다 0.35초 입력 지연(실수 터치 방지)
 //   판은 0라운드에 멈춰 둠(g.startAt을 미룸) → 몬스터 없이 조작만 익히고, 끝나면 1라운드 시작
-//   단계: ① 소환 2번 ② 밀어 합치기(짝을 한 줄에 놓아 줌) ③ 방향 단추 ④ 캐릭터 눌러 범위 ⑤ 강화 열기 → 카드 누르기 ⑥ 조합 · 미션 안내 ⑦ 수정 안내 → 시작
+//   단계: ① 소환 2번 ② 끌어서 합치기(같은 캐릭터 둘을 놓아 줌) [v3.7: 밀기 · 방향 단추 단계 삭제] ④ 캐릭터 눌러 범위 ⑤ 강화 열기 → 카드 누르기 ⑥ 조합 · 미션 안내 ⑦ 수정 안내 → 시작
 //   다시 보기: 일시정지 → 도움말(규칙 카드) · 건너뛰기 단추 있음. 저장: localStorage mdv3_tutdone
 (function (root) {
   const U = root.UI.prototype, G = root.GEOM;
@@ -24,20 +24,18 @@
     return [
       { t: '아군 소환', x: '<b>[소환]</b>을 눌러 아군을 불러 보세요.<br>두 번 눌러 볼까요?', hole: () => rectOf('#rollBtn'), hand: 'tap',
         enter() { g().gold = Math.max(g().gold, 300); this.r0 = g().stats.rolls; }, done() { return g().stats.rolls >= this.r0 + 2; } },
-      { t: '밀어서 합치기', x: '판을 <b>왼쪽으로 쓸어</b> 보세요.<br>같은 레벨끼리 부딪히면 합쳐져 <b>레벨이 올라요</b>.', hole: boardRect, hand: 'swipe',
+      { t: '끌어서 합치기', x: '같은 캐릭터를 <b>끌어서 겹쳐</b> 보세요.<br>같은 캐릭터 · 같은 레벨이면 합쳐져 <b>레벨이 올라요</b>.<br>어떤 계열이 나올지는 운!', hole: boardRect, hand: 'swipe',
         enter() { this.place(); this.m0 = g().stats.merges; },
-        place() { const G0 = g(); for (const t of G0.tiles) if (!t.blocked) t.tower = null; G0.build(12, 'fire', 1); G0.build(14, 'gatling', 1); G0.slideCd = 0; },
-        tick() { const G0 = g(); if (G0.stats.merges > this.m0) return; const L = G0.towersList(); if (L.length === 2 && (L[0].i >> 2) !== (L[1].i >> 2)) { if (!this.fixT) this.fixT = performance.now(); else if (performance.now() - this.fixT > 700) { this.fixT = 0; this.place(); ui.toast('다시!', '왼쪽이나 오른쪽으로 밀어 보세요', '', false, 1.2); } } },
+        place() { const G0 = g(); for (const t of G0.tiles) if (!t.blocked) t.tower = null; G0.build(12, 'fire', 1); G0.build(14, 'fire', 1); },
+        tick() { const G0 = g(); if (G0.stats.merges > this.m0) return; if (G0.towersList().length !== 2) this.place(); },
         done() { return g().stats.merges > this.m0; } },
-      { t: '방향 단추', x: '쓸기가 불편하면 <b>방향 단추</b>로 밀어도 돼요.<br>아무 방향이나 눌러 보세요.', hole: () => rectOf('#dpad'), hand: 'tap',
-        enter() { this.n0 = TUT.slides; }, done() { return TUT.slides > this.n0; } },
       { t: '공격 범위', x: '아군을 <b>눌러</b> 보세요.<br>공격이 닿는 범위가 원으로 보여요.', hole() { const t = g().towersList()[0]; if (!t) return boardRect(); const p = R().drawPos(g(), t.i, t.tower); return { x: p[0] - 64, y: p[1] - 118, w: 128, h: 140 }; }, hand: 'tap',
         enter() { ui.hideInfo(); }, done() { return R().sel != null; } },
       { t: '강화', x: '<b>[강화]</b>를 눌러 창을 여세요.<br>금화로 한 계열 전체를 세게 만들어요.', hole: () => rectOf('#upBtn'), hand: 'tap',
         enter() { ui.hideInfo(); g().gold = Math.max(g().gold, 300); }, done() { return !$('upSheet').hidden; } },
       { t: '강화', x: '계열 카드를 눌러 <b>강화</b>해 보세요.<br>판 위 그 계열이 모두 강해져요.', hole: () => rectOf('#upSheet'), hand: 'tap', bubble: 'top',
         enter() { this.u0 = Object.values(g().upg).reduce((a, b) => a + b, 0); g().gold = Math.max(g().gold, 300); }, done() { return Object.values(g().upg).reduce((a, b) => a + b, 0) > this.u0; }, leave() { if (ui.upOpen) ui.upOpen(false); } },
-      { t: '전설과 신화', x: 'Lv.3까지는 밀어서 합쳐요.<br>그 위 <b>전설</b>은 <b>[조합]</b>에서 재료를 모아 만들고,<br><b>신화</b>는 신화석이 필요해요.<br>신화석은 보스와 <b>[미션]</b>에서 얻어요.', hole: () => { const a = rectOf('#misBtn'), b = rectOf('#mixBtn'); return { x: a.x, y: a.y, w: b.x + b.w - a.x, h: a.h }; }, next: '알겠어요', block: true },
+      { t: '전설과 신화', x: '같은 캐릭터끼리 계속 합치면<br>일반 → 희귀 → 영웅 → <b>전설</b> → <b>신화</b>까지 올라가요.<br><b>[뽑기]</b>에서는 금화 · 신화석으로 행운 뽑기를 해요.<br>신화석은 보스와 <b>[미션]</b>에서 얻어요.', hole: () => { const a = rectOf('#misBtn'), b = rectOf('#mixBtn'); return { x: a.x, y: a.y, w: b.x + b.w - a.x, h: a.h }; }, next: '알겠어요', block: true },
       { t: '수정을 지켜라', x: '몬스터가 <b>왼쪽 위 굴</b>에서 나와 판을 한 바퀴 돌아<br><b>위쪽 수정</b>으로 가요. 닿으면 수정이 깎이고, 0이 되면 끝!', hole: () => { const p = R().cryPos(); return { x: p[0] - 70, y: p[1] - 110, w: 140, h: 150 }; }, next: '시작!', block: true },
     ];
   }

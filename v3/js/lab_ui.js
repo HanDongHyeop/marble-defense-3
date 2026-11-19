@@ -10,7 +10,7 @@
   const RULES = {
     marble: ['지금 판 그대로 — 주사위를 굴려 칸에 멈추고, 같은 포탑끼리 끌어 합쳐요.', '<b>작전 카드(로그라이크)는 뺐어요.</b> 판 시작 · 보스 처치 때 카드 창이 없어요.', '몬스터가 6시 굴에서 <b>양쪽 길</b>로 나와 12시 <b>수정</b>으로 가요. 닿은 만큼 수정이 깎이고(보스 −8), 0이 되면 끝.', '보스 1마리 = 왼쪽 길 · 15 · 20라운드는 <b>2마리가 양쪽</b>에서.'],
     dial: ['주사위 · 말이 없어요. <b>[소환]</b>을 누르면 빈 자리에 포탑이 생겨요.', '<b>판을 손가락으로 돌리면</b> 포탑 고리가 통째로 돌아요. 아래 ⟲ ⟳ 단추도 돼요(꾹 = 계속).', '굴 앞 <b>화살표</b> = 이번 웨이브가 많이 오는 쪽. 그쪽에 센 포탑을 돌려 대세요.', '같은 포탑 + 같은 단계는 끌어서 합치기. 몬스터가 12시 <b>수정</b>에 닿으면 수정이 깎여요.'],
-    slide: LAB.V3 ? ['<b>[소환]</b>을 누르면 빈 칸에 1단계 아군이 나와요. 값은 부를 때마다 조금씩 올라요.', '<b>판을 위 · 아래 · 왼쪽 · 오른쪽으로 쓸면</b>(판 아래 소환 단추 위쪽까지 돼요) 아군이 그쪽 끝까지 미끄러지고, <b>같은 단계끼리 부딪히면 합쳐져 한 단계 올라요</b>(앞에 있던 아군 종류가 남음 — 2048처럼).', '어려움 · 지옥은 판에 <b>구멍</b>이 있어요. 구멍은 벽처럼 막혀요 — 어느 쪽으로 밀지 생각해 보세요.', '<b>[강화]</b> 단추 = 아군 종류별 능력치 업. 몬스터가 12시 <b>수정</b>에 닿으면 수정이 깎여요.']
+    slide: LAB.V3 ? ['<b>[소환]</b>을 누르면 빈 칸에 1단계 아군이 나와요. 값은 부를 때마다 조금씩 올라요.', '<b>같은 캐릭터 · 같은 레벨</b> 둘을 <b>끌어서 겹치면</b>(또는 하나를 누르고 짝을 누르면) 합쳐져 한 등급 올라요. 일반 → 희귀 → 영웅 → 전설 → 신화까지. 합친 뒤 <b>어떤 계열이 나올지는 운</b>이에요.', '아군을 <b>빈 칸으로 끌면 자리를 옮겨요</b>. 길에 가까운 칸일수록 몬스터를 오래 때려요.', '어려움 · 지옥은 판에 <b>구멍</b>이 있어요. 구멍에는 아군이 설 수 없어요.', '<b>[강화]</b> 단추 = 아군 종류별 능력치 업. 몬스터가 12시 <b>수정</b>에 닿으면 수정이 깎여요.']
       : ['<b>[소환]</b>을 누르면 빈 칸에 1단계 포탑이 생겨요. 값은 부를 때마다 조금씩 올라요.', '<b>판을 쓸어 밀면</b>(판 아래 소환 단추 위쪽까지 돼요) 모든 포탑이 그쪽 끝까지 미끄러지고, <b>같은 단계끼리 부딪히면 합쳐져요</b>(앞에 있던 포탑 종류가 남음 — 2048처럼). 아래 방향 단추도 돼요.', '<b>밝은 가장자리 칸</b>이 길에 가까워요. 가운데는 사거리가 잘 안 닿아요.', '굴 앞 화살표 = 많이 오는 쪽. 몬스터가 12시 <b>수정</b>에 닿으면 수정이 깎여요.'],
   };
   const ICON = { marble: '🎲', dial: '⟳', slide: '⇲' };
@@ -91,7 +91,7 @@
   U.onEvent = function (e) {
     if (e.ev === 'mission' && MAP !== 'marble') return;
     baseOnEvent.call(this, e);
-    if (e.ev === 'full') { this.toast('빈 자리가 없어요', MAP === 'slide' ? '밀어서 합치세요' : '끌어서 합치세요', '같은 ' + (MAP === 'slide' ? '단계끼리' : '포탑 + 같은 단계'), true, 1.4); root.SFX.error(); }
+    if (e.ev === 'full') { this.toast('빈 자리가 없어요', '끌어서 합치세요', '같은 캐릭터 + 같은 레벨', true, 1.4); root.SFX.error(); }
     if (e.ev === 'labWave' && C.sides === 'waves' && !C.oneWay && !e.boss && e.tag !== 'even') this.toast(e.round + ' 웨이브', e.tag === 'left' ? '◀ 왼쪽으로 많이 와요' : '오른쪽으로 많이 와요 ▶', MAP === 'dial' ? '센 포탑을 그쪽으로 돌려 대세요' : '그쪽 가장자리로 밀어 두세요', false, 1.8);
     if (e.ev === 'cryHit' && root.HAPTIC && root.HAPTIC.buzz) try { root.HAPTIC.buzz(e.boss ? 140 : 40); } catch (er) { /* 없음 */ }
   };
@@ -107,7 +107,7 @@
     const r = rec[MAP] || { plays: 0, wins: 0, best: 0 };
     r.plays++; if (win) r.wins++; r.best = Math.max(r.best, win ? 21 : g.round);
     rec[MAP] = r; try { localStorage.setItem('marbleLab_rec', JSON.stringify(rec)); } catch (er) { /* 저장 안 됨 */ }
-    const verb = MAP === 'marble' ? ['최대 연속 출동', '×' + g.comboMax] : MAP === 'dial' ? ['돌린 칸', Math.round(g.rotMoved || 0)] : ['밀기', g.stats.slides || 0];
+    const verb = MAP === 'marble' ? ['최대 연속 출동', '×' + g.comboMax] : MAP === 'dial' ? ['돌린 칸', Math.round(g.rotMoved || 0)] : ['합치기', g.stats.merges || 0];
     const m = this.open(`<div class="mbox labres"><h2 style="font-size:46px;color:${win ? '#ffd23a' : '#ff8a8a'}">${win ? '수정을 지켰다!' : '수정이 깨졌다'}</h2>
       <p class="sub">${LAB.TITLE[MAP]} · ${win ? '20라운드 끝까지' : g.round + '라운드에서'}</p>
       <div class="stat">
@@ -156,6 +156,8 @@
 
   // ============================================================ ③ 밀어 합치기: 판 쓸기 = 밀기 · 짧게 누르기 = 포탑 정보
   if (MAP === 'slide') {
+    const DRAGM = !!(root.GRADE3 && root.GRADE3.C3 && root.GRADE3.C3.drag);   // [v3.7] 끌어서(또는 탭-탭) 합치기 — 밀기 없음
+    if (DRAGM) document.body.classList.add('dragmode');
     const dirOf = (x0, y0, x1, y1) => {
       const GEO = root.LAB_GEO_INST, a = GEO.toUV(x0, y0), b = GEO.toUV(x1, y1), du = b[0] - a[0], dv = b[1] - a[1];
       return Math.abs(du) >= Math.abs(dv) ? (du > 0 ? '+U' : '-U') : (dv > 0 ? '+V' : '-V');
@@ -175,9 +177,56 @@
         else if (g.cmd.id === 'teleporter') this.toast('순간이동술사', '바꿀 칸을 누르세요', '빈 칸이면 그리로 옮겨요', false, 1.8);
         return;
       }
+      if (DRAGM) {   // 아군을 누름 = 고르기(범위 · 합칠 짝 표시) / 누른 채 끌기 = 들고 가서 짝 위에 놓기 / 고른 뒤 짝을 누름 = 합치기
+        const i = this.towerAt(x, y);
+        if (i == null) { this.hideInfo(); this.press = null; return; }
+        this.press = { i, x, y, t: performance.now() };
+        return;
+      }
       this.swipe = { x, y, t: performance.now(), i: this.towerAt(x, y) };
     };
+    U.dragMove = function (e) {
+      const p = this.press, g = this.g; if (!p || !g) return;
+      const [x, y] = this.pt(e), R = this.app.renderer;
+      if (!R.drag && Math.hypot(x - p.x, y - p.y) > 10) {
+        if (!g.tiles[p.i].tower || g.tiles[p.i].occ) { this.press = null; return; }
+        const f = R.drawPos(g, p.i, g.tiles[p.i].tower);
+        this.hideInfo();
+        R.drag = { from: p.i, offX: f[0] - p.x, offY: f[1] - p.y, target: null, fx: f[0], fy: f[1] };
+        if (root.HAPTIC) root.HAPTIC.play('pick');
+      }
+      if (R.drag) {
+        const d = R.drag; d.fx = x + d.offX; d.fy = y + d.offY;
+        let best = null, bd = 78, any = 1e9;   // 든 아군 발밑에서 78px 안의 '합칠 수 있는' 가장 가까운 짝(어긋나게 놔도 됨)
+        for (const t of g.tiles) {
+          if (!t.tower || t.i === d.from) continue;
+          const q = G.tiles[t.i].tower, dd = Math.hypot(q[0] - d.fx, q[1] + G.CFG.cell * 0.3 - d.fy);
+          any = Math.min(any, dd);
+          if (dd < bd && g.canMerge(d.from, t.i)) { bd = dd; best = t.i; }
+        }
+        if (best != null && best !== d.target && root.HAPTIC) root.HAPTIC.play('select');
+        d.target = best; d.wrong = best == null && any < 40;
+        // 합칠 짝이 없으면: 든 아군 발밑에서 가장 가까운 빈 칸(64px 안) = 자리 옮기기
+        d.moveTo = null;
+        if (best == null && !d.wrong) { let md = 64; for (const t of g.tiles) { if (t.tower || t.blocked) continue; const q = G.tiles[t.i].tower, dd = Math.hypot(q[0] - d.fx, q[1] + G.CFG.cell * 0.3 - d.fy); if (dd < md) { md = dd; d.moveTo = t.i; } } }
+      }
+    };
+    U.dragUp = function (e) {
+      const p = this.press, g = this.g, R = this.app.renderer; this.press = null; if (!g) return;
+      if (R.drag) {
+        const d = R.drag; R.drag = null;
+        if (d.target != null) { if (this.app.cmd('merge', [d.from, d.target]) && root.HAPTIC) root.HAPTIC.play('select'); return; }
+        if (d.moveTo != null) { if (this.app.cmd('moveTo', [d.from, d.moveTo])) { if (root.HAPTIC) root.HAPTIC.play('select'); this.sfx().click && this.sfx().click(); } return; }
+        if (d.wrong) { this.sfx().error(); if (root.HAPTIC) root.HAPTIC.play('deny'); this.toast('합칠 수 없어요', '같은 캐릭터 · 같은 레벨끼리만', '', true, 1.1); }
+        return;
+      }
+      if (!p || performance.now() - p.t > 450) return;
+      const s = R.sel;
+      if (s != null && s !== p.i && g.canMerge(s, p.i)) { this.hideInfo(); if (this.app.cmd('merge', [s, p.i]) && root.HAPTIC) root.HAPTIC.play('select'); return; }
+      this.showInfo(p.i);
+    };
     U.move = function (e) {
+      if (DRAGM) return this.dragMove(e);
       const s = this.swipe; if (!s || s.done) return;
       const [x, y] = this.pt(e);
       // 소환 단추에서 시작: 손가락이 조금이라도(화면 10px) 움직이면 '탭'이 아니라 밀기 → 소환하지 않음
@@ -185,12 +234,14 @@
       if (Math.hypot(x - s.x, y - s.y) > 46) { s.done = true; this.labSlide(dirOf(s.x, s.y, x, y)); }
     };
     U.up = function (e) {
+      if (DRAGM) return this.dragUp(e);
       const s = this.swipe; this.swipe = null; if (!s || s.done) return;
       const [x, y] = this.pt(e);
       if (Math.hypot(x - s.x, y - s.y) > 26) { this.labSlide(dirOf(s.x, s.y, x, y)); return; }
       if (s.i != null && performance.now() - s.t < 450) this.showInfo(s.i); else this.hideInfo();
     };
     U.labSlide = function (dir) {
+      if (DRAGM) return;
       this.hideInfo();
       if (this.app.cmd('slide', [dir])) { if (root.HAPTIC) root.HAPTIC.play('select'); }
       else { if (root.HAPTIC) root.HAPTIC.play('deny'); }
@@ -200,6 +251,7 @@
     const TAP_PX = 10;
     const NOT_SWIPE = '#world, #labPad, #cmdBtn, #truckBtn, #pauseBtn, #autoBtn, #deckRow, #upBtn, #upSheet, #subRow, #v3Sheet, #dpad, #modal, #infoBox, #offerCard';
     U.labGestureBind = function () {
+      if (DRAGM) return;
       const stage = document.getElementById('stage'), roll = document.getElementById('rollBtn');
       stage.addEventListener('pointerdown', e => {
         const g = this.g; if (!g || g.over || g.paused || this.modalOpen() || g.pick || this.cmdArm) return;

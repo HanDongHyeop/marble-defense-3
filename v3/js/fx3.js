@@ -19,6 +19,31 @@
   const hash = n => { const s = Math.sin(n * 127.1 + 311.7) * 43758.5453; return s - Math.floor(s); };
   const ease = q => 1 - (1 - q) * (1 - q);
   const SPR = 0.52;   // 2차 그림 배율(칸 대비)
+  // [v3.7] 캐릭터별 공격: 그림 2장(평소 · 공격 자세 <계열>_<등급>_atk.png — 1.4배 넓은 창, 같은 배율 · 같은 발 위치)을 바꿔 끼우고, 몸짓 · 발사 위치 · 탄 모양을 캐릭터마다 따로 둔다.
+  //   전: 그림 1장을 계열 5종이 같은 식으로 밀고 찌그러뜨림 + 발사 위치가 전부 '몸 앞 30px · 위 44px' 고정 → 입 · 손 · 무기와 어긋남
+  //   k = 몸짓(lunge 내지르기 · recoil 반동 · pulse 부풀기 · hop 뛰기 · breath 내뿜기 · slam 내려치기), a = 세기(px), m = 발사 위치(공격 그림 안 0~1, 왼쪽 보는 기준),
+  //   s = 탄 모양, z = 탄 크기, hold = 공격 그림을 보여 주는 구간(0~1), arc = 포물선 높이
+  const MOT = {
+    fire: [{ k: 'lunge', a: 10, m: [0.24, 0.72], s: 'fire', z: 0.8 }, { k: 'hop', a: 8, m: [0.38, 0.46], s: 'crescent' }, { k: 'lunge', a: 18, m: [0.23, 0.77], s: 'fire', z: 1.15 }, { k: 'breath', a: 6, m: [0.23, 0.60], s: 'cone', hold: 0.75 }, { k: 'breath', a: 8, m: [0.28, 0.62], s: 'cone', hold: 0.75, z: 1.2 }],
+    mech: [{ k: 'recoil', a: 6, m: [0.43, 0.60], s: 'needle', z: 0.7 }, { k: 'recoil', a: 10, m: [0.29, 0.63], s: 'orb' }, { k: 'recoil', a: 9, m: [0.25, 0.70], s: 'twin' }, { k: 'slam', a: -4, m: [0.35, 0.35], s: 'orb', arc: 46 }, { k: 'recoil', a: 7, m: [0.19, 0.72], s: 'mech' }],
+    storm: [{ k: 'pulse', m: [0.24, 0.74] }, { k: 'pulse', m: [0.50, 0.60] }, { k: 'lunge', a: 8, m: [0.27, 0.75] }, { k: 'lunge', a: 14, m: [0.23, 0.67] }, { k: 'lunge', a: 12, m: [0.14, 0.67] }],
+    frost: [{ k: 'hop', a: 12, m: [0.30, 0.62], s: 'orb', z: 0.7 }, { k: 'lunge', a: 8, m: [0.21, 0.69], s: 'orb' }, { k: 'hop', a: 8, m: [0.44, 0.47], s: 'frost' }, { k: 'breath', a: 8, m: [0.17, 0.71], s: 'cone', hold: 0.75 }, { k: 'slam', a: 12, m: [0.15, 0.77], s: 'crescent', z: 1.2 }],
+    knight: [{ k: 'slam', a: 10, m: [0.29, 0.89], s: 'crescent', z: 0.8 }, { k: 'lunge', a: 16, m: [0.09, 0.72], s: 'needle' }, { k: 'slam', a: 10, m: [0.50, 0.37], s: 'star' }, { k: 'lunge', a: 20, m: [0.09, 0.66], s: 'needle', z: 1.3 }, { k: 'slam', a: 12, m: [0.19, 0.88], s: 'knight', z: 1.2 }],
+  };
+  const motOf = (f, g) => (MOT[f] || MOT.fire)[Math.max(0, Math.min(4, g - 1))];
+  R.atkPic = function (type, tier) { const f = famOf(type), g = GRADE[tier] || 1; return FAM[type] ? this.pic('a2k_' + f + g, 'v3/img/ally2/' + f + '_' + g + '_atk.png') : null; };
+  const basePre = R.preload;
+  R.preload = function () { basePre.call(this); for (const f of Object.values(FAM)) for (let g = 1; g <= 5; g++) this.pic('a2k_' + f + g, 'v3/img/ally2/' + f + '_' + g + '_atk.png'); };
+  // 발사 위치(화면 좌표): 공격 그림 안의 점(입 · 손 · 총구 · 무기 끝)을 그 캐릭터가 보는 방향에 맞춰 옮김
+  R.muzzle = function (game, i) {
+    const t = game.tiles[i], tw = t && t.tower; if (!tw || !FAM[tw.type]) return null;
+    const p = this.drawPos(game, i, tw), f = famOf(tw.type), M = motOf(f, GRADE[tw.tier] || 1), dir = (this.face && this.face[tw.id]) || -1;
+    const w = this.allySize(tw.tier) * SPR, w2 = w * 1.4;
+    return [p[0] + (dir > 0 ? -1 : 1) * (M.m[0] - 0.5) * w2, p[1] - 4 - (w2 - w * 0.06) + M.m[1] * w2 + (f === 'storm' ? -6 : 0)];
+  };
+  // [v3.7] 끌기: 든 아군은 손가락을 따라옴 · 맨 위에 그림
+  const baseDrawPos = R.drawPos;
+  R.drawPos = function (g, i, tw) { const d = this.drag; if (d && d.from === i && d.fx != null && tw) return [d.fx, d.fy + 1e-3]; return baseDrawPos.call(this, g, i, tw); };
 
   // ------------------------------------------------------------------ 사건: 방향 · 총구 효과 · 맞는 효과
   const baseConsume = R.consume;
@@ -35,7 +60,8 @@
           const g = GRADE[tw.tier] || 1, f = famOf(tw.type), dir = this.face[tw.id] || -1;
           const prev = this.towerAnim[e.i];
           this.towerAnim[e.i] = { t: this.time, tx: e.tx, ty: e.ty, n: prev ? (prev.n || 0) + 1 : 0 };
-          if (this.fx3.length < 140) this.fx3.push({ k: 'mz', f, g, x: p[0] + dir * 30, y: p[1] - 44, dir, t: this.time, life: f === 'knight' ? 0.2 : 0.12, s: hash(tw.id + this.time) });
+          const mzp = this.muzzle(game, e.i) || [p[0] + dir * 30, p[1] - 44];
+          if (this.fx3.length < 140) this.fx3.push({ k: 'mz', f, g, x: mzp[0], y: mzp[1], dir, t: this.time, life: f === 'knight' ? 0.2 : 0.12, s: hash(tw.id + this.time) });
           if (A && A.fire) A.fire(e.type, e.tier);
         }
         continue;
@@ -57,7 +83,8 @@
     if (!this.face) { this.face = {}; this.fx3 = []; this.trail = {}; this.lvSeen = {}; this.lvPop = {}; }
     const tw = t.tower, T = this.time, pos = this.drawPos(game, t.i, tw), x = pos[0], y = pos[1], size = this.allySize(tw.tier);
     const f = famOf(tw.type), g = GRADE[tw.tier] || 1, dir = this.face[tw.id] || -1;
-    const an = this.towerAnim[t.i], aps = game.apsOf ? Math.max(0.5, game.apsOf(t.i)) : 1, dur = Math.min(0.24, 0.75 / aps);
+    const an = this.towerAnim[t.i], aps = game.apsOf ? Math.max(0.5, game.apsOf(t.i)) : 1, dur = Math.min(0.42, Math.max(0.2, 0.85 / aps));
+    const M = motOf(f, g), drg = this.drag && this.drag.from === t.i; let atk = false;
     const at = an ? T - an.t : 9, q = at < dur ? at / dur : -1;
     const pop = this.pop[tw.id] != null ? T - this.pop[tw.id] : 9;
     // 기본 숨쉬기(폭풍은 둥둥 떠 있음)
@@ -65,18 +92,27 @@
     if (pop >= 0 && pop < 0.35) { const k = pop / 0.35, b = Math.sin(k * Math.PI); sx = 1 + b * 0.22; sy = 1 - b * 0.14; if (k < 0.25) { sx *= 0.6 + k * 1.6; sy *= 0.6 + k * 1.6; } }
     else if (q >= 0) {
       // 공격 몸짓: 앞 30% = 모으기(뒤로 움츠림), 뒤 70% = 지르기 → 돌아옴
-      const wind = q < 0.3 ? q / 0.3 : 0, hit = q >= 0.3 ? Math.sin((q - 0.3) / 0.7 * Math.PI) : 0;
-      if (f === 'fire') { ox = dir * (-5 * wind + 16 * hit); sx = 1 - 0.08 * wind + 0.14 * hit; sy = 1 + 0.08 * wind - 0.1 * hit; rot = dir * 0.1 * hit; }
-      else if (f === 'mech') { ox = -dir * 9 * hit; sx = 1 - 0.07 * hit; sy = 1 + 0.05 * hit; rot = -dir * 0.06 * hit; }
-      else if (f === 'storm') { sx = 1 + 0.16 * hit - 0.06 * wind; sy = 1 + 0.16 * hit - 0.06 * wind; oy -= 6 * hit; }
-      else if (f === 'frost') { oy = -12 * hit; rot = dir * (-0.16 * wind + 0.22 * hit); ox = dir * 5 * hit; }
-      else { ox = dir * (-4 * wind + 12 * hit); rot = dir * (-0.3 * wind + 0.34 * hit); sy = 1 + 0.04 * hit; }
+      // [v3.7] 쏘는 순간 바로 공격 그림으로 바뀌고(탄이 떠나는 때와 맞음) → 잠깐 버팀 → 평소 그림으로 돌아오며 가라앉음. e = 세기(0 → 1 → 0.75 → 0)
+      const e = q < 0.12 ? q / 0.12 : q < 0.55 ? 1 - (q - 0.12) / 0.43 * 0.25 : 0.75 * (1 - (q - 0.55) / 0.45), A = M.a || 10;
+      atk = q < (M.hold || 0.6);
+      if (M.k === 'lunge') { ox = dir * A * e; rot = dir * 0.05 * e; }
+      else if (M.k === 'recoil') { ox = -dir * A * e; rot = -dir * 0.07 * e; }
+      else if (M.k === 'pulse') { sx = 1 + 0.13 * e; sy = 1 + 0.13 * e; oy -= 5 * e; }
+      else if (M.k === 'hop') { oy -= A * Math.sin(Math.min(1, q / 0.7) * Math.PI); ox = dir * 4 * e; }
+      else if (M.k === 'breath') { ox = dir * A * e; sx = 1 + 0.05 * e; sy = 1 - 0.03 * e; }
+      else { ox = dir * A * e; oy += 3 * e; rot = dir * 0.1 * e; sx = 1 + 0.06 * e; sy = 1 - 0.05 * e; }
+      if (q >= 0.6 && q < 0.8) { const b = Math.sin((q - 0.6) / 0.2 * Math.PI); sx *= 1 + 0.05 * b; sy *= 1 - 0.05 * b; }   // 돌아오며 살짝 눌림
     }
     const dis = game.disabled ? game.disabled(t.i) : false, stop = game.t < (t.stopUntil || 0);
     const col = GC[g][1];
+    if (drg) { oy -= 14; sx *= 1.1; sy *= 1.1;
+      if (this.drag.moveTo != null) { const h = G.tiles[this.drag.moveTo].tower, hy = h[1] + G.CFG.cell * 0.3 - 4, b = 0.5 + 0.5 * Math.sin(T * 9); c.save(); c.strokeStyle = 'rgba(255,255,255,' + (0.6 + 0.4 * b) + ')'; c.lineWidth = 4; c.setLineDash([10, 7]); c.lineDashOffset = -T * 30; c.beginPath(); c.ellipse(h[0], hy, 34, 12, 0, 0, TAU); c.stroke(); c.restore(); } }
+    // [v3.7] 합칠 수 있는 짝 표시: 고르거나 든 아군과 같은 계열 · 같은 등급이면 발밑 고리가 뛰고 살짝 들썩임(든 아군이 닿은 짝은 더 밝게)
+    const src = this.drag ? this.drag.from : this.sel, mate = game.dragMode && src != null && src !== t.i && game.canMerge(src, t.i), tgt = this.drag && this.drag.target === t.i;
+    if (mate) { const b = 0.5 + 0.5 * Math.sin(T * 9); oy -= 3 * b; c.save(); c.strokeStyle = rgba(tgt ? '#ffffff' : GC[g][0], tgt ? 1 : 0.55 + 0.4 * b); c.lineWidth = tgt ? 6 : 4; c.beginPath(); c.ellipse(x, y - 4, 36 + 4 * b + (tgt ? 6 : 0), 13 + 1.5 * b + (tgt ? 2 : 0), 0, 0, TAU); c.stroke(); c.restore(); }
     // 발밑: 그림자 + 등급 빛(전설 · 신화는 도는 고리)
     c.save();
-    c.fillStyle = 'rgba(20,10,30,0.26)'; c.beginPath(); c.ellipse(x, y - 2, 30, 9, 0, 0, TAU); c.fill();
+    c.fillStyle = 'rgba(20,10,30,' + (drg ? 0.16 : 0.26) + ')'; c.beginPath(); c.ellipse(x, y - 2, drg ? 24 : 30, drg ? 7 : 9, 0, 0, TAU); c.fill();
     if (g >= 2) { const gl = c.createRadialGradient(x, y - 4, 2, x, y - 4, 46); gl.addColorStop(0, rgba(col, g >= 4 ? 0.75 : 0.5)); gl.addColorStop(1, rgba(col, 0)); c.fillStyle = gl; c.beginPath(); c.ellipse(x, y - 4, 46, 16, 0, 0, TAU); c.fill(); }
     if (g >= 4) {
       c.strokeStyle = rgba(GC[g][0], 0.9); c.lineWidth = 3; c.setLineDash([9, 7]); c.lineDashOffset = -T * 34; c.beginPath(); c.ellipse(x, y - 4, 38, 13, 0, 0, TAU); c.stroke(); c.setLineDash([]);
@@ -84,20 +120,20 @@
     }
     c.restore();
     // 몸
-    const im = this.allyPic(tw.type, tw.tier);
+    const im = this.allyPic(tw.type, tw.tier), ima = atk && im ? this.atkPic(tw.type, tw.tier) : null;
     c.save(); c.translate(x + ox, y - 4 + oy);
     if (dir > 0) c.scale(-1, 1);   // 그림은 왼쪽을 본다
     c.rotate(dir > 0 ? -rot : rot); c.scale(sx, sy);
     if (dis || stop) c.filter = 'grayscale(0.85) brightness(0.8)';
     let top = 84;
-    if (im) { const two = im.src.indexOf('ally2') >= 0, w = size * (two ? SPR : 1), h = w * im.naturalHeight / im.naturalWidth; c.drawImage(im, -w / 2, -h * 0.94, w, h); top = two ? h * 0.9 : h * 0.72; }
+    if (im) { const two = im.src.indexOf('ally2') >= 0, w = size * (two ? SPR : 1), h = w * im.naturalHeight / im.naturalWidth; if (ima && two) c.drawImage(ima, -w * 0.7, -(h * 1.4 - h * 0.06), w * 1.4, h * 1.4); else c.drawImage(im, -w / 2, -h * 0.94, w, h); top = two ? h * 0.9 : h * 0.72; }
     else this.allyShape(c, 'sword', tw.tier, size);
     c.filter = 'none';
     c.restore();
     // 레벨 배지(머리 위)
     if (this.lvSeen[tw.id] !== tw.tier) { if (this.lvSeen[tw.id] != null) this.lvPop[tw.id] = T; this.lvSeen[tw.id] = tw.tier; }
     this.lvBadge(c, x, y - 4 + oy - top - 6, g, T - (this.lvPop[tw.id] != null ? this.lvPop[tw.id] : -9), t.i);
-    if (tw.tier === 5 && game.mythState) {   // 전설: 신화 각성 게이지
+    if (tw.tier === 5 && game.mythState && !game.dragMode) {   // 전설: 신화 각성 게이지
       const st = game.mythState(t.i), k = st ? st.gauge : 0, bw = 58, by = y + 10;
       c.fillStyle = 'rgba(20,14,30,0.75)'; this.rr(c, x - bw / 2 - 2, by - 2, bw + 4, 10, 5); c.fill();
       c.fillStyle = k >= 1 ? (Math.sin(T * 8) > 0 ? '#ffe14a' : '#ff8a3a') : '#ff9a3a'; if (k > 0.04) { this.rr(c, x - bw / 2, by, bw * k, 6, 3); c.fill(); }
@@ -168,10 +204,14 @@
       if (s.delay > 0 || s.done) continue;
       live[s.id] = 1;
       const tr = this.trail[s.id] || (this.trail[s.id] = []);
-      tr.push(s.x, s.y); if (tr.length > 12) tr.splice(0, 2);
-      const f = famOf(s.type), g = GRADE[s.tier] || 1, big = g >= 4, myth = g >= 5, C = FC[f];
-      const dx = s.tx - s.sx, dy = s.ty - s.sy, a = Math.atan2(dy, dx), k = big ? (myth ? 1.7 : 1.35) : 1;
-      if (f === 'storm') { this.bolt3(c, s.sx, s.sy, s.x, s.y, C, k, s.id, T); continue; }
+      const f = famOf(s.type), g = GRADE[s.tier] || 1, big = g >= 4, myth = g >= 5, C = FC[f], M = motOf(f, g), kd = M.s || f;
+      // [v3.7] 탄은 그 캐릭터의 발사 위치(입 · 손 · 총구 · 무기 끝)에서 떠나 규칙상의 길로 합쳐짐(가는 동안 어긋남이 0으로 줄어듦)
+      const mz = s.i != null && game.tiles[s.i] && game.tiles[s.i].tower && game.tiles[s.i].tower.type === s.type ? this.muzzle(game, s.i) : null;
+      const tot = Math.hypot(s.tx - s.sx, s.ty - s.sy) || 1, pr = Math.min(1, Math.hypot(s.x - s.sx, s.y - s.sy) / tot);
+      const SX = mz ? mz[0] : s.sx, SY = mz ? mz[1] : s.sy, X = s.x + (SX - s.sx) * (1 - pr), Y = s.y + (SY - s.sy) * (1 - pr) - (M.arc ? Math.sin(pr * Math.PI) * M.arc : 0);
+      tr.push(X, Y); if (tr.length > 12) tr.splice(0, 2);
+      const dx = s.tx - SX, dy = s.ty - SY, a = Math.atan2(dy, dx) - (M.arc ? Math.cos(pr * Math.PI) * 0.6 * (dx < 0 ? -1 : 1) : 0), k = (big ? (myth ? 1.7 : 1.35) : 1) * (M.z || 1);
+      if (f === 'storm') { this.bolt3(c, SX, SY, X, Y, C, k, s.id, T); continue; }
       // 꼬리(지나온 자리)
       const n = tr.length / 2;
       c.save(); c.globalCompositeOperation = 'lighter';
@@ -182,17 +222,42 @@
         else if (f === 'knight') { c.fillStyle = rgba(C[0], 0.3 * w); c.beginPath(); c.arc(px, py, 6 * w * k, 0, TAU); c.fill(); }
       }
       c.restore();
-      c.save(); c.translate(s.x, s.y); c.rotate(a);
-      if (f === 'fire') {
+      c.save(); c.translate(X, Y); c.rotate(a);
+      { const gw = Math.min(1, pr * tot / (46 * k)); if (gw < 1) c.scale(0.3 + 0.7 * gw, 0.55 + 0.45 * gw); }   // 막 떠난 탄은 작게 시작해 자람 — 꼬리가 캐릭터 몸을 덮지 않게
+      if (kd === 'crescent') {   // 휘두른 자국: 초승달(불꼬리 · 얼음 발톱 · 몽둥이)
+        const r = 13 * k;
+        c.fillStyle = rgba(C[2], 0.9); c.beginPath(); c.arc(-r * 0.5, 0, r * 1.25, -1.15, 1.15); c.arc(-r * 1.1, 0, r * 1.25, 0.85, -0.85, true); c.closePath(); c.fill();
+        c.fillStyle = C[0]; c.beginPath(); c.arc(-r * 0.5, 0, r * 1.12, -1.05, 1.05); c.arc(-r * 0.95, 0, r * 1.12, 0.8, -0.8, true); c.closePath(); c.fill();
+        c.fillStyle = C[1]; c.beginPath(); c.arc(-r * 0.5, 0, r, -0.85, 0.85); c.arc(-r * 0.78, 0, r, 0.68, -0.68, true); c.closePath(); c.fill();
+      } else if (kd === 'needle') {   // 찌르기 · 가는 광선: 앞이 뾰족한 긴 바늘
+        const L = 34 * k, w = 4.5 * k;
+        c.fillStyle = OUT; c.beginPath(); c.moveTo(8, 0); c.lineTo(-L * 0.25, -w - 2); c.lineTo(-L, 0); c.lineTo(-L * 0.25, w + 2); c.closePath(); c.fill();
+        c.fillStyle = C[0]; c.beginPath(); c.moveTo(5, 0); c.lineTo(-L * 0.25, -w); c.lineTo(-L + 4, 0); c.lineTo(-L * 0.25, w); c.closePath(); c.fill();
+        c.fillStyle = C[1]; c.beginPath(); c.moveTo(4, 0); c.lineTo(-L * 0.2, -w * 0.45); c.lineTo(-L * 0.7, 0); c.closePath(); c.fill();
+      } else if (kd === 'orb') {   // 던진 덩어리: 포탄 · 눈덩이(짙은 테 + 밝은 면 + 반짝)
+        const r = 9 * k;
+        c.fillStyle = OUT; c.beginPath(); c.arc(0, 0, r + 2.5, 0, TAU); c.fill();
+        c.fillStyle = f === 'mech' ? '#5a5560' : C[1]; c.beginPath(); c.arc(0, 0, r, 0, TAU); c.fill();
+        c.fillStyle = f === 'mech' ? '#8a8490' : '#ffffff'; c.beginPath(); c.arc(r * 0.25, -r * 0.3, r * 0.5, 0, TAU); c.fill();
+        if (f === 'mech') { c.fillStyle = C[0]; c.beginPath(); c.arc(-r - 3, 0, 4 + Math.sin(T * 40 + s.id) * 1.5, 0, TAU); c.fill(); }
+      } else if (kd === 'twin') {   // 쌍포: 예광탄 두 줄
+        const L = 24 * k, w = 3.5 * k;
+        for (const off of [-6, 6]) { const tg = c.createLinearGradient(-L, 0, 4, 0); tg.addColorStop(0, rgba(C[2], 0)); tg.addColorStop(0.6, rgba(C[0], 0.85)); tg.addColorStop(1, '#ffffff'); c.strokeStyle = tg; c.lineWidth = w * 1.8; c.lineCap = 'round'; c.beginPath(); c.moveTo(-L, off); c.lineTo(2, off); c.stroke(); c.fillStyle = C[1]; c.beginPath(); c.ellipse(3, off, w * 1.4, w, 0, 0, TAU); c.fill(); }
+      } else if (kd === 'star') {   // 철퇴: 도는 가시 공
+        c.rotate(T * 14 + s.id); const r = 10 * k;
+        c.fillStyle = OUT; c.beginPath(); for (let n = 0; n < 16; n++) { const an = n / 16 * TAU, rr = (n % 2 ? r : r * 1.7) + 2; c.lineTo(Math.cos(an) * rr, Math.sin(an) * rr); } c.closePath(); c.fill();
+        c.fillStyle = C[0]; c.beginPath(); for (let n = 0; n < 16; n++) { const an = n / 16 * TAU, rr = n % 2 ? r * 0.9 : r * 1.5; c.lineTo(Math.cos(an) * rr, Math.sin(an) * rr); } c.closePath(); c.fill();
+        c.fillStyle = C[1]; c.beginPath(); c.arc(-r * 0.2, -r * 0.2, r * 0.45, 0, TAU); c.fill();
+      } else if (kd === 'fire' || kd === 'cone') {
         // 불덩이: 뒤로 흔들리는 불꼬리 3갈래 + 짙은 테 + 밝은 속
-        const r = 9 * k, wob = Math.sin(T * 40 + s.id);
+        const r = (kd === 'cone' ? 11 : 9) * k, wob = Math.sin(T * 40 + s.id); if (kd === 'cone') c.scale(1.5, 1);   // 내뿜기: 길게 늘인 불 · 냉기 혀
         c.fillStyle = C[2]; c.beginPath(); c.moveTo(r * 0.6, -r); c.quadraticCurveTo(-r * 2.2, -r * 1.3 + wob * 3, -r * 3.4, wob * 4); c.quadraticCurveTo(-r * 2.2, r * 1.3 + wob * 3, r * 0.6, r); c.closePath(); c.fill();
         c.fillStyle = C[0]; c.beginPath(); c.moveTo(r * 0.7, -r * 0.8); c.quadraticCurveTo(-r * 1.4, -r * 0.9 - wob * 2, -r * 2.4, -wob * 3); c.quadraticCurveTo(-r * 1.4, r * 0.9 - wob * 2, r * 0.7, r * 0.8); c.closePath(); c.fill();
         const gr = c.createRadialGradient(r * 0.1, 0, 1, 0, 0, r); gr.addColorStop(0, '#ffffff'); gr.addColorStop(0.5, C[1]); gr.addColorStop(1, C[0]);
         c.fillStyle = gr; c.beginPath(); c.arc(0, 0, r, 0, TAU); c.fill();
         if (big) { c.strokeStyle = rgba(C[1], 0.8); c.lineWidth = 2.5; c.beginPath(); c.arc(0, 0, r + 5 + wob * 2, -1.1, 1.1); c.stroke(); }
         if (myth) { c.strokeStyle = rgba('#ffffff', 0.7); c.lineWidth = 2; c.beginPath(); c.arc(0, 0, r + 11 - wob * 2, -0.8, 0.8); c.stroke(); }
-      } else if (f === 'mech') {
+      } else if (kd === 'mech') {
         // 예광탄: 긴 빛줄기(뒤로 사라짐) + 뜨거운 머리
         const L = 30 * k, w = 4 * k;
         const tg = c.createLinearGradient(-L, 0, 4, 0); tg.addColorStop(0, rgba(C[2], 0)); tg.addColorStop(0.6, rgba(C[0], 0.85)); tg.addColorStop(1, '#ffffff');
@@ -200,7 +265,7 @@
         c.strokeStyle = '#ffffff'; c.lineWidth = w * 0.7; c.beginPath(); c.moveTo(-L * 0.45, 0); c.lineTo(3, 0); c.stroke();
         c.fillStyle = C[1]; c.beginPath(); c.ellipse(3, 0, w * 1.5, w, 0, 0, TAU); c.fill();
         if (myth) { c.strokeStyle = rgba('#ff5a3a', 0.8); c.lineWidth = 2; c.beginPath(); c.moveTo(-L, -5); c.lineTo(-6, -5); c.moveTo(-L, 5); c.lineTo(-6, 5); c.stroke(); }
-      } else if (f === 'frost') {
+      } else if (kd === 'frost') {
         // 얼음 조각: 빙글 도는 마름모 결정(밝은 면 · 어두운 면) + 큰 등급은 작은 조각 둘이 따라 돎
         c.rotate(T * 16 + s.id);
         const r = 11 * k;

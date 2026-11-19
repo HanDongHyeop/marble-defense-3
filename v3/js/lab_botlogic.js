@@ -65,7 +65,7 @@
         let k = s; while (k - 1 >= 0 && !grid[cells[k - 1]]) k--;
         const fr = k - 1 >= 0 ? cells[k - 1] : -1;
         if (fr >= 0 && g.heroMerge && grid[fr] && !grid[fr].fixed && !grid[fr].m && A.tier === 3 && grid[fr].tier === 3) { grid[fr].m = true; grid[from] = null; mergeGain += HG; moved++; continue; }   // [v3.6 실험] 영웅 흡수: 판이 찼을 때만 이득으로 봄
-        if (fr >= 0) { const B = grid[fr]; if (B && !B.fixed && !B.m && B.tier === A.tier && A.tier < MAXT) { B.tier++; B.m = true; if (B.type === 'prism') B.type = A.type; grid[from] = null; mergeGain += Math.pow(2, B.tier); moved++; continue; } }
+        if (fr >= 0) { const B = grid[fr]; if (B && !B.fixed && !B.m && B.tier === A.tier && A.tier < MAXT && (!g.sameType || B.type === A.type)) { B.tier++; B.m = true; if (B.type === 'prism') B.type = A.type; grid[from] = null; mergeGain += Math.pow(2, B.tier); moved++; continue; } }
         if (cells[k] !== from) { grid[cells[k]] = A; grid[from] = null; moved++; }
       }
     }
@@ -77,6 +77,21 @@
     if (common(g, skill)) return;
     const empty = g.tiles.filter(t => !t.tower && !t.blocked).length;
     if (g.gold >= g.rollCost && empty > 0) { g.summon(); return; }
+    if (g.dragMode) {   // [v3.7] 끌어서 합치기: 같은 계열 · 같은 등급 짝이 있으면 낮은 등급부터 합침(합치면 늘 힘이 는다: 2개 → 3배짜리 1개)
+      const L = g.towersList().filter(t => !t.occ && t.tower.tier < 6).sort((x, y) => x.tower.tier - y.tower.tier);
+      const hold = typeof process !== 'undefined' && process.env && process.env.HOLD ? +process.env.HOLD : 99;   // HOLD = 빈 칸이 이보다 많으면 합치지 않고 둠(비교용)
+      if (empty <= hold) for (let i = 0; i < L.length; i++) for (let j = i + 1; j < L.length; j++) if (g.canMerge(L[i].i, L[j].i)) { g.merge(L[i].i, L[j].i); return; }
+      // 자리 옮기기: 길을 더 많이 덮는 빈 칸이 있으면(15% 이상) 센 아군부터 그리로
+      if (g.moveTo && !(typeof process !== 'undefined' && process.env && process.env.NOMOVE)) {
+        const Sl = g.constructor, free = g.tiles.filter(t => !t.tower && !t.blocked);
+        for (const t of g.towersList().filter(q => !q.occ).sort((x, y) => y.tower.tier - x.tower.tier)) {
+          const rg = rangeOfTw(g, t.tower), c0 = cover(g, t.tower, ...Sl.cellUV(t.i), rg); let best = null, bc = c0 * 1.15 + 1e-6;
+          for (const e of free) { const c = cover(g, t.tower, ...Sl.cellUV(e.i), rg); if (c > bc) { bc = c; best = e.i; } }
+          if (best != null) { g.moveTo(t.i, best); return; }
+        }
+      }
+      return;
+    }
     if (g.t < g.slideCd) return;
     let cur = 0; g.tiles.forEach((t, i) => { if (t.tower) { const [u, v] = g.constructor.cellUV(i); cur += cover(g, t.tower, u, v, rangeOfTw(g, t.tower)); } });
     let best = null, bs = cur * 1.08 + (empty === 0 ? -1e9 : 0);

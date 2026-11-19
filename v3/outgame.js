@@ -71,7 +71,7 @@
       'arc.dmg': 7, 'arc.aps': 4, 'arc.crit': 1, 'arc.gold0': 1, 'elem.dmg': 3, 'mech.dmg': 2, 'holy.dmg': 2, 'abyss.dmg': 4 },
     att: { day: 10, rolled: false, pos: 9, got: [1, 2, 3, 4, 5, 7, 8], claimed: { 7: true } },   // v2: rolled = 오늘 도장 찍음 · day = 찍은 날 수
     starChest: {},
-    daily: [{ id: 'play', n: '판 2번 하기', cur: 1, max: 2, rw: { gold: 300 }, ic: 'gdice' }, { id: 'tier4', n: '영웅 아군 3개 만들기', cur: 3, max: 3, rw: { core: 3 }, ic: 'tier4' }, { id: 'key', n: '한 번 밀어 2번 합치기', cur: 0, max: 2, rw: { gold: 300 }, ic: 'key', sub: '같은 단계가 줄줄이 부딪히게 밀어요' }],
+    daily: [{ id: 'play', n: '판 2번 하기', cur: 1, max: 2, rw: { gold: 300 }, ic: 'gdice' }, { id: 'tier4', n: '영웅 아군 3개 만들기', cur: 3, max: 3, rw: { core: 3 }, ic: 'tier4' }, { id: 'key', n: '합쳐서 영웅 2개 만들기', cur: 0, max: 2, rw: { gold: 300 }, ic: 'key', sub: '같은 캐릭터 · 같은 레벨끼리 끌어서 합쳐요' }],
     dailyGot: {}, dailyChest: false,
     weekly: [{ id: 'w1', n: '판 10번 하기', cur: 10, max: 10, rw: { gem: 30 } }, { id: 'w2', n: '보스 20마리 잡기', cur: 12, max: 20, rw: { core: 10 } }, { id: 'w3', n: '아군 300번 합치기', cur: 140, max: 300, rw: { gold: 3000 } }, { id: 'w4', n: '판 100번 밀기', cur: 66, max: 100, rw: { gem: 20 } }],
     weeklyGot: {},
@@ -213,7 +213,7 @@
   function home() {
     const n = S.chapter, C = M.CHAPTERS[n - 1], open = chOpen(n), di = DIFFS.indexOf(S.diff), st = S.stars[n];
     const dOpen = diffOpen(n, di), ok = open && dOpen;
-    const startSub = !open ? `🔒 ${n - 1}장 보통을 깨면 열려요` : !dOpen ? `🔒 ${DIFFN[di]} = ${diffNeed(n, di)}` : '판을 밀어 합쳐 수정을 지켜요';
+    const startSub = !open ? `🔒 ${n - 1}장 보통을 깨면 열려요` : !dOpen ? `🔒 ${DIFFN[di]} = ${diffNeed(n, di)}` : '같은 캐릭터를 합쳐 수정을 지켜요';
     return `<div class="hbig">${C.name}</div>
     ${topbar()}
     <div class="sidecol l">
@@ -683,8 +683,8 @@
     crystalInfo() {
       open({ type: 'sheet', title: '수정 지키기 · 판 규칙', body: () => `<ol class="v2rules">
         <li>몬스터가 <b>왼쪽 위 굴</b>에서 나와 판을 한 바퀴 돌아 <b>위쪽 수정</b>으로 가요. 닿은 만큼 수정이 깎이고(보스 −8) 0이 되면 패배.</li>
-        <li><b>[소환]</b> = 빈 칸에 일반(Lv.1) 아군. <b>판을 쓸어 밀면</b> 모든 아군이 그쪽 끝까지 미끄러지고, <b>같은 단계끼리 부딪히면 합쳐져요</b>(앞에 있던 아군 종류가 남아요).</li>
-        <li><b>밝은 가장자리 칸</b>이 길에 가까워요. 한쪽으로 몰리는 웨이브는 굴 앞 화살표로 미리 보여요.</li>
+        <li><b>[소환]</b> = 빈 칸에 일반(Lv.1) 아군. <b>같은 캐릭터 · 같은 레벨</b> 둘을 <b>끌어서 겹치면</b>(또는 하나를 누르고 짝을 누르면) 합쳐져 한 등급 올라요. 신화까지 올라가고, 합친 뒤 계열은 운이에요.</li>
+        <li>길에 가까운 <b>가장자리 칸</b>의 아군이 몬스터를 오래 때려요. 아군을 누르면 범위가 보여요.</li>
         <li>보스: 5 · 10라운드는 1마리, 15 · 20라운드는 <b>2마리</b>가 함께 와요.</li></ol>
         <div class="note">별 3개 = 승리 · 수정 70% 이상 지키기 · 전설 아군 만들기</div>` });
     },
@@ -695,7 +695,7 @@
         <div class="plist">${M.CHAPTERS.map(C => { const o = chOpen(C.n), st = S.stars[C.n]; return B('pickCh', C.n, `prow2 chrow ${S.chapter === C.n ? 'on' : ''}`, `<span class="cth" style="${thumbBg(C.n, 120, 76)}${o ? '' : ';filter:grayscale(.85) brightness(.5)'}"></span><span class="nm">${C.n}장 ${C.name}${o ? '' : ' 🔒'}<br><small style="font-size:15px;color:${o ? '#ffd23a' : '#ffb0b0'}">${o ? '★ ' + (st[0] + st[1] + st[2]) + ' / 9' : (C.n - 1) + '장 보통 클리어'}</small></span><span class="crule">${C.rule}</span>`); }).join('')}</div>` });
     },
     pickCh(nn) { const n = +nn; if (!chOpen(n)) { toast(`🔒 ${n}장은 ${n - 1}장 보통을 깨면 열려요`); return; } if (S.chapter === n) { close(); return; } S.chapter = n; if (!diffOpen(n, DIFFS.indexOf(S.diff))) S.diff = 'normal'; render(); renderModal(false); toast(`${n}장 ${M.CHAPTERS[n - 1].name}`); },
-    coop() { toast('2P 협동은 밀어 합치기 판에선 준비 중이에요'); },
+    coop() { toast('2P 협동은 준비 중이에요'); },
     coopOld() { open({ type: 'pop', title: '협동', msg: '둘이 한 판을 함께 지켜요.<small>AI 동료는 바로 · 친구는 초대 링크로</small>', html: `<div class="btns" style="margin-top:16px">${B('coopAi', null, 'btn green', 'AI와 함께')}${B('coopFriend', null, 'btn blue', '친구 초대')}</div>` }); },
     coopAi() { close(); setTimeout(() => A.start('coop'), 200); },
     coopFriend() { close(); toast('초대 링크를 만들었어요 (시안 — 실제 연결 없음)'); },
@@ -920,9 +920,9 @@
 
 
   // ------------------------------------------------------------ [v5.3] 진입/전환 막 · 실제 판 · 첫 로딩 · 로비 주사위 안착
-  const TIPS = ['판을 쓸거나 방향 단추를 누르면 아군이 그쪽 끝까지 미끄러져요', '같은 레벨 두 아군이 부딪히면 한 레벨 위로 — 종류는 앞에 있던 아군 것', 'Lv.3(영웅)까지는 밀어서 합치고, 전설은 [조합]에서 재료를 모아 만들어요',
-    '전설이 몬스터를 충분히 잡으면 신화석 1개로 신화가 돼요', '신화석은 보스 처치와 판 [미션]에서 얻어요', '성장 탭에서 계열의 신화 각성을 미리 열어 두세요', '유물은 금화로 올리는 영구 효과예요(성장 탭 → 유물)',
-    '[강화]는 한 계열 전체를 세게 — 낮은 레벨일수록 효과가 커요', '행운 뽑기는 [조합] 창 아래에 있어요', '아군을 누르면 공격 범위가 보여요', '어려움 · 지옥은 판에 구멍이 있어요 — 미는 방향을 생각하세요'];
+  const TIPS = ['같은 캐릭터 · 같은 레벨 둘을 끌어서 겹치면 합쳐져요', '하나를 누르고 짝을 눌러도 합쳐져요', '합친 뒤 어떤 계열이 나올지는 운이에요', '계속 합치면 일반 → 희귀 → 영웅 → 전설 → 신화까지 올라가요',
+    '신화석은 보스 처치와 판 [미션]에서 얻어요', '유물은 금화로 올리는 영구 효과예요(성장 탭 → 유물)',
+    '[강화]는 한 계열 전체를 세게 — 낮은 레벨일수록 효과가 커요', '행운 뽑기는 판 아래 [뽑기]에 있어요', '아군을 누르면 공격 범위와 합칠 짝이 보여요', '어려움 · 지옥은 판에 구멍이 있어요 — 설 자리가 줄어요'];
   const STREAK_C = ['#7ec0ff', '#b48aff', '#ffd23a', '#ff9ae0', '#9fe8ff'];
   function xferShow(word) {
     let x = $('xfer');
@@ -965,7 +965,7 @@
     const og = { choice: { commander: S.cmd, pawn: S.pawn, mode: mode === 'endless' ? 'endless' : 'conquest', coop: mode === 'coop', deck: deck().slice(), diff: mode === 'endless' ? 'normal' : DIFFS[di], chapter: n },
       bonus: sb ? sb.fx : null, bonusTxt: sb ? { d: sb.d.join('·'), txt: sb.txt } : null, meta: { nodes: S.nodes, unlocked: S.unlocked, relics: S.relics } };
     const fr = G0.fr = document.createElement('iframe'); fr.id = 'game'; fr.className = 'pre'; fr.title = '마블 디펜스 판'; fr.setAttribute('allow', 'autoplay; fullscreen');
-    fr.src = 'game.html?v=202611191156&embed=1&og=' + encodeURIComponent(JSON.stringify(og));
+    fr.src = 'game.html?v=202611191506&embed=1&og=' + encodeURIComponent(JSON.stringify(og));
     G0.attach = () => { if (!fr.isConnected && ui.inGame === G0) document.body.appendChild(fr); };
     // 크롬(안드로이드 · PC)은 판을 불러와도 이 화면이 거의 안 멈춤 → 착지 직후 바로. 아이폰(WebKit)은 같은 줄에서 돌아 로비가 멈칫 → 진입 막 아래에서(enterGame)
     const UA = navigator.userAgent, WK = /iPhone|iPad|iPod/.test(UA) || (/AppleWebKit/.test(UA) && !/Chrome|Chromium|Android|Edg/.test(UA)) || (navigator.maxTouchPoints > 1 && /Macintosh/.test(UA));

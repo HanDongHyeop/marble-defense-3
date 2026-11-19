@@ -222,3 +222,6 @@ body.v3 #cmdBtn img { width: 98px; height: 98px; border-radius: 0; object-fit: c
 #tut3 .bub .tx b { color: #ffe08a; font-weight: 400; }
 #tut3 .bub .nx { margin-top: 14px; min-width: 220px; height: 64px; border: 0; border-radius: 22px; background: linear-gradient(#8ff28a, #3fcf5a 52%, #23b04a); box-shadow: 0 6px 0 #178a38, inset 0 2px 0 rgba(255,255,255,.5); color: #fff; font: 26px Jua, sans-serif; text-shadow: 0 2px 0 #127a30; cursor: pointer; }
 #tutSkip { position: absolute; right: 16px; top: 76px; height: 48px; padding: 0 18px; border: 0; border-radius: 999px; background: rgba(255,255,255,.14); color: #e6defc; font: 17px Jua, sans-serif; pointer-events: auto; cursor: pointer; }
+
+/* [v3.7] 끌어서 합치기: 방향 단추 없음 → 소환 단추가 그 자리까지 넓어짐 */
+body.dragmode #dpad { display: none; }

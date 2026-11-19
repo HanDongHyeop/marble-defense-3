@@ -196,7 +196,7 @@
       const list = [];
       for (const m of game.monsters) if (m.alive) list.push({ y: m.y, m });
       this.updateAllies(game, dt);
-      for (const t of game.tiles) if (t.tower && !t.blocked) { const p = this.drawPos(game, t.i, t.tower); list.push({ y: p[1], t }); }
+      for (const t of game.tiles) if (t.tower && !t.blocked) { const p = this.drawPos(game, t.i, t.tower); list.push({ y: this.drag && this.drag.from === t.i ? 1e6 : p[1], t }); }
       for (const gh of this.ghosts) list.push({ y: gh.ty, gh });
       list.sort((a, b) => a.y - b.y);
       this.drawCrystal(c, game);

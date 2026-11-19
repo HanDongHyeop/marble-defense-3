@@ -14,7 +14,8 @@
   const MERGE_MAX = 3, LEGEND_T = 5, MYTH_T = 6, LEGEND_CAP = 3, MYTH_CAP = 1;
   // 조절 값(봇으로 맞춤 · Node에서 G3='{"legendFrom":5}'로 바꿔 시험): 전설 조합은 legendFrom 라운드부터 · 신화 각성 게이지 = 전설이 처치한 수
   // [v3.6 실험] heroMerge = 영웅(Lv.3)끼리 부딪혔을 때: null = 안 합쳐짐(지금) / 'upg' = 뒤 영웅이 흡수되고 앞 영웅 계열 강화 +absorbLv / 'star' = 앞 영웅에 별 +1(그 한 명만 피해 +starMul)
-  const C3 = { legendFrom: 6, mythKills: 150, upgHit: 0.6, heroMerge: null, absorbLv: 1, absorbCap: 30, starMul: 0.5 };
+  const C3 = { legendFrom: 6, mythKills: 150, upgHit: 0.6, heroMerge: null, absorbLv: 1, absorbCap: 30, starMul: 0.5, sameType: false, randType: true, drag: true };
+  // [v3.7] drag = 끌어서(또는 탭-탭) 합치기: 같은 종류 + 같은 등급이면 판 어디서든 합쳐지고 신화까지 올라감(밀기 · 전설 조합 · 신화 각성 · 개수 제한 없음). randType = 합친 결과의 계열이 무작위(랜덤다이스)   // [v3.7 실험] sameType = 같은 종류 + 같은 레벨만 합쳐짐(랜덤다이스) / randType = 합친 결과의 종류가 무작위
   if (isNode && process.env.G3) Object.assign(C3, JSON.parse(process.env.G3));
   // 폰에서 시험: 로비 주소에 ?hm=upg(계열 강화) · ?hm=star(별) · ?hm=off(끄기) — 한 번 열면 이 기기에 기억(mdv3_hm)
   if (!isNode) try { const q = new URLSearchParams(location.search).get('hm'); if (q) { if (q === 'off') localStorage.removeItem('mdv3_hm'); else localStorage.setItem('mdv3_hm', q); } const h = localStorage.getItem('mdv3_hm'); if (h === 'upg' || h === 'star') { C3.heroMerge = h; C3.absorbLv = 2; C3.starMul = 1; } } catch (e) { /* 저장 막힘 */ }
@@ -22,7 +23,7 @@
   const MISSIONS = [
     { id: 'allHero', name: '영웅 5계열 모두 판에 모으기', goal: 5, reward: { myth: 1 } },
     { id: 'legend2', name: '전설 2개 만들기', goal: 2, reward: { myth: 1 } },
-    { id: 'multi3', name: '한 번 밀어 3번 합치기', goal: 1, reward: { gold: 60 } },
+    C3.drag ? { id: 'merge20', name: '합치기 20번', goal: 20, reward: { gold: 60 } } : { id: 'multi3', name: '한 번 밀어 3번 합치기', goal: 1, reward: { gold: 60 } },
     { id: 'kills', name: '몬스터 300마리 처치', goal: 300, reward: { gold: 120 } },
     { id: 'upg3', name: '강화 3번 하기', goal: 3, reward: { gold: 60 } },
     { id: 'boss', name: '보스 처치(보스마다 신화석)', goal: 4, reward: { myth: 0 }, repeat: true },
@@ -49,8 +50,8 @@
     class GradeGame extends Base {
       constructor(opt) {
         super(opt);
-        this.mergeMax = MERGE_MAX;
-        this.heroMerge = opt.heroMerge !== undefined ? opt.heroMerge : C3.heroMerge; this.stats.absorbs = 0;
+        this.dragMode = !!C3.drag; this.mergeMax = this.dragMode ? MYTH_T : MERGE_MAX;
+        this.heroMerge = opt.heroMerge !== undefined ? opt.heroMerge : C3.heroMerge; this.stats.absorbs = 0; this.sameType = C3.sameType;
         this.mythStones = 0;
         this.mythOpen = new Set(opt.mythOpen || ['fire']);   // 판 밖 성장 탭에서 해금한 계열(첫 계열은 처음부터 열림)
         this.mis = MISSIONS.map(m => ({ id: m.id, n: 0, done: false }));
@@ -79,17 +80,49 @@
       bossDisrupt(k, cand) {
         cand = cand.filter(t => t.tower.tier < LEGEND_T && t.tower.type !== 'prism');
         if (k === 'magician') {
-          const t = cand.filter(c => c.tower.tier < this.mergeMax).sort((a, c) => a.tower.tier - c.tower.tier)[0];
+          const t = cand.filter(c => c.tower.tier < MERGE_MAX).sort((a, c) => a.tower.tier - c.tower.tier)[0];
           if (t) { this.setTier(t.i, t.tower.tier + 1, 'tierup'); this.emit('hexed', { i: t.i, gift: 1, by: k }); }
           else { const g = this.round * 5; this.gold += g; this.emit('gold', { amt: g, why: '마술사의 선물' }); }
           return 15;
         }
         return super.bossDisrupt(k, cand);
       }
+      // [v3.7] 끌어서 합치기: 같은 계열 + 같은 등급(신화 제외). 앞(b)에 있던 칸에 한 등급 위 아군이 남음. 영웅 2 → 전설, 전설 2 → 신화
+      canMerge(a, b) {
+        if (!this.dragMode) return super.canMerge(a, b);
+        if (a === b) return false;
+        const A = this.tiles[a] && this.tiles[a].tower, B2 = this.tiles[b] && this.tiles[b].tower;
+        return !!(A && B2 && A.type === B2.type && A.tier === B2.tier && A.tier < MYTH_T && !this.tiles[a].occ && !this.tiles[b].occ);
+      }
+      dragMerge(a, b) {
+        if (this.over || !this.canMerge(a, b)) return false;
+        const A = this.tiles[a].tower, Bt = this.tiles[b].tower, nt = Bt.tier === 3 ? LEGEND_T : Bt.tier + 1;
+        this.tiles[a].tower = null; this.tiles[a].warn = null; this.tiles[b].warn = null;
+        this.stats.merges++;
+        this.emit('mergeFrom', { a, b, type: Bt.type, tier: Bt.tier, typeA: A.type });
+        if (C3.randType) Bt.type = this.buildPick();
+        Bt.bonusAtk = Math.max(A.bonusAtk || 0, Bt.bonusAtk || 0);
+        this.setTier(b, nt, nt === LEGEND_T ? 'legend' : nt === MYTH_T ? 'mythic' : 'merge');
+        if (nt === LEGEND_T) { this.stats.legendsMade++; this.stats.legends = (this.stats.legends || 0) + 1; if (!this._firstLeg) this._firstLeg = this.round; this.emit('legend', { i: b, type: Bt.type, from: [{ i: a, type: A.type, tier: 3 }] }); this.misAdd('legend2', 1); }
+        if (nt === MYTH_T) { this.stats.myths++; if (!this._firstMyth) this._firstMyth = this.round; this.emit('mythic', { i: b, type: Bt.type }); }
+        this.misAdd('merge20', 1);
+        return true;
+      }
+      // [v3.7] 자리 옮기기: 아군을 빈 칸으로 끌면 그 칸으로 감(값 없음). 밀기가 없어져 소환된 자리에 묶이면 길에서 먼 칸의 아군은 공격이 안 닿는다(봇: 성장 없음 0/20)
+      moveTo(a, b) {
+        if (!this.dragMode || this.over || a === b) return false;
+        const A = this.tiles[a], Bt = this.tiles[b];
+        if (!A || !Bt || !A.tower || A.occ || Bt.tower || Bt.blocked) return false;
+        Bt.tower = A.tower; A.tower = null; Bt.warn = A.warn || null; A.warn = null;
+        this.stats.moves = (this.stats.moves || 0) + 1;
+        this.emit('moved', { a, b });
+        return true;
+      }
       heroPair(a, b) { if (!this.heroMerge || a === b) return false; const A = this.tiles[a], B = this.tiles[b]; return !!(A && B && A.tower && B.tower && A.tower.tier === 3 && B.tower.tier === 3 && !A.occ && !B.occ); }
-      slideMergeable(a, b) { if (this.heroPair(a, b)) return true; const A = this.tiles[a] && this.tiles[a].tower; return !!(A && A.tier < this.mergeMax) && super.slideMergeable(a, b); }
+      slideMergeable(a, b) { if (this.dragMode) return false; if (this.heroPair(a, b)) return true; const A = this.tiles[a] && this.tiles[a].tower, B2 = this.tiles[b] && this.tiles[b].tower; if (C3.sameType && A && B2 && A.type !== B2.type) return false; return !!(A && A.tier < this.mergeMax) && super.slideMergeable(a, b); }
       merge(a, b) {
-        if (!this._sliding || !this.heroPair(a, b)) return super.merge(a, b);
+        if (this.dragMode) return this.dragMerge(a, b);
+        if (!this._sliding || !this.heroPair(a, b)) { const ok = super.merge(a, b); if (ok && C3.randType) { const T = this.tiles[b].tower; if (T && T.tier <= 3) T.type = this.buildPick(); } return ok; }
         const A = this.tiles[a].tower, Bt = this.tiles[b].tower;
         this.tiles[a].tower = null; this.tiles[a].warn = null;
         this.stats.merges++; this.stats.absorbs++;
@@ -99,7 +132,8 @@
         return true;
       }
       // 행운 합치기(+1) · 건축가가 영웅을 넘지 않게: 합치기로는 영웅까지만
-      setTier(i, tier, why, lucky) { if (why !== 'legend' && why !== 'mythic' && why !== 'debug' && tier > this.mergeMax) tier = this.mergeMax; return super.setTier(i, tier, why, lucky); }
+      setTier(i, tier, why, lucky) { if (tier === 4) { const cur = this.tiles[i].tower ? this.tiles[i].tower.tier : 3; tier = this.dragMode && cur < 4 ? LEGEND_T : 3; }   // 내부 단계 4는 안 씀
+        if (why !== 'legend' && why !== 'mythic' && why !== 'debug' && tier > this.mergeMax) tier = this.mergeMax; return super.setTier(i, tier, why, lucky); }
 
       // ---------------------------------------------------------- 유물(판 밖 성장) · 행운 뽑기
       applyRelics(rl) {
@@ -136,7 +170,7 @@
         const partner = L.find(t => t.tower.type === pt && t.tower.tier === 3 && free(t) && t !== main);
         const rare = L.find(t => t.tower.tier === 2 && free(t));
         const cap = this.towersList().filter(t => t.tower.tier === LEGEND_T).length >= LEGEND_CAP;
-        const locked = this.round < C3.legendFrom;   // 첫 보스(5라운드)를 지나야 전설 조합이 열림
+        const locked = this.round < C3.legendFrom || this.dragMode;   // 첫 보스(5라운드)를 지나야 전설 조합이 열림
         return { type, partnerType: pt, ok: !!(main && partner && rare) && !cap && !locked, cap, locked, from: C3.legendFrom, main: main && main.i, partner: partner && partner.i, rare: rare && rare.i,
           need: [{ what: 'main', have: !!main }, { what: 'partner', have: !!partner }, { what: 'rare', have: !!rare }] };
       }
@@ -155,7 +189,7 @@
       }
       // ---------------------------------------------------------- 신화 각성
       mythState(i) {
-        const t = this.tiles[i], tw = t && t.tower; if (!tw || tw.tier !== LEGEND_T) return null;
+        const t = this.tiles[i], tw = t && t.tower; if (this.dragMode || !tw || tw.tier !== LEGEND_T) return null;
         const open = this.mythOpen.has(tw.type), gauge = Math.min(1, (tw.kills || 0) / MYTH_KILLS), cap = this.towersList().filter(q => q.tower.tier === MYTH_T).length >= MYTH_CAP;
         return { open, gauge, kills: tw.kills || 0, need: MYTH_KILLS, stones: this.mythStones, cap, ok: open && gauge >= 1 && this.mythStones >= 1 && !cap };
       }
@@ -189,6 +223,7 @@
       bossDown(m) { super.bossDown(m); this.addMyth(1, '보스 처치'); this.misAdd('boss', 1); }
       upgrade(type) { const ok = super.upgrade(type); if (ok) this.misAdd('upg3', 1); return ok; }
       slide(dir) {
+        if (this.dragMode) return false;
         const ok = super.slide(dir);
         if (ok) {
           const last = this.events[this.events.length - 1];

@@ -69,6 +69,7 @@
   };
   const baseUpdate = U.update;
   U.update = function () {
+    this._mergeHint = 1;   // [v3.7] 본편의 '같은 포탑끼리 끌어 겹쳐 보세요' 알림은 끔(첫 판 튜토리얼이 같은 내용을 v3 말로 가르침 — 겹쳐 뜸)
     baseUpdate.call(this);
     const g = this.g; if (!g) return;
     // 강화 효과 글씨(종류별 강화 1단계 = 공격 +?%) · 살 수 있으면 단추에 점
@@ -90,7 +91,8 @@
     const t1 = done + '/' + M.length; if ($('misN').textContent !== t1) $('misN').textContent = t1;
     const t2 = String(g.mythStones); if ($('mythN').textContent !== t2) $('mythN').textContent = t2;
     const sp = (this.settings.speed || 1) >= 2 ? '2x' : '1x'; if ($('spdTxt').textContent !== sp) $('spdTxt').textContent = sp;
-    const ready = g.constructor.ORDER.some(k => g.legendRecipe(k).ok) || g.towersList().some(t => { const st = g.mythState(t.i); return st && st.ok; });
+    const ready = !g.dragMode && (g.constructor.ORDER.some(k => g.legendRecipe(k).ok) || g.towersList().some(t => { const st = g.mythState(t.i); return st && st.ok; }));
+    if (g.dragMode && !this._mixNamed) { this._mixNamed = true; const b = $('mixBtn').querySelector('b'); if (b) b.textContent = '뽑기'; }
     if ($('mixN').hidden === ready) { $('mixN').hidden = !ready; $('mixBtn').classList.toggle('ready', ready); }
     if (!$('v3Sheet').hidden && (force || !this._sheetT || performance.now() - this._sheetT > 300)) { this._sheetT = performance.now(); this.v3SheetFill(); }
   };
@@ -112,9 +114,10 @@
         return '<div class="mrow ' + (st.done ? 'done' : '') + '"><div class="mt"><b>' + M.name + '</b>' + rw + '</div><div class="mbar"><i style="width:' + (n / M.goal * 100) + '%"></i></div><span class="mn">' + (st.done ? '완료' : n + ' / ' + M.goal) + '</span></div>';
       }).join('') + '</div>';
     } else {
-      $('v3SheetT').textContent = '조합'; $('v3SheetS').textContent = '전설 = 재료가 판에 다 있으면 · 신화 = 전설 게이지 + 신화석 1';
+      const DM = g.dragMode;
+      $('v3SheetT').textContent = DM ? '행운 뽑기' : '조합'; $('v3SheetS').textContent = DM ? '성공하면 빈 칸에 그 등급 아군(계열 무작위)' : '전설 = 재료가 판에 다 있으면 · 신화 = 전설 게이지 + 신화석 1';
       const chip = (have, img, label) => '<span class="ing ' + (have ? 'ok' : '') + '">' + img + '<em>' + label + '</em></span>';
-      const rows = g.constructor.ORDER.map(type => {
+      const rows = DM ? '' : g.constructor.ORDER.map(type => {
         const r = g.legendRecipe(type), pt = r.partnerType;
         const btn = r.locked ? '<button class="mk" disabled>' + r.from + '라운드부터</button>'
           : r.cap ? '<button class="mk" disabled>전설 최대 ' + g.constructor.LEGEND_CAP + '</button>'
@@ -123,7 +126,7 @@
           + chip(r.need[0].have, face(type, 3), NAME2[type] + ' 영웅') + '<i>+</i>' + chip(r.need[1].have, face(pt, 3), NAME2[pt] + ' 영웅') + '<i>+</i>' + chip(r.need[2].have, '<span class="any">희귀</span>', '아무거나')
           + '</div></div>' + btn + '</div>';
       }).join('');
-      const legs = g.towersList().filter(t => t.tower.tier === 5).map(t => {
+      const legs = DM ? '' : g.towersList().filter(t => t.tower.tier === 5).map(t => {
         const st = g.mythState(t.i);
         const why = !st.open ? '성장 탭에서 해금하면 각성' : st.cap ? '신화는 판에 1개까지' : st.gauge < 1 ? '처치 ' + st.kills + ' / ' + st.need : st.stones < 1 ? '신화석이 필요해요' : '각성할 수 있어요!';
         return '<div class="lrow myth"><span class="lface">' + face(t.tower.type, 4) + '</span><div class="lmid"><b>' + NAME2[t.tower.type] + ' 전설 → 신화</b><div class="mbar"><i style="width:' + (st.gauge * 100) + '%"></i></div><small>' + why + '</small></div>'
@@ -131,7 +134,8 @@
       }).join('');
       const gb = kind => { const I = g.gambleInfo(kind), nm = kind === 'hero' ? '영웅 뽑기' : '희귀 뽑기', cost = kind === 'hero' ? '신화석 1' : '금화 50';
         return '<button class="gb ' + kind + (I.ok ? ' go' : '') + '" data-v3="gamble" data-k="' + kind + '" ' + (I.ok ? '' : 'disabled') + '><b>' + nm + '</b><span>성공 ' + Math.round(I.p * 100) + '%</span><em>' + cost + '</em></button>'; };
-      html = '<div class="v3mix">' + rows + (legs ? '<div class="lsep">판 위 전설</div>' + legs : '') + '<div class="lsep">행운 뽑기 — 성공하면 빈 칸에 그 등급 아군(계열 무작위)</div><div class="gbrow">' + gb('rare') + gb('hero') + '</div></div>';
+      if (DM) html = '<div class="v3mix"><div class="gbrow">' + gb('rare') + gb('hero') + '</div><div class="lsep">전설 · 신화는 같은 캐릭터끼리 합쳐서 만들어요</div></div>';
+      else html = '<div class="v3mix">' + rows + (legs ? '<div class="lsep">판 위 전설</div>' + legs : '') + '<div class="lsep">행운 뽑기 — 성공하면 빈 칸에 그 등급 아군(계열 무작위)</div><div class="gbrow">' + gb('rare') + gb('hero') + '</div></div>';
     }
     if (html !== this._sheetSig) { this._sheetSig = html; $('v3SheetB').innerHTML = html; }
   };
