@@ -684,7 +684,7 @@
       open({ type: 'sheet', title: '수정 지키기 · 판 규칙', body: () => `<ol class="v2rules">
         <li>몬스터가 <b>왼쪽 위 굴</b>에서 나와 판을 한 바퀴 돌아 <b>위쪽 수정</b>으로 가요. 닿은 만큼 수정이 깎이고(보스 −8) 0이 되면 패배.</li>
         <li><b>[소환]</b> = 빈 칸에 일반(Lv.1) 아군. <b>같은 캐릭터 · 같은 레벨</b> 둘을 <b>끌어서 겹치면</b>(또는 하나를 누르고 짝을 누르면) 합쳐져 한 등급 올라요. 신화까지 올라가고, 합친 뒤 계열은 운이에요.</li>
-        <li>길에 가까운 <b>가장자리 칸</b>의 아군이 몬스터를 오래 때려요. 아군을 누르면 범위가 보여요.</li>
+        <li>아군은 <b>판 어디에 있든</b> 모든 몬스터를 공격해요. 자리는 신경 쓰지 않아도 돼요.</li>
         <li>보스: 5 · 10라운드는 1마리, 15 · 20라운드는 <b>2마리</b>가 함께 와요.</li></ol>
         <div class="note">별 3개 = 승리 · 수정 70% 이상 지키기 · 전설 아군 만들기</div>` });
     },
@@ -922,7 +922,7 @@
   // ------------------------------------------------------------ [v5.3] 진입/전환 막 · 실제 판 · 첫 로딩 · 로비 주사위 안착
   const TIPS = ['같은 캐릭터 · 같은 레벨 둘을 끌어서 겹치면 합쳐져요', '하나를 누르고 짝을 눌러도 합쳐져요', '합친 뒤 어떤 계열이 나올지는 운이에요', '계속 합치면 일반 → 희귀 → 영웅 → 전설 → 신화까지 올라가요',
     '신화석은 보스 처치와 판 [미션]에서 얻어요', '유물은 금화로 올리는 영구 효과예요(성장 탭 → 유물)',
-    '[강화]는 한 계열 전체를 세게 — 낮은 레벨일수록 효과가 커요', '행운 뽑기는 판 아래 [뽑기]에 있어요', '아군을 누르면 공격 범위와 합칠 짝이 보여요', '어려움 · 지옥은 판에 구멍이 있어요 — 설 자리가 줄어요'];
+    '[강화]는 한 계열 전체를 세게 — 낮은 레벨일수록 효과가 커요', '행운 뽑기는 판 아래 [뽑기]에 있어요', '아군을 누르면 합칠 짝이 보여요', '어려움 · 지옥은 판에 구멍이 있어요 — 설 자리가 줄어요'];
   const STREAK_C = ['#7ec0ff', '#b48aff', '#ffd23a', '#ff9ae0', '#9fe8ff'];
   function xferShow(word) {
     let x = $('xfer');
@@ -965,7 +965,7 @@
     const og = { choice: { commander: S.cmd, pawn: S.pawn, mode: mode === 'endless' ? 'endless' : 'conquest', coop: mode === 'coop', deck: deck().slice(), diff: mode === 'endless' ? 'normal' : DIFFS[di], chapter: n },
       bonus: sb ? sb.fx : null, bonusTxt: sb ? { d: sb.d.join('·'), txt: sb.txt } : null, meta: { nodes: S.nodes, unlocked: S.unlocked, relics: S.relics } };
     const fr = G0.fr = document.createElement('iframe'); fr.id = 'game'; fr.className = 'pre'; fr.title = '마블 디펜스 판'; fr.setAttribute('allow', 'autoplay; fullscreen');
-    fr.src = 'game.html?v=202611191506&embed=1&og=' + encodeURIComponent(JSON.stringify(og));
+    fr.src = 'game.html?v=202611191556&embed=1&og=' + encodeURIComponent(JSON.stringify(og));
     G0.attach = () => { if (!fr.isConnected && ui.inGame === G0) document.body.appendChild(fr); };
     // 크롬(안드로이드 · PC)은 판을 불러와도 이 화면이 거의 안 멈춤 → 착지 직후 바로. 아이폰(WebKit)은 같은 줄에서 돌아 로비가 멈칫 → 진입 막 아래에서(enterGame)
     const UA = navigator.userAgent, WK = /iPhone|iPad|iPod/.test(UA) || (/AppleWebKit/.test(UA) && !/Chrome|Chromium|Android|Edg/.test(UA)) || (navigator.maxTouchPoints > 1 && /Macintosh/.test(UA));

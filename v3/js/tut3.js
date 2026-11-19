@@ -29,7 +29,7 @@
         place() { const G0 = g(); for (const t of G0.tiles) if (!t.blocked) t.tower = null; G0.build(12, 'fire', 1); G0.build(14, 'fire', 1); },
         tick() { const G0 = g(); if (G0.stats.merges > this.m0) return; if (G0.towersList().length !== 2) this.place(); },
         done() { return g().stats.merges > this.m0; } },
-      { t: '공격 범위', x: '아군을 <b>눌러</b> 보세요.<br>공격이 닿는 범위가 원으로 보여요.', hole() { const t = g().towersList()[0]; if (!t) return boardRect(); const p = R().drawPos(g(), t.i, t.tower); return { x: p[0] - 64, y: p[1] - 118, w: 128, h: 140 }; }, hand: 'tap',
+      { t: '아군 고르기', x: '아군을 <b>눌러</b> 보세요.<br>정보가 뜨고, 합칠 수 있는 짝이 있으면 표시돼요.<br>아군은 <b>판 어디서든</b> 모든 몬스터를 공격해요.', hole() { const t = g().towersList()[0]; if (!t) return boardRect(); const p = R().drawPos(g(), t.i, t.tower); return { x: p[0] - 64, y: p[1] - 118, w: 128, h: 140 }; }, hand: 'tap',
         enter() { ui.hideInfo(); }, done() { return R().sel != null; } },
       { t: '강화', x: '<b>[강화]</b>를 눌러 창을 여세요.<br>금화로 한 계열 전체를 세게 만들어요.', hole: () => rectOf('#upBtn'), hand: 'tap',
         enter() { ui.hideInfo(); g().gold = Math.max(g().gold, 300); }, done() { return !$('upSheet').hidden; } },

@@ -169,6 +169,6 @@
     const pic = box.querySelector('.ib-pic'); if (pic) pic.style.setProperty('--c', root.V3VIEW.COL[artOf(tw.type)]);
     for (const el of box.querySelectorAll('.ib-land, .ib-sub:not(.aw)')) el.remove();
     // 사거리 = 캐릭터 둘레 원(칸 수)
-    const st = box.querySelectorAll('.ib-stats > div'); if (st[3]) st[3].querySelector('b').textContent = '반경 ' + (+((g.rangeOf(i) + 1) / root.GEOM.CFG.CS).toFixed(1)) + '칸';
+    const st = box.querySelectorAll('.ib-stats > div'); if (st[3]) st[3].querySelector('b').textContent = g.allRange ? '판 전체' : '반경 ' + (+((g.rangeOf(i) + 1) / root.GEOM.CFG.CS).toFixed(1)) + '칸';
   };
 })(window);

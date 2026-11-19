@@ -82,7 +82,7 @@
       const hold = typeof process !== 'undefined' && process.env && process.env.HOLD ? +process.env.HOLD : 99;   // HOLD = 빈 칸이 이보다 많으면 합치지 않고 둠(비교용)
       if (empty <= hold) for (let i = 0; i < L.length; i++) for (let j = i + 1; j < L.length; j++) if (g.canMerge(L[i].i, L[j].i)) { g.merge(L[i].i, L[j].i); return; }
       // 자리 옮기기: 길을 더 많이 덮는 빈 칸이 있으면(15% 이상) 센 아군부터 그리로
-      if (g.moveTo && !(typeof process !== 'undefined' && process.env && process.env.NOMOVE)) {
+      if (g.canMove && !(typeof process !== 'undefined' && process.env && process.env.NOMOVE)) {
         const Sl = g.constructor, free = g.tiles.filter(t => !t.tower && !t.blocked);
         for (const t of g.towersList().filter(q => !q.occ).sort((x, y) => y.tower.tier - x.tower.tier)) {
           const rg = rangeOfTw(g, t.tower), c0 = cover(g, t.tower, ...Sl.cellUV(t.i), rg); let best = null, bc = c0 * 1.15 + 1e-6;

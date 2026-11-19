@@ -33,7 +33,7 @@
   const motOf = (f, g) => (MOT[f] || MOT.fire)[Math.max(0, Math.min(4, g - 1))];
   R.atkPic = function (type, tier) { const f = famOf(type), g = GRADE[tier] || 1; return FAM[type] ? this.pic('a2k_' + f + g, 'v3/img/ally2/' + f + '_' + g + '_atk.png') : null; };
   const basePre = R.preload;
-  R.preload = function () { basePre.call(this); for (const f of Object.values(FAM)) for (let g = 1; g <= 5; g++) this.pic('a2k_' + f + g, 'v3/img/ally2/' + f + '_' + g + '_atk.png'); };
+  R.preload = function () { basePre.call(this); for (const n in (root.FXSHEETS || {})) root.FXSHEETS[n].sheets.forEach((s, k) => this.pic('fx_' + n + k, 'v3/img/fx/' + s)); for (const f of Object.values(FAM)) for (let g = 1; g <= 5; g++) this.pic('a2k_' + f + g, 'v3/img/ally2/' + f + '_' + g + '_atk.png'); };
   // 발사 위치(화면 좌표): 공격 그림 안의 점(입 · 손 · 총구 · 무기 끝)을 그 캐릭터가 보는 방향에 맞춰 옮김
   R.muzzle = function (game, i) {
     const t = game.tiles[i], tw = t && t.tower; if (!tw || !FAM[tw.type]) return null;
@@ -42,6 +42,9 @@
     return [p[0] + (dir > 0 ? -1 : 1) * (M.m[0] - 0.5) * w2, p[1] - 4 - (w2 - w * 0.06) + M.m[1] * w2 + (f === 'storm' ? -6 : 0)];
   };
   // [v3.7] 끌기: 든 아군은 손가락을 따라옴 · 맨 위에 그림
+  // [pixelfx 가져옴] spawn/poof · 4배 매끄럽게 · MIT — 합쳐지는 자리에 연기 퐁
+  const baseMergeFx = R.mergeFx;
+  R.mergeFx = function (game, i, tier) { baseMergeFx.call(this, game, i, tier); if (!this.fx3) return; const tw = game.tiles[i] && game.tiles[i].tower; if (!tw) return; const p = this.drawPos(game, i, tw); this.fx3.push({ k: 'sheet', key: 'merge', g: 1, x: p[0], y: p[1] - 6, t: this.time, life: 0.6, mul: tier >= 5 ? 1.35 : 1 }); };
   const baseDrawPos = R.drawPos;
   R.drawPos = function (g, i, tw) { const d = this.drag; if (d && d.from === i && d.fx != null && tw) return [d.fx, d.fy + 1e-3]; return baseDrawPos.call(this, g, i, tw); };
 
@@ -73,9 +76,22 @@
     }
     return baseConsume.call(this, game, rest, A);
   };
+  // [pixelfx 가져옴] 타격 · 합치기 효과 = 4배 매끄럽게 구운 시트(pixelfx_가져온목록.md). n = 이름, a~b = 쓰는 구간(0~1 · 앞뒤의 날아오는 탄 · 남는 자국은 뺌), s = 그리는 배율, t = 길이(초)
+  const SHEET = { knight: { n: 'hit-spark', a: 0, b: 1, s: 0.5, t: 0.4 }, fire: { n: 'hit-spark', a: 0, b: 1, s: 0.56, t: 0.42 }, mech: { n: 'bullet-impact', a: 0, b: 0.3, s: 0.5, t: 0.36 }, storm: { n: 'zap-hit', a: 0.3, b: 0.78, s: 0.42, t: 0.4 }, frost: { n: 'ice-shatter', a: 0.2, b: 0.5, s: 0.4, t: 0.55 }, merge: { n: 'poof', a: 0, b: 0.7, s: 0.5, t: 0.6 } };
+  const FXM = root.FXSHEETS || {};
+  R.sheetPic = function (n, k) { return this.pic('fx_' + n + k, 'v3/img/fx/' + FXM[n].sheets[k]); };
+  // 시트 한 프레임 그리기(원점 = 맞은 자리). q = 0~1 진행. 그렸으면 true(그림이 아직 안 왔으면 false → 손으로 그린 효과로 대신)
+  R.drawSheet = function (c, key, x, y, q, mul, flip) {
+    const S = SHEET[key], M = S && FXM[S.n]; if (!M) return false;
+    const fi = Math.min(M.frames.length - 1, Math.floor((S.a + (S.b - S.a) * q) * M.frames.length)), fr = M.frames[fi], im = this.sheetPic(S.n, fr[0]); if (!im) return false;
+    const sc = S.s * (mul || 1), w = M.size[0], h = M.size[1];
+    c.save(); c.translate(x, y); if (flip) c.scale(-1, 1); c.drawImage(im, fr[1], fr[2], w, h, -M.origin[0] * sc, -M.origin[1] * sc + (key === 'merge' ? 0 : h * sc * 0.12), w * sc, h * sc); c.restore();
+    return true;
+  };
   R.impact3 = function (e) {
     if (e.x == null || this.fx3.length > 160) return;
-    this.fx3.push({ k: 'hit', f: famOf(e.type), g: GRADE[e.tier] || 1, x: e.x, y: e.y - 18, t: this.time, life: 0.3, s: Math.random(), big: e.big });
+    const f = famOf(e.type);
+    this.fx3.push({ k: 'hit', f, g: GRADE[e.tier] || 1, x: e.x, y: e.y - 18, t: this.time, life: SHEET[f] ? SHEET[f].t : 0.3, s: Math.random(), big: e.big });
   };
 
   // ------------------------------------------------------------------ 아군: 몸짓 · 방향 · 레벨 배지
@@ -168,6 +184,10 @@
   // ------------------------------------------------------------------ 반경(누른 캐릭터): 어둡게 + 뚫린 원 + 눈금 고리 + 물결 + 표적
   R.drawSel = function (c, game) {
     if (this.sel == null || !game.tiles[this.sel] || !game.tiles[this.sel].tower) { this._selA = 0; return; }
+    if (game.allRange) {   // [v3.8] 사거리 없음: 범위 원 · 어둡게 대신 고른 아군 발밑 고리만(합칠 짝은 drawAlly가 표시)
+      const tw0 = game.tiles[this.sel].tower, p0 = this.drawPos(game, this.sel, tw0), b0 = 0.5 + 0.5 * Math.sin(this.time * 7);
+      c.save(); c.strokeStyle = 'rgba(255,255,255,' + (0.75 + 0.25 * b0) + ')'; c.lineWidth = 5; c.beginPath(); c.ellipse(p0[0], p0[1] - 4, 38 + 2 * b0, 13.5 + b0, 0, 0, TAU); c.stroke(); c.restore(); this.drawAlly(c, game, game.tiles[this.sel], true); return;
+    }
     const i = this.sel, t = game.tiles[i], tw = t.tower, T = this.time, p = this.drawPos(game, i, tw), x = p[0], y = p[1] - 30;
     const r = (game.rangeOf ? game.rangeOf(i) + 1 : 2.5) * G.u, a = ease(Math.min(1, (T - this.selT) * 5)), rr = r * (0.6 + 0.4 * a);
     const f = famOf(tw.type), col = FC[f][0], lite = FC[f][1], H = G.CFG.FIELD_H || 900;
@@ -314,6 +334,9 @@
       const C = FC[e.f], k = e.g >= 5 ? 1.7 : e.g >= 4 ? 1.35 : 1, inv = 1 - q;
       c.save(); c.translate(e.x, e.y);
       if (e.k === 'buff') { c.restore(); this.buffFx(c, e, q); continue; }
+      if (e.k === 'sheet') { c.restore(); this.drawSheet(c, e.key, e.x, e.y, q, e.mul, false); continue; }
+      if (e.k === 'hit' && e.g < 4) { c.restore(); if (this.drawSheet(c, e.f, e.x, e.y, q, 1, e.s > 0.5)) continue; c.save(); c.translate(e.x, e.y); }   // 일반 ~ 영웅 = 구운 시트만 / 전설 · 신화 = 시트 + 손으로 그린 큰 효과
+      if (e.k === 'hit' && e.g >= 4) { c.restore(); this.drawSheet(c, e.f, e.x, e.y, Math.min(1, q * 1.2), k, e.s > 0.5); c.save(); c.translate(e.x, e.y); }
       if (e.k === 'mz') {
         c.scale(e.dir, 1);
         if (e.f === 'mech') {   // 총구 불꽃: 앞으로 뻗는 별꼴

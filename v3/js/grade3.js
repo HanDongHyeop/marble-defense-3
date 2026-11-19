@@ -14,7 +14,8 @@
   const MERGE_MAX = 3, LEGEND_T = 5, MYTH_T = 6, LEGEND_CAP = 3, MYTH_CAP = 1;
   // 조절 값(봇으로 맞춤 · Node에서 G3='{"legendFrom":5}'로 바꿔 시험): 전설 조합은 legendFrom 라운드부터 · 신화 각성 게이지 = 전설이 처치한 수
   // [v3.6 실험] heroMerge = 영웅(Lv.3)끼리 부딪혔을 때: null = 안 합쳐짐(지금) / 'upg' = 뒤 영웅이 흡수되고 앞 영웅 계열 강화 +absorbLv / 'star' = 앞 영웅에 별 +1(그 한 명만 피해 +starMul)
-  const C3 = { legendFrom: 6, mythKills: 150, upgHit: 0.6, heroMerge: null, absorbLv: 1, absorbCap: 30, starMul: 0.5, sameType: false, randType: true, drag: true };
+  const C3 = { legendFrom: 6, mythKills: 150, upgHit: 0.6, heroMerge: null, absorbLv: 1, absorbCap: 30, starMul: 0.5, sameType: false, randType: true, drag: true, allRange: true, move: false };
+  // [v3.8] allRange = 사거리 없음(판 어디서든 모든 몬스터에 닿음 — 랜덤다이스처럼 자리가 뜻이 없음) · move = 빈 칸으로 끌어 자리 옮기기(allRange면 필요 없어 끔)
   // [v3.7] drag = 끌어서(또는 탭-탭) 합치기: 같은 종류 + 같은 등급이면 판 어디서든 합쳐지고 신화까지 올라감(밀기 · 전설 조합 · 신화 각성 · 개수 제한 없음). randType = 합친 결과의 계열이 무작위(랜덤다이스)   // [v3.7 실험] sameType = 같은 종류 + 같은 레벨만 합쳐짐(랜덤다이스) / randType = 합친 결과의 종류가 무작위
   if (isNode && process.env.G3) Object.assign(C3, JSON.parse(process.env.G3));
   // 폰에서 시험: 로비 주소에 ?hm=upg(계열 강화) · ?hm=star(별) · ?hm=off(끄기) — 한 번 열면 이 기기에 기억(mdv3_hm)
@@ -50,7 +51,7 @@
     class GradeGame extends Base {
       constructor(opt) {
         super(opt);
-        this.dragMode = !!C3.drag; this.mergeMax = this.dragMode ? MYTH_T : MERGE_MAX;
+        this.dragMode = !!C3.drag; this.allRange = !!(C3.drag && C3.allRange); this.canMove = !!(C3.drag && C3.move); this.mergeMax = this.dragMode ? MYTH_T : MERGE_MAX;
         this.heroMerge = opt.heroMerge !== undefined ? opt.heroMerge : C3.heroMerge; this.stats.absorbs = 0; this.sameType = C3.sameType;
         this.mythStones = 0;
         this.mythOpen = new Set(opt.mythOpen || ['fire']);   // 판 밖 성장 탭에서 해금한 계열(첫 계열은 처음부터 열림)
@@ -109,8 +110,9 @@
         return true;
       }
       // [v3.7] 자리 옮기기: 아군을 빈 칸으로 끌면 그 칸으로 감(값 없음). 밀기가 없어져 소환된 자리에 묶이면 길에서 먼 칸의 아군은 공격이 안 닿는다(봇: 성장 없음 0/20)
+      rangeOf(i) { return this.allRange ? 99 : super.rangeOf(i); }
       moveTo(a, b) {
-        if (!this.dragMode || this.over || a === b) return false;
+        if (!this.canMove || this.over || a === b) return false;
         const A = this.tiles[a], Bt = this.tiles[b];
         if (!A || !Bt || !A.tower || A.occ || Bt.tower || Bt.blocked) return false;
         Bt.tower = A.tower; A.tower = null; Bt.warn = A.warn || null; A.warn = null;
