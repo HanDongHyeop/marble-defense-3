@@ -56,7 +56,7 @@
     const Sl = g.constructor, NC = Sl.NC || Sl.N, NR = Sl.NR || Sl.N, [du, dv] = Sl.DIRS[dir], lines = du !== 0 ? NR : NC, len = du !== 0 ? NC : NR;
     const grid = g.tiles.map(t => t.blocked ? { type: '_', tier: 99, fixed: true, m: false } : t.tower ? { type: t.tower.type, tier: t.tower.tier, fixed: !!t.occ, m: false } : null);   // [v3] 구멍 = 벽
     let mergeGain = 0, moved = 0;
-    const MAXT = g.mergeMax || 6;   // [v3.1] 밀어 합치기는 영웅(3)까지
+    const MAXT = g.mergeMax || 6, HG = (g.tiles.filter(t => !t.tower && !t.blocked).length <= 5 || g.towersList().filter(t => t.tower.tier >= 5).length >= 3) ? 4 : -40;   // [v3.6 실험] 영웅 흡수는 판이 차거나 전설 3명이 된 뒤에만 이득으로 봄   // [v3.1] 밀어 합치기는 영웅(3)까지
     for (let line = 0; line < lines; line++) {
       const cells = [];
       for (let s = 0; s < len; s++) { const pos = du > 0 ? len - 1 - s : du < 0 ? s : dv > 0 ? len - 1 - s : s; const c = du !== 0 ? pos : line, r = du !== 0 ? line : pos; cells.push(r * NC + c); }
@@ -64,6 +64,7 @@
         const from = cells[s], A = grid[from]; if (!A || A.fixed) continue;
         let k = s; while (k - 1 >= 0 && !grid[cells[k - 1]]) k--;
         const fr = k - 1 >= 0 ? cells[k - 1] : -1;
+        if (fr >= 0 && g.heroMerge && grid[fr] && !grid[fr].fixed && !grid[fr].m && A.tier === 3 && grid[fr].tier === 3) { grid[fr].m = true; grid[from] = null; mergeGain += HG; moved++; continue; }   // [v3.6 실험] 영웅 흡수: 판이 찼을 때만 이득으로 봄
         if (fr >= 0) { const B = grid[fr]; if (B && !B.fixed && !B.m && B.tier === A.tier && A.tier < MAXT) { B.tier++; B.m = true; if (B.type === 'prism') B.type = A.type; grid[from] = null; mergeGain += Math.pow(2, B.tier); moved++; continue; } }
         if (cells[k] !== from) { grid[cells[k]] = A; grid[from] = null; moved++; }
       }

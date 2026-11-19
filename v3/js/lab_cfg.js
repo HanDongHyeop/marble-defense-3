@@ -13,7 +13,7 @@
   const CFG = {
     marble: { name: '마블 + 수정', crystal: 20, countMul: 1.2, spd: 0.85, bossSpd: 0.8, bossDmg: 8, twoBossFrom: 15, twoBossHp: 0.62, sides: 'even', hpMul: 0.52, roundGold: 0, commander: 'gambler' },
     dial:   { name: '다이얼 성', crystal: 20, countMul: 1.2, spd: 0.85, bossSpd: 0.8, bossDmg: 8, twoBossFrom: 15, twoBossHp: 0.62, sides: 'waves', hpMul: 0.65, roundGold: 1, commander: 'cheer' },
-    slide:  { name: '밀어 합치기', holes: { normal: [], hard: [5, 14], hell: [2, 9, 15] }, crystal: 20, countMul: 1.2, spd: 0.85, bossSpd: 0.8, bossDmg: 8, twoBossFrom: 15, twoBossHp: 0.62, sides: 'waves', hpMul: 1.8, hpLate: 0.13, roundGold: 1, commander: 'cheer' },   // [v3.1] 5등급(힘 1 · 3 · 9 · 30 · 90) → 체력 ×1.2 + 라운드마다 +13%(후반 가파르게) · [v3] 0.66
+    slide:  { name: '밀어 합치기', oneWay: true, holes: { normal: [], hard: [5, 14], hell: [2, 9, 15] }, crystal: 20, countMul: 1.2, spd: 0.85, bossSpd: 0.8, bossDmg: 8, twoBossFrom: 15, twoBossHp: 0.62, sides: 'waves', hpMul: 2.7, hpLate: 0.13, roundGold: 1, commander: 'cheer' },   // [v3.1] 5등급(힘 1 · 3 · 9 · 30 · 90) → 체력 ×1.2 + 라운드마다 +13%(후반 가파르게) · [v3] 0.66
   };
   const x = isNode ? process.env.LABX : null;
   if (x) Object.assign(CFG[map], JSON.parse(x));

@@ -53,5 +53,15 @@
   // [v3.4] 전체 체력을 올린 뒤(hpMul 1.8) 뒤쪽 장이 너무 어려움(6장 성장 높음 8%) → 장 체력 배율의 '1을 넘는 몫'을 40%로
   if (root.META && root.META.CHAPTERS && !root.META._v34) { root.META._v34 = 1; for (const C of root.META.CHAPTERS) C.hp = 1 + (C.hp - 1) * 0.4; }
   if (D.DIFF) { D.DIFF.normal.desc = '4×4 판 그대로'; D.DIFF.hard.desc = '몬스터 체력 ×1.5 · 판 구멍 2칸'; D.DIFF.hell.desc = '몬스터 체력 ×1.6 · 판 구멍 3칸'; }
+  if (D.BOSSES) {   // [v3.6] 보스 설명을 이 판 규칙으로(전: 본편의 '포탑 · 칸에 멈춰 구조 · 프리즘탑')
+    D.BOSSES.destroyer.desc = '아군 2명에게 망치 예고 — 15초 뒤 한 등급 내려간다';
+    D.BOSSES.ghost.desc = '아군 3명을 잠시 멈춘다';
+    D.BOSSES.witch.desc = '아군 1명의 계열을 무작위로 바꾼다';
+    D.BOSSES.magician.desc = '가장 낮은 아군 1명을 한 등급 올려 주는 선물';
+    D.BOSSES.quake.desc = '아군 2명의 자리를 뒤섞는다';
+    D.BOSSES.swindler.desc = '아군 1명을 붙잡아 못 움직이게 한다 — 보스를 잡으면 풀린다';
+    D.BOSSES.piggy.desc = '수정에 닿으면 가진 금화의 50% 보너스(수정은 안 깨짐)';
+    D.BOSSES.goblin.desc = '수정에 닿기 전에 잡으면 금화 보너스';
+  }
   if (D.MONSTERS) { D.MONSTERS.normal.name = '돌블록'; D.MONSTERS.fast.name = '날개돌'; D.MONSTERS.giant.name = '큰바위'; }
 })(typeof window !== 'undefined' ? window : globalThis);

@@ -682,10 +682,10 @@
     },
     crystalInfo() {
       open({ type: 'sheet', title: '수정 지키기 · 판 규칙', body: () => `<ol class="v2rules">
-        <li>몬스터가 <b>6시 굴</b>에서 양쪽 길로 나와 <b>12시 수정</b>으로 가요. 닿은 만큼 수정이 깎이고(보스 −8) 0이 되면 패배.</li>
+        <li>몬스터가 <b>왼쪽 위 굴</b>에서 나와 판을 한 바퀴 돌아 <b>위쪽 수정</b>으로 가요. 닿은 만큼 수정이 깎이고(보스 −8) 0이 되면 패배.</li>
         <li><b>[소환]</b> = 빈 칸에 일반(Lv.1) 아군. <b>판을 쓸어 밀면</b> 모든 아군이 그쪽 끝까지 미끄러지고, <b>같은 단계끼리 부딪히면 합쳐져요</b>(앞에 있던 아군 종류가 남아요).</li>
         <li><b>밝은 가장자리 칸</b>이 길에 가까워요. 한쪽으로 몰리는 웨이브는 굴 앞 화살표로 미리 보여요.</li>
-        <li>보스: 5 · 10라운드는 1마리(왼쪽 길), 15 · 20라운드는 <b>2마리가 양쪽</b>에서 와요.</li></ol>
+        <li>보스: 5 · 10라운드는 1마리, 15 · 20라운드는 <b>2마리</b>가 함께 와요.</li></ol>
         <div class="note">별 3개 = 승리 · 수정 70% 이상 지키기 · 전설 아군 만들기</div>` });
     },
     stagePick() {
@@ -965,7 +965,7 @@
     const og = { choice: { commander: S.cmd, pawn: S.pawn, mode: mode === 'endless' ? 'endless' : 'conquest', coop: mode === 'coop', deck: deck().slice(), diff: mode === 'endless' ? 'normal' : DIFFS[di], chapter: n },
       bonus: sb ? sb.fx : null, bonusTxt: sb ? { d: sb.d.join('·'), txt: sb.txt } : null, meta: { nodes: S.nodes, unlocked: S.unlocked, relics: S.relics } };
     const fr = G0.fr = document.createElement('iframe'); fr.id = 'game'; fr.className = 'pre'; fr.title = '마블 디펜스 판'; fr.setAttribute('allow', 'autoplay; fullscreen');
-    fr.src = 'game.html?v=202611181911&embed=1&og=' + encodeURIComponent(JSON.stringify(og));
+    fr.src = 'game.html?v=202611191156&embed=1&og=' + encodeURIComponent(JSON.stringify(og));
     G0.attach = () => { if (!fr.isConnected && ui.inGame === G0) document.body.appendChild(fr); };
     // 크롬(안드로이드 · PC)은 판을 불러와도 이 화면이 거의 안 멈춤 → 착지 직후 바로. 아이폰(WebKit)은 같은 줄에서 돌아 로비가 멈칫 → 진입 막 아래에서(enterGame)
     const UA = navigator.userAgent, WK = /iPhone|iPad|iPod/.test(UA) || (/AppleWebKit/.test(UA) && !/Chrome|Chromium|Android|Edg/.test(UA)) || (navigator.maxTouchPoints > 1 && /Macintosh/.test(UA));
@@ -1011,6 +1011,7 @@
 
   // 첫 로딩(3~5초 무작위 · 진짜 그림 미리 불러오기 · 멈칫/휙 하는 게이지) → 전환 막 → 로비 주사위 안착
   // [v3.5] 로비 안내(처음 한 번씩): 어둡게 + 뚫린 곳 + 말풍선 — 뚫린 곳만 눌림. ① 첫 방문 = [시작] ② 첫 판 뒤 = 성장 탭(성장 · 유물 · 신화 해금)
+  try { const hq = new URLSearchParams(location.search).get('hm'); if (hq) { if (hq === 'off') localStorage.removeItem('mdv3_hm'); else localStorage.setItem('mdv3_hm', hq); } } catch (e) { /* 저장 막힘 */ }   // [v3.6 실험] 영웅끼리 합치기 시험 스위치
   if (!S.coach) S.coach = {};
   const COACH = { on: null };
   function coachShow(key, sel, title, text) {

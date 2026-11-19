@@ -102,6 +102,8 @@
           case 'round': A && A.round && A.round(); break;
           case 'nogold': A && A.error && A.error(); break;
           case 'upgrade': A && A.upgrade && A.upgrade(); break;
+          case 'absorb': { const p = this.drawPos(game, e.i, game.tiles[e.i].tower); this.ring(p[0], p[1] - 40, 50, '#ffe08a', 0.6, 6); this.say(e.star ? '★' + e.star : '계열 강화 Lv ' + e.lv, '#ffe9a8', p[0], p[1] - 100, 1.1, 26); A && A.upgrade && A.upgrade(); break; }
+          case 'hexed': { const p = this.drawPos(game, e.i, game.tiles[e.i].tower); this.ring(p[0], p[1] - 40, 46, e.gift ? '#ffe08a' : '#b07cff', 0.6, 5); this.say(e.gift ? '마술사의 선물!' : '계열이 바뀜!', e.gift ? '#ffe9a8' : '#d8b8ff', p[0], p[1] - 96, 1, 24); if (!e.gift) A && A.bad && A.bad(); break; }
           case 'warn': { const p = this.drawPos(game, e.i, game.tiles[e.i].tower); this.ring(p[0], p[1] - 40, 44, '#ff4a4a', 0.5, 5); break; }
           case 'stop': { const p = this.drawPos(game, e.i, game.tiles[e.i].tower); this.ring(p[0], p[1] - 40, 40, '#c9b8ff', 0.4, 4); break; }
           case 'occupy': { const p = G.tiles[e.i].tower; this.say('점령당함!', '#ff8a8a', p[0], p[1] - 70, 0.9, 24); A && A.bad && A.bad(); break; }
@@ -176,8 +178,8 @@
       this.slideAt = { t: this.time, dir: e.dir };
     }
     chainFx(pts) { if (pts && pts.length > 1) this.fx.push({ k: 'chain', pts: pts.map(p => [p[0], p[1] - 20]), t: this.time, life: 0.25 }); }
-    cryPos() { const p = G.lanePoint(12, 0); return [p[0], p[1] - 4]; }
-    denPos() { const p = G.lanePoint(0, 0); return [p[0], p[1] + 6]; }
+    cryPos() { const p = G.lanePoint(G.END || 12, 0); return [p[0], p[1] - 4]; }
+    denPos() { const p = G.lanePoint(0, 0); return [p[0] + 6, p[1] + 2]; }
 
     // ---------------------------------------------------------------- 매 프레임
     frame(game, dt, ui) {
@@ -228,10 +230,10 @@
     // 돌 블록 길: 둘레 길 가운데 선을 따라 둥근 네모 돌을 촘촘히(랜덤다이스2 길 느낌). 모서리 돌은 크게
     // [v3.3] 길 = 타일이 아니라 이어진 흙길(사용자). 둥근 네모 고리 한 줄: 짙은 가장자리 → 길 바닥 → 안쪽 밝은 띠 → 드문드문 자갈 · 바퀴 자국
     drawPath(c, game) {
-      const pal = this.pal(game), L = G.CFG.L * G.u, cx = G.CFG.L / 2;
-      const a = G.P(cx, cx), b = G.P(G.SW - cx, G.SH - cx), x = a[0], y = a[1], w = b[0] - a[0], h = b[1] - a[1], r = L * 0.55;
-      const ring = (lw, col) => { c.lineWidth = lw; c.strokeStyle = col; this.rr(c, x, y, w, h, r); c.stroke(); };
-      c.save(); c.lineJoin = 'round';
+      const pal = this.pal(game), L = G.CFG.L * G.u, r = L * 0.55, pts = G.lanePts.map(q => G.P(q[0], q[1]));
+      // [v3.6] 열린 길(굴 → 수정): 꺾임점을 둥글게 이은 한 줄
+      const ring = (lw, col) => { c.lineWidth = lw; c.strokeStyle = col; c.beginPath(); c.moveTo(pts[0][0], pts[0][1]); for (let k = 1; k < pts.length - 1; k++) c.arcTo(pts[k][0], pts[k][1], pts[k + 1][0], pts[k + 1][1], r); c.lineTo(pts[pts.length - 1][0], pts[pts.length - 1][1]); c.stroke(); };
+      c.save(); c.lineJoin = 'round'; c.lineCap = 'round';
       c.translate(0, 5); ring(L * 0.98, 'rgba(20,14,30,0.22)'); c.translate(0, -5);   // 아래 그늘
       ring(L * 0.98, pal.stone[2]);
       ring(L * 0.86, pal.stone[1]);
@@ -324,8 +326,7 @@
     drawWaveArrows(c, game) {
       const w = this.waveArrows; if (!w) return; const a = this.time - w.t; if (a > 2.2) return;
       const [x, y] = this.denPos(), al = Math.min(1, a * 4) * Math.min(1, (2.2 - a) * 2);
-      const side = (dx, n) => { for (let k = 0; k < n; k++) { c.fillStyle = `rgba(255,90,90,${al})`; const px = x + dx * (70 + k * 26 + (a * 60) % 26); c.beginPath(); c.moveTo(px + dx * 12, y); c.lineTo(px - dx * 6, y - 12); c.lineTo(px - dx * 6, y + 12); c.closePath(); c.fill(); } };
-      side(-1, w.L >= 0.5 ? 3 : 1); side(1, w.L <= 0.5 ? 3 : 1);
+      for (let k = 0; k < 3; k++) { c.fillStyle = `rgba(255,90,90,${al})`; const py = y + 86 + k * 26 + (a * 60) % 26; c.beginPath(); c.moveTo(x - 6, py + 12); c.lineTo(x - 18, py - 6); c.lineTo(x + 6, py - 6); c.closePath(); c.fill(); }   // [v3.6] 굴 아래로 내려가는 화살표
     }
 
     // ---------------------------------------------------------------- 몬스터

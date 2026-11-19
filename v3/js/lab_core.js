@@ -10,7 +10,7 @@
     const Base = SIM.Game;
     const { ECON, BOSSES, MONSTERS } = D;
     const C = LAB.C;
-    const HALF = 12;
+    const HALF = C.oneWay ? 24 : 12;   // [v3.6] oneWay = 한 방향 길(f 0 → 24)
     const prog = m => (m.dir < 0 ? -m.f : m.f);   // 굴에서 수정 쪽으로 온 거리(0 ~ 12)
 
     class LabGame extends Base {
@@ -38,6 +38,7 @@
 
       // -------------------------------------------------------- 웨이브 · 양쪽 출발
       sidePattern(r) {
+        if (C.oneWay) return { L: 1, tag: 'one' };
         if (C.sides !== 'waves') return { L: 0.5, tag: 'even' };
         // 다이얼 · 밀어 합치기: 한쪽으로 몰리는 웨이브가 섞여야 '돌리기 · 밀기'가 판단이 된다(굴 위 화살표로 미리 보여 줌)
         const k = r % 3;
@@ -80,7 +81,7 @@
         };
         this.boss = mk(k1, 1); this.bossT = 0;
         this.boss2 = null;
-        if (two) { let k2 = this.pickBoss(r); for (let n = 0; n < 8 && k2 === k1; n++) k2 = this.pickBoss(r); this.boss2 = mk(k2, -1); this.boss2T = 0; }
+        if (two) { let k2 = this.pickBoss(r); for (let n = 0; n < 8 && k2 === k1; n++) k2 = this.pickBoss(r); this.boss2 = mk(k2, C.oneWay ? 1 : -1); this.boss2T = 0; if (C.oneWay) { this.boss.f = 2; this.posOf(this.boss); } }
         this.finalT = null; this.crystal = null;
         this.emit('boss', { boss: k1, name: BOSSES[k1].name, two: !!this.boss2, boss2: this.boss2 ? this.boss2.boss : null, name2: this.boss2 ? BOSSES[this.boss2.boss].name : null });
       }

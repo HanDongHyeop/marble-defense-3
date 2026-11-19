@@ -59,13 +59,14 @@
       const dis = bs.some(b => D.BOSSES[b.boss].kind === 'disrupt');
       $('bossInfo').textContent = final ? '마지막 보스 — 수정에 닿으면 끝!' : dis ? `수정에 닿으면 수정 −${C.bossDmg}` : bs[0].boss === 'piggy' ? '수정에 닿으면 금화 보너스' : '잡으면 금화 보너스';
       // 남은 시간 = 가장 빠른 보스가 수정에 닿기까지
-      const tt = Math.min(...bs.map(b => Math.max(0, (12 - root.SIM.prog(b)) / Math.max(0.05, g.monSpeed(b) || 0.05))));
+      const tt = Math.min(...bs.map(b => Math.max(0, ((C.oneWay ? 24 : 12) - root.SIM.prog(b)) / Math.max(0.05, g.monSpeed(b) || 0.05))));
       $('timerTxt').textContent = `${Math.floor(tt / 60)}:${String(Math.floor(tt % 60)).padStart(2, '0')}`;
     }
     if (MAP === 'slide') this.labWavePanel(g);
   };
   U.labWavePanel = function (g) {
     const el = $('labWave') || $('waveChip'); if (!el) return;
+    if (C.oneWay) { el.hidden = true; return; }   // [v3.6] 한 방향 길 — 쏠림 예고 없음
     const bossNext = (g.round + 1) % 5 === 0, spawning = g.spawnQ && g.spawnQ.length;
     const w = spawning && g.round % 5 !== 0 ? g.wave : g.nextWave, tagNow = spawning ? '이번' : '다음';
     const key = (bossNext && !spawning ? 'B' : w.tag) + tagNow;
@@ -81,7 +82,8 @@
     const B = D.BOSSES[e.boss] || {}, final = this.g && this.g.round >= D.ECON.rounds;
     if (e.two) $('warnName').textContent = e.name + ' + ' + e.name2;
     $('warnSub').hidden = false;
-    $('warnSub').textContent = e.two ? '보스 둘! 왼쪽 · 오른쪽 길에서 함께 와요' + (final ? ' — 수정에 닿으면 끝' : ` · 수정에 닿으면 −${C.bossDmg}`)
+    if (C.oneWay) $('warnSub').textContent = (e.two ? '보스 둘이 함께 와요' : final ? '마지막 보스' : '보스가 와요') + (final ? ' — 수정에 닿으면 끝' : B.kind === 'disrupt' || e.two ? ` · 수정에 닿으면 −${C.bossDmg}` : ' · 잡으면 금화 보너스');
+    else $('warnSub').textContent = e.two ? '보스 둘! 왼쪽 · 오른쪽 길에서 함께 와요' + (final ? ' — 수정에 닿으면 끝' : ` · 수정에 닿으면 −${C.bossDmg}`)
       : final ? '마지막 보스 — 왼쪽 길로 와요 · 수정에 닿으면 끝' : B.kind === 'disrupt' ? `왼쪽 길로 와요 · 수정에 닿으면 수정 −${C.bossDmg}` : '왼쪽 길로 와요 · 잡으면 금화 보너스';
   };
 
@@ -90,7 +92,7 @@
     if (e.ev === 'mission' && MAP !== 'marble') return;
     baseOnEvent.call(this, e);
     if (e.ev === 'full') { this.toast('빈 자리가 없어요', MAP === 'slide' ? '밀어서 합치세요' : '끌어서 합치세요', '같은 ' + (MAP === 'slide' ? '단계끼리' : '포탑 + 같은 단계'), true, 1.4); root.SFX.error(); }
-    if (e.ev === 'labWave' && C.sides === 'waves' && !e.boss && e.tag !== 'even') this.toast(e.round + ' 웨이브', e.tag === 'left' ? '◀ 왼쪽으로 많이 와요' : '오른쪽으로 많이 와요 ▶', MAP === 'dial' ? '센 포탑을 그쪽으로 돌려 대세요' : '그쪽 가장자리로 밀어 두세요', false, 1.8);
+    if (e.ev === 'labWave' && C.sides === 'waves' && !C.oneWay && !e.boss && e.tag !== 'even') this.toast(e.round + ' 웨이브', e.tag === 'left' ? '◀ 왼쪽으로 많이 와요' : '오른쪽으로 많이 와요 ▶', MAP === 'dial' ? '센 포탑을 그쪽으로 돌려 대세요' : '그쪽 가장자리로 밀어 두세요', false, 1.8);
     if (e.ev === 'cryHit' && root.HAPTIC && root.HAPTIC.buzz) try { root.HAPTIC.buzz(e.boss ? 140 : 40); } catch (er) { /* 없음 */ }
   };
 

@@ -38,7 +38,7 @@
       { t: '강화', x: '계열 카드를 눌러 <b>강화</b>해 보세요.<br>판 위 그 계열이 모두 강해져요.', hole: () => rectOf('#upSheet'), hand: 'tap', bubble: 'top',
         enter() { this.u0 = Object.values(g().upg).reduce((a, b) => a + b, 0); g().gold = Math.max(g().gold, 300); }, done() { return Object.values(g().upg).reduce((a, b) => a + b, 0) > this.u0; }, leave() { if (ui.upOpen) ui.upOpen(false); } },
       { t: '전설과 신화', x: 'Lv.3까지는 밀어서 합쳐요.<br>그 위 <b>전설</b>은 <b>[조합]</b>에서 재료를 모아 만들고,<br><b>신화</b>는 신화석이 필요해요.<br>신화석은 보스와 <b>[미션]</b>에서 얻어요.', hole: () => { const a = rectOf('#misBtn'), b = rectOf('#mixBtn'); return { x: a.x, y: a.y, w: b.x + b.w - a.x, h: a.h }; }, next: '알겠어요', block: true },
-      { t: '수정을 지켜라', x: '몬스터가 6시 굴에서 나와 <b>12시 수정</b>으로 가요.<br>닿으면 수정이 깎이고, 0이 되면 끝!', hole: () => { const p = R().cryPos(); return { x: p[0] - 70, y: p[1] - 110, w: 140, h: 150 }; }, next: '시작!', block: true },
+      { t: '수정을 지켜라', x: '몬스터가 <b>왼쪽 위 굴</b>에서 나와 판을 한 바퀴 돌아<br><b>위쪽 수정</b>으로 가요. 닿으면 수정이 깎이고, 0이 되면 끝!', hole: () => { const p = R().cryPos(); return { x: p[0] - 70, y: p[1] - 110, w: 140, h: 150 }; }, next: '시작!', block: true },
     ];
   }
 

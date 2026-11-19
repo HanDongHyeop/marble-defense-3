@@ -13,8 +13,11 @@
   const PARTNER = {}; ORDER.forEach((k, n) => { PARTNER[k] = ORDER[(n + 1) % ORDER.length]; });
   const MERGE_MAX = 3, LEGEND_T = 5, MYTH_T = 6, LEGEND_CAP = 3, MYTH_CAP = 1;
   // 조절 값(봇으로 맞춤 · Node에서 G3='{"legendFrom":5}'로 바꿔 시험): 전설 조합은 legendFrom 라운드부터 · 신화 각성 게이지 = 전설이 처치한 수
-  const C3 = { legendFrom: 6, mythKills: 150, upgHit: 0.6 };
+  // [v3.6 실험] heroMerge = 영웅(Lv.3)끼리 부딪혔을 때: null = 안 합쳐짐(지금) / 'upg' = 뒤 영웅이 흡수되고 앞 영웅 계열 강화 +absorbLv / 'star' = 앞 영웅에 별 +1(그 한 명만 피해 +starMul)
+  const C3 = { legendFrom: 6, mythKills: 150, upgHit: 0.6, heroMerge: null, absorbLv: 1, absorbCap: 30, starMul: 0.5 };
   if (isNode && process.env.G3) Object.assign(C3, JSON.parse(process.env.G3));
+  // 폰에서 시험: 로비 주소에 ?hm=upg(계열 강화) · ?hm=star(별) · ?hm=off(끄기) — 한 번 열면 이 기기에 기억(mdv3_hm)
+  if (!isNode) try { const q = new URLSearchParams(location.search).get('hm'); if (q) { if (q === 'off') localStorage.removeItem('mdv3_hm'); else localStorage.setItem('mdv3_hm', q); } const h = localStorage.getItem('mdv3_hm'); if (h === 'upg' || h === 'star') { C3.heroMerge = h; C3.absorbLv = 2; C3.starMul = 1; } } catch (e) { /* 저장 막힘 */ }
   const MYTH_KILLS = C3.mythKills;
   const MISSIONS = [
     { id: 'allHero', name: '영웅 5계열 모두 판에 모으기', goal: 5, reward: { myth: 1 } },
@@ -47,6 +50,7 @@
       constructor(opt) {
         super(opt);
         this.mergeMax = MERGE_MAX;
+        this.heroMerge = opt.heroMerge !== undefined ? opt.heroMerge : C3.heroMerge; this.stats.absorbs = 0;
         this.mythStones = 0;
         this.mythOpen = new Set(opt.mythOpen || ['fire']);   // 판 밖 성장 탭에서 해금한 계열(첫 계열은 처음부터 열림)
         this.mis = MISSIONS.map(m => ({ id: m.id, n: 0, done: false }));
@@ -55,7 +59,7 @@
       grade(t) { return GRADE[t] || t; }
       // 탄 1발 피해 = 기본 × 등급 배율 / 탄 수 + (기본 공격력 × UPG_HIT × 강화 Lv)
       dmgMul(i) {
-        const base = super.dmgMul(i), tw = this.tiles[i].tower, lv = this.upg[tw.type] || 0; if (!lv) return base;
+        const tw = this.tiles[i].tower, base = super.dmgMul(i) * (1 + C3.starMul * (tw.star || 0)), lv = this.upg[tw.type] || 0; if (!lv) return base;
         const n = tw.type === 'gatling' ? 3 * tw.tier : T.shots[tw.tier];
         return base * (1 + C3.upgHit * lv * n / T.vol[tw.tier]);
       }
@@ -70,7 +74,30 @@
         this.emit('commander', { id });
         return true;
       }
-      slideMergeable(a, b) { const A = this.tiles[a] && this.tiles[a].tower; return !!(A && A.tier < this.mergeMax) && super.slideMergeable(a, b); }
+      // [v3.6] 보스 교란: 전설 · 신화는 건드리지 않음(전설이 −1단계 되면 안 쓰는 내부 단계 4가 됨)
+      //   마술사 = 선물: 가장 낮은 아군 1명을 한 등급 올려 줌(전: 옛 '프리즘' 종류로 바꿈 → v3에 그림이 없어 옛 사람 그림이 나오던 버그)
+      bossDisrupt(k, cand) {
+        cand = cand.filter(t => t.tower.tier < LEGEND_T && t.tower.type !== 'prism');
+        if (k === 'magician') {
+          const t = cand.filter(c => c.tower.tier < this.mergeMax).sort((a, c) => a.tower.tier - c.tower.tier)[0];
+          if (t) { this.setTier(t.i, t.tower.tier + 1, 'tierup'); this.emit('hexed', { i: t.i, gift: 1, by: k }); }
+          else { const g = this.round * 5; this.gold += g; this.emit('gold', { amt: g, why: '마술사의 선물' }); }
+          return 15;
+        }
+        return super.bossDisrupt(k, cand);
+      }
+      heroPair(a, b) { if (!this.heroMerge || a === b) return false; const A = this.tiles[a], B = this.tiles[b]; return !!(A && B && A.tower && B.tower && A.tower.tier === 3 && B.tower.tier === 3 && !A.occ && !B.occ); }
+      slideMergeable(a, b) { if (this.heroPair(a, b)) return true; const A = this.tiles[a] && this.tiles[a].tower; return !!(A && A.tier < this.mergeMax) && super.slideMergeable(a, b); }
+      merge(a, b) {
+        if (!this._sliding || !this.heroPair(a, b)) return super.merge(a, b);
+        const A = this.tiles[a].tower, Bt = this.tiles[b].tower;
+        this.tiles[a].tower = null; this.tiles[a].warn = null;
+        this.stats.merges++; this.stats.absorbs++;
+        this.emit('mergeFrom', { a, b, type: Bt.type, tier: Bt.tier, typeA: A.type });
+        if (this.heroMerge === 'star') { Bt.star = (Bt.star || 0) + 1 + (A.star || 0); Bt.upT = this.t; this.emit('absorb', { i: b, type: Bt.type, star: Bt.star }); }
+        else { const lv = this.upg[Bt.type] = Math.min(C3.absorbCap, (this.upg[Bt.type] || 0) + C3.absorbLv); this.emit('absorb', { i: b, type: Bt.type, lv }); this.emit('upgrade', { type: Bt.type, lv, free: 1 }); }
+        return true;
+      }
       // 행운 합치기(+1) · 건축가가 영웅을 넘지 않게: 합치기로는 영웅까지만
       setTier(i, tier, why, lucky) { if (why !== 'legend' && why !== 'mythic' && why !== 'debug' && tier > this.mergeMax) tier = this.mergeMax; return super.setTier(i, tier, why, lucky); }
 
