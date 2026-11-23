@@ -288,3 +288,21 @@ body.v3 #pauseBtn { border-width: 0 16px; border-radius: 0; }
 body.v3 #pauseBtn .pz { border-radius: 0; }
 body.v3 #truckBtn { border-radius: 8px; box-shadow: none; border: 4px solid #181b3a; background: #262a50; }
 body.v3 #truckBtn .tag { border-radius: 3px; font-family: Gal, Jua, sans-serif; }
+
+/* [v3.9b · 2026-11-23 사용자: '디자인 풍'을 시안으로 — 글씨 라벨은 그대로] 아이콘만 남겼던 것을 되돌려 버튼 이름을 다시 보여 줌(시안 풍 픽셀 글꼴 · 남색 테) */
+body.v3 #subRow #misBtn b, body.v3 #subRow #mixBtn b, body.v3 #subRow #upBtn b { display: inline; }
+body.v3 #subRow .sub { gap: 5px; }
+body.v3 #subRow .sub b { font-size: 21px; -webkit-text-stroke: 4px #181b3a; letter-spacing: 0; }
+body.v3 #subRow .sub small { display: inline; font-family: Gal, Jua, sans-serif; font-size: 13px; color: #d8d2ff; white-space: nowrap; }
+body.v3 #subRow .sub .si { width: 32px; height: 32px; }
+body.v3 #subRow .si.mis { width: 32px; height: 26px; }
+body.v3 #subRow .si.gem { width: 24px; height: 28px; }
+body.v3 #subRow .chip3 b, body.v3 #subRow #spdBtn b { font-size: 26px; }
+body.v3 #subRow #upBtn { background-image: url(img/ui/btn_orange.png); gap: 5px; }
+body.v3 #subRow #upBtn .ico { display: inline-block; width: 30px; height: 30px; background: url(img/ui/ic_up.png) center / contain no-repeat; image-rendering: pixelated; margin-top: -6px; }
+body.v3 #subRow #upBtn .ico::before, body.v3 #subRow #upBtn .ico::after { display: none; }
+body.v3 #subRow #upBtn b { margin-top: -6px; }
+body.v3 #rollBtn .labSumm { height: 46px; gap: 8px; }
+body.v3 #rollBtn .labSumm b { display: inline; font-family: Gal, Jua, sans-serif; font-size: 38px; text-shadow: none; }
+body.v3 #rollBtn .labSumm .sp { width: 38px; height: 40px; }
+body.v3 #cmdBtn .tag { display: block; bottom: -10px; border-radius: 3px; background: #181b3a; box-shadow: none; font-family: Gal, Jua, sans-serif; font-size: 14px; padding: 2px 8px; }
