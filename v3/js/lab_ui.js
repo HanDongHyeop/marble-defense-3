@@ -279,4 +279,21 @@
       });
     };
   }
+
+  // ============================================================ [v3.9d] 조작 잠금 — 판이 멈춰 있는 연출 · 창 동안은 아군 들기 · 합치기 · 소환 · 지휘관 · 수송차를 막는다(사용자: 보스 경고 중에 캐릭터를 들 수 있었음)
+  //   잠기는 때: 보스 경고(3.3초) · 창(일시정지 · 규칙 · 결과 등 #modal)이 떠 있음 · 판이 끝남 · 판 시작 전(불러오는 중). 튜토리얼은 제 단계에서 필요한 조작을 스스로 열어 주므로 건드리지 않음
+  //   막지 않는 것: 일시정지 단추 · 배속 · 아래 창 닫기(연출 중에도 멈추거나 나갈 수 있어야 함)
+  {
+    const P = root.UI.prototype;
+    P.inputLocked = function () { const a = this.app, g = this.g; return !g || !!g.over || !!a.hold || (this.introBusy && this.introBusy()) || (this.modalOpen && this.modalOpen()); };
+    P.dropHold = function () { const R = this.app && this.app.renderer; if (R) R.drag = null; this.press = null; if (this.cmdArm) { this.cmdArm = false; const b = document.getElementById('cmdBtn'); if (b) b.classList.remove('droptarget'); } };
+    for (const k of ['down', 'move', 'up']) { const base = P[k]; P[k] = function (e) { if (this.inputLocked()) { this.dropHold(); return; } return base.call(this, e); }; }
+    const bw = P.bossWarn; if (bw) P.bossWarn = function (e) { this.dropHold(); if (this.hideInfo) this.hideInfo(); return bw.call(this, e); };
+    // 잠긴 동안 아래 패널 · 수송차를 못 누르게(body.inlock) — 0.1초마다 상태를 봄(연출은 타이머로 끝나므로)
+    setInterval(() => { const ui = root.App && root.App.ui; if (!ui || !ui.inputLocked) return; const on = !!(ui.g && (ui.introBusy && ui.introBusy())); if (document.body.classList.contains('inlock') !== on) { document.body.classList.toggle('inlock', on); if (on) ui.dropHold(); } }, 100);
+    // 명령도 막음(자동 소환 · 단축키 등 다른 길로 들어오는 것까지)
+    const LOCKED = { callTruck: 1, roll: 1, summon: 1, merge: 1, moveTo: 1, useCommander: 1, choose: 1, upgrade: 1, gamble: 1, truck: 1, makeLegend: 1, awakenMythic: 1, slide: 1 };
+    const hook = () => { const A = root.App; if (!A || !A.cmd || A._lk) return !!(A && A._lk); A._lk = 1; const base = A.cmd; A.cmd = function (name, a) { if (LOCKED[name] && this.ui && this.ui.introBusy && this.ui.introBusy()) return false; return base.call(this, name, a); }; return true; };
+    if (!hook()) { const iv = setInterval(() => { if (hook()) clearInterval(iv); }, 200); }
+  }
 })(window);

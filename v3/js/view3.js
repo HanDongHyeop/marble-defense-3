@@ -26,7 +26,12 @@
     temple:  { ground: ['#e9d9a8', '#cdb782'], stone: ['#fff1c9', '#e0c98f', '#b39a62'], slab: ['#b89c62', '#94794a'], cell: ['#fff6da', '#ecd9a6'], cellEdge: '#8e7342', hole: '#5e4a2a' },
     abyss:   { ground: ['#2c2448', '#1b1530'], stone: ['#5d5480', '#433b62', '#2a2442'], slab: ['#2a2244', '#1d1733'], cell: ['#4e4474', '#3a3159'], cellEdge: '#16112a', hole: '#0b0816' },
   };
-  const PXART = { meadow: { top: '#72ae46', edge: '#706256' }, volcano: { top: '#322a36', edge: '#1e1824' }, snow: { top: '#dbebfe', edge: '#3468b0' } };   // 픽셀 바탕이 있는 컨셉: 화면 위 여백 색 · 길 테 색(시안 값)
+  // 픽셀 바탕이 있는 컨셉: 화면 위 여백 색 · 길(테 · 가장자리 · 면 · 가운데 밝은 띠 · 무늬 색 · 무늬 종류) · 자리(면 · 아래 줄) — 시안에서 잰 색
+  const PXART = {
+    meadow: { top: '#72ae46', edge: '#6a5a4e', rim: '#c8b09a', face: '#dfcab6', lite: '#e8d6c4', mark: '#b39a84', kind: 'cobble', slot: ['#93d45e', '#7fbe4e'] },
+    volcano: { top: '#322a36', edge: '#1c1622', rim: '#5f2c36', face: '#7c3e48', lite: '#864852', mark: '#562630', kind: 'crack', slot: ['#4d4854', '#3f3a46'] },
+    snow: { top: '#dbebfe', edge: '#3a70b6', rim: '#86bcec', face: '#a8d2f6', lite: '#b8dcfa', mark: '#d8eeff', kind: 'wave', slot: ['#c2d6ee', '#aac2e0'] },
+  };
   const OUT = '#1d1b3a';   // 윤곽 남색(그림 시안과 같은 색)
 
   // 결정적 난수(길 돌 크기 흔들림 — 매 프레임 같은 모양)
@@ -202,7 +207,11 @@
       for (const gh of this.ghosts) list.push({ y: gh.ty, gh });
       list.sort((a, b) => a.y - b.y);
       this.drawCrystal(c, game);
-      for (const it of list) { if (it.m) this.drawMonster(c, game, it.m); else if (it.t) this.drawAlly(c, game, it.t); else this.drawGhost(c, it.gh); }
+      for (const it of list) {
+        // [v3.9d] 아군을 들면 판이 아주 살짝 어두워지고, 든 아군과 합칠 수 있는 짝만 밝게 다시 그림
+        if (it.t && this.drag && this.drag.from === it.t.i && this.drag.fx != null) { c.fillStyle = 'rgba(12,8,28,0.3)'; c.fillRect(0, 0, 720, FH()); for (const q of game.tiles) if (q.tower && !q.blocked && q.i !== it.t.i && game.canMerge && game.canMerge(it.t.i, q.i)) this.drawAlly(c, game, q); }
+        if (it.m) this.drawMonster(c, game, it.m); else if (it.t) this.drawAlly(c, game, it.t); else this.drawGhost(c, it.gh);
+      }
       this.drawSel(c, game);
       // [v3.9c] 탄 · 이펙트는 따로 둔 낮은 해상도 층(fxpx · 540 격자 · pixelated)에 그려 픽셀 계단을 줌. 판 · 캐릭터 · 글씨는 기기 해상도 그대로
       const fc = root.FXCTX || c;
@@ -229,14 +238,32 @@
       if (im) { if (px) c.drawImage(im, 0, 0, 720, H); else { const k = Math.max(720 / im.naturalWidth, H / im.naturalHeight), w = im.naturalWidth * k, h = im.naturalHeight * k; c.drawImage(im, (720 - w) / 2, (H - h) / 2, w, h); } return; }
       c.fillStyle = top; c.fillRect(0, 0, 720, H);
     }
-    // [v3.9] 길 = 좌표로 그리는 띠(시안 합성과 같은 방식): 짙은 테 → 질감 면. 갈림길은 여러 줄을 한 번에(테를 먼저 다 그리고 면을 덮어 이음매가 없음)
+    // [v3.9d] 길 = 전부 좌표로 그림(작은 질감 그림을 깔았더니 키울 때 흐려짐 — 사용자: 초원 · 설원 길 화질이 낮아 보임).
+    //   겹: 짙은 테(폭 +8) → 가장자리 톤(폭) → 면(폭 −12) → 가운데 밝은 띠 → 컨셉별 무늬(초원 = 양쪽 돌 박힌 자국 · 눈 = 얼음 결 물결 · 용암 = 갈라진 금). 갈림길은 겹마다 모든 줄을 한꺼번에 그려 이음매가 없음
     drawPath(c, game) {
       const pal = this.pal(game), px = this.pxOf(game), W = G.CFG.RW || 54, L = G.lanesPx || [];
-      const face = (px && this.pat(c, 'tr_' + px, 'v3/img/map/tex_' + px + '_road.png')) || pal.stone[1];
+      const K = px ? PXART[px] : { edge: pal.stone[2], rim: pal.stone[1], face: pal.stone[0], lite: 'rgba(255,255,255,0.18)', mark: 'rgba(40,28,36,0.22)', kind: 'dash' };
       const line = (lw, st) => { c.lineWidth = lw; c.strokeStyle = st; for (const pts of L) { c.beginPath(); c.moveTo(pts[0][0], pts[0][1]); for (let k = 1; k < pts.length; k++) c.lineTo(pts[k][0], pts[k][1]); c.stroke(); } };
       c.save(); c.lineJoin = 'round'; c.lineCap = 'round';
-      line(W + 8, px ? PXART[px].edge : pal.stone[2]);
-      line(W, face);
+      line(W + 8, K.edge); line(W, K.rim); line(W - 12, K.face); line(W - 34, K.lite);
+      // 무늬: 길을 따라 일정 간격(같은 자리 = 매 프레임 같은 모양)
+      c.lineCap = 'round';
+      for (let ln = 0; ln < L.length; ln++) {
+        let len = 0; for (let k = 1; k < L[ln].length; k++) len += Math.hypot(L[ln][k][0] - L[ln][k - 1][0], L[ln][k][1] - L[ln][k - 1][1]);
+        const step = K.kind === 'wave' ? 34 : 46, n = Math.floor(len / step);
+        for (let k = 1; k < n; k++) {
+          const f = k * step / len * 24; if (ln > 0 && f < (G.forkF || 99)) continue;   // 갈림 앞 한 줄기는 한 번만
+          const p = G.lanePx(f, 0, ln), dx = p[2], dy = p[3], nx = dy, ny = -dx, h = hash(k * 7 + ln * 31);
+          if (K.kind === 'cobble') {   // 양쪽 가장자리에 박힌 돌 한 쌍
+            for (const s of [-1, 1]) { const ox = p[0] + nx * s * (W * 0.5 - 12), oy = p[1] + ny * s * (W * 0.5 - 12); c.strokeStyle = K.mark; c.lineWidth = 6; c.beginPath(); c.moveTo(ox - dx * 5, oy - dy * 5); c.lineTo(ox + dx * 5, oy + dy * 5); c.stroke(); c.strokeStyle = K.rim; c.lineWidth = 2.5; c.beginPath(); c.moveTo(ox - dx * 3, oy - dy * 3); c.lineTo(ox + dx * 3, oy + dy * 3); c.stroke(); }
+          } else if (K.kind === 'wave') {   // 얼음 결: 길을 가로지르는 얕은 물결
+            c.strokeStyle = K.mark; c.lineWidth = 3; c.beginPath(); const a = W * 0.5 - 13;
+            c.moveTo(p[0] - nx * a, p[1] - ny * a); c.quadraticCurveTo(p[0] - nx * a * 0.5 + dx * 9, p[1] - ny * a * 0.5 + dy * 9, p[0], p[1]); c.quadraticCurveTo(p[0] + nx * a * 0.5 - dx * 9, p[1] + ny * a * 0.5 - dy * 9, p[0] + nx * a, p[1] + ny * a); c.stroke();
+          } else {   // 금: 짧은 꺾인 선
+            const s = h > 0.5 ? 1 : -1, ox = p[0] + nx * s * 8, oy = p[1] + ny * s * 8; c.strokeStyle = K.mark; c.lineWidth = 3; c.beginPath(); c.moveTo(ox - dx * 9, oy - dy * 9); c.lineTo(ox + nx * 4, oy + ny * 4); c.lineTo(ox + dx * 9, oy + dy * 9); c.stroke();
+          }
+        }
+      }
       c.restore();
     }
     stone(c, x, y, w, h, pal, j) {
@@ -287,15 +314,15 @@
       }
       if (hit < 0.25) { c.fillStyle = `rgba(255,80,80,${0.5 - hit * 2})`; c.beginPath(); c.arc(x, y - 40, 60, 0, TAU); c.fill(); }
     }
-    // [v3.9] 판 = 받침 없이 자리 조각만(땅보다 톤이 살짝 다른 둥근 네모 · 칸 사이 틈) — 시안 F1
+    // [v3.9d] 판 = 자리 조각(단색 둥근 네모 + 아래쪽 한 톤 짙은 줄) — 질감 그림 대신 직접 그려 선명
     drawBoard(c, game) {
-      const pal = this.pal(game), px = this.pxOf(game), n = G.NCELL || 20, cs = G.CFG.cell, r = Math.max(6, cs * 0.08);
-      const face = px && this.pat(c, 'ts_' + px, 'v3/img/map/tex_' + px + '_slot.png');
+      const pal = this.pal(game), px = this.pxOf(game), n = G.NCELL || 20, cs = G.CFG.cell, r = Math.max(6, cs * 0.1);
+      const col = px ? PXART[px].slot : [this.alpha(pal.cell[1], 0.5), this.alpha(pal.cellEdge, 0.35)];
       for (let i = 0; i < n; i++) {
         const t = game.tiles[i], h = G.tiles[i].tower, x = h[0] - cs / 2 + 4, y = h[1] - cs / 2 + 4, w = cs - 8;
         if (t && t.blocked) { c.fillStyle = pal.hole; this.rr(c, x + 3, y + 3, w - 6, w - 6, r); c.fill(); c.fillStyle = 'rgba(0,0,0,0.3)'; this.rr(c, x + 3, y + 3, w - 6, 10, 4); c.fill(); continue; }
-        if (face) { c.globalAlpha = 0.84; c.fillStyle = face; this.rr(c, x, y, w, w, r); c.fill(); c.globalAlpha = 1; }
-        else { c.fillStyle = this.alpha(pal.cell[1], 0.42); this.rr(c, x, y, w, w, r); c.fill(); }
+        c.fillStyle = col[1]; this.rr(c, x, y, w, w, r); c.fill();
+        c.fillStyle = col[0]; this.rr(c, x, y, w, w - 5, r); c.fill();
       }
     }
     drawWaveArrows(c, game) {

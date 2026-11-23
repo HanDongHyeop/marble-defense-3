@@ -47,7 +47,8 @@
   // [v3.7] 끌기: 든 아군은 손가락을 따라옴 · 맨 위에 그림
   // [pixelfx 가져옴] spawn/poof · 4배 매끄럽게 · MIT — 합쳐지는 자리에 연기 퐁
   const baseMergeFx = R.mergeFx;
-  R.mergeFx = function (game, i, tier) { baseMergeFx.call(this, game, i, tier); if (!this.fx3) return; const tw = game.tiles[i] && game.tiles[i].tower; if (!tw) return; const p = this.drawPos(game, i, tw); this.fx3.push({ k: 'sheet', key: 'merge', g: 1, x: p[0], y: p[1] - 6, t: this.time, life: 0.6, mul: tier >= 5 ? 1.35 : 1 }); };
+  R.mergeFx = function (game, i, tier) { baseMergeFx.call(this, game, i, tier); return;   // [v3.9d] 합칠 때 캐릭터를 0.5초 덮던 연기 그림을 뺌(사용자: 이상한 그림이 보임) — 흰 번쩍 + 고리 + 별만
+    if (!this.fx3) return; const tw = game.tiles[i] && game.tiles[i].tower; if (!tw) return; const p = this.drawPos(game, i, tw); this.fx3.push({ k: 'sheet', key: 'merge', g: 1, x: p[0], y: p[1] - 6, t: this.time, life: 0.6, mul: tier >= 5 ? 1.35 : 1 }); };
   const baseDrawPos = R.drawPos;
   R.drawPos = function (g, i, tw) { const d = this.drag; if (d && d.from === i && d.fx != null && tw) return [d.fx, d.fy + 1e-3]; return baseDrawPos.call(this, g, i, tw); };
 
@@ -80,7 +81,7 @@
     return baseConsume.call(this, game, rest, A);
   };
   // [pixelfx 가져옴] 타격 · 합치기 효과 = 4배 매끄럽게 구운 시트(pixelfx_가져온목록.md). n = 이름, a~b = 쓰는 구간(0~1 · 앞뒤의 날아오는 탄 · 남는 자국은 뺌), s = 그리는 배율, t = 길이(초)
-  const SHEET = { knight: { n: 'hit-spark', a: 0, b: 1, s: 0.5, t: 0.4 }, fire: { n: 'hit-spark', a: 0, b: 1, s: 0.56, t: 0.42 }, mech: { n: 'bullet-impact', a: 0, b: 0.3, s: 0.5, t: 0.36 }, storm: { n: 'zap-hit', a: 0.3, b: 0.78, s: 0.42, t: 0.4 }, frost: { n: 'ice-shatter', a: 0.2, b: 0.5, s: 0.4, t: 0.55 }, merge: { n: 'poof', a: 0, b: 0.7, s: 0.5, t: 0.6 }, demon: { n: 'hit-spark', a: 0, b: 1, s: 0.5, t: 0.4 }, mage: { n: 'zap-hit', a: 0.3, b: 0.78, s: 0.42, t: 0.4 } };
+  const SHEET = { knight: { n: 'hit-spark', a: 0, b: 1, s: 0.5, t: 0.4 }, fire: { n: 'hit-spark', a: 0, b: 1, s: 0.56, t: 0.42 }, mech: { n: 'bullet-impact', a: 0, b: 0.3, s: 0.5, t: 0.36 }, storm: { n: 'zap-hit', a: 0.3, b: 0.78, s: 0.42, t: 0.4 }, frost: { n: 'ice-shatter', a: 0.2, b: 0.5, s: 0.27, t: 0.45 }, merge: { n: 'poof', a: 0, b: 0.7, s: 0.5, t: 0.6 }, demon: { n: 'hit-spark', a: 0, b: 1, s: 0.5, t: 0.4 }, mage: { n: 'zap-hit', a: 0.3, b: 0.78, s: 0.42, t: 0.4 } };
   const FXM = root.FXSHEETS || {};
   R.sheetPic = function (n, k) { return this.pic('fx_' + n + k, 'v3/img/fx/' + FXM[n].sheets[k]); };
   // 시트 한 프레임 그리기(원점 = 맞은 자리). q = 0~1 진행. 그렸으면 true(그림이 아직 안 왔으면 false → 손으로 그린 효과로 대신)
@@ -149,6 +150,8 @@
     else this.allyShape(c, 'sword', tw.tier, size);
     c.filter = 'none';
     c.restore();
+    // [v3.9d] 든 아군 위 화살표(통통 튀는 ▼) — 아군이 많을 때 무엇을 들었는지 보이게
+    if (drg) { const b = Math.abs(Math.sin(T * 6)) * 8, ax = x + ox, ay = y - 4 + oy - top - 44 - b; c.save(); c.lineJoin = 'round'; c.fillStyle = '#ffe14a'; c.strokeStyle = OUT; c.lineWidth = 5; c.beginPath(); c.moveTo(ax - 15, ay - 12); c.lineTo(ax + 15, ay - 12); c.lineTo(ax, ay + 8); c.closePath(); c.stroke(); c.fill(); c.restore(); }
     // 레벨 배지(머리 위)
     if (this.lvSeen[tw.id] !== tw.tier) { if (this.lvSeen[tw.id] != null) this.lvPop[tw.id] = T; this.lvSeen[tw.id] = tw.tier; }
     this.lvBadge(c, x, y - 4 + oy - top - 6, g, T - (this.lvPop[tw.id] != null ? this.lvPop[tw.id] : -9), t.i);
@@ -166,10 +169,12 @@
     // [v3.9] 시안의 레벨 표: 짙은 남색 판 + 흰 픽셀 글씨(갈무리11 · 판 캔버스의 논리 픽셀 2px에 맞춰 22px). MAX는 금색. 등급이 오르면 튀어 오름
     const max = g >= 5, txt = max ? 'MAX' : 'Lv.' + g; let lift = 0;
     if (age >= 0 && age < 0.4) lift = -Math.sin(age / 0.4 * Math.PI) * 10;
-    c.save(); c.font = '22px Gal, Jua, sans-serif'; c.textAlign = 'left'; c.textBaseline = 'alphabetic';
-    const w = Math.ceil(c.measureText(txt).width / 2) * 2, px = Math.round((x - w / 2) / 2) * 2, py = Math.round((y + lift - 6) / 2) * 2;
-    c.fillStyle = OUT; this.rr(c, px - 6, py - 12, w + 10, 24, 4); c.fill();
-    c.fillStyle = max ? '#ffd23a' : g >= 4 ? '#ffb86a' : g === 3 ? '#e0c0ff' : g === 2 ? '#b0dcff' : '#ffffff'; c.fillText(txt, px, py + 8);
+    // [v3.9d] 판(배경) 없이 글씨만: 굵은 남색 테 + 아래 두께 + 등급 색(위는 밝게 · 아래는 짙게 두 톤) — 밝은 칸 · 어두운 칸 모두에서 읽힘
+    c.save(); c.font = '24px Gal, Jua, sans-serif'; c.textAlign = 'center'; c.textBaseline = 'alphabetic'; c.lineJoin = 'round';
+    const ty = y + lift + 4;
+    c.strokeStyle = OUT; c.lineWidth = 7; c.strokeText(txt, x, ty + 2.5); c.strokeText(txt, x, ty);
+    c.fillStyle = GT[g][2]; c.fillText(txt, x, ty);
+    c.save(); c.beginPath(); c.rect(x - 60, ty - 30, 120, 19); c.clip(); c.fillStyle = g === 1 ? '#ffffff' : GT[g][1]; c.fillText(txt, x, ty); c.restore();
     c.restore();
     if (age >= 0 && age < 0.45) { const k = age / 0.45; for (let n = 0; n < 5; n++) { const a = -Math.PI / 2 + (n - 2) * 0.55, d = 14 + k * 26; c.globalAlpha = 1 - k; this.star(c, x + Math.cos(a) * d, y + Math.sin(a) * d, 4.5 * (1 - k * 0.5), GT[g][1]); } c.globalAlpha = 1; }
   };

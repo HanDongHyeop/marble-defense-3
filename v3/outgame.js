@@ -966,7 +966,7 @@
     const og = { choice: { commander: S.cmd, pawn: S.pawn, mode: mode === 'endless' ? 'endless' : 'conquest', coop: mode === 'coop', deck: deck().slice(), diff: mode === 'endless' ? 'normal' : DIFFS[di], chapter: n },
       bonus: sb ? sb.fx : null, bonusTxt: sb ? { d: sb.d.join('·'), txt: sb.txt } : null, meta: { nodes: S.nodes, unlocked: S.unlocked, relics: S.relics } };
     const fr = G0.fr = document.createElement('iframe'); fr.id = 'game'; fr.className = 'pre'; fr.title = '마블 디펜스 판'; fr.setAttribute('allow', 'autoplay; fullscreen');
-    fr.src = 'game.html?v=202611231303&embed=1&og=' + encodeURIComponent(JSON.stringify(og));
+    fr.src = 'game.html?v=202611231353&embed=1&og=' + encodeURIComponent(JSON.stringify(og));
     G0.attach = () => { if (!fr.isConnected && ui.inGame === G0) document.body.appendChild(fr); };
     // 크롬(안드로이드 · PC)은 판을 불러와도 이 화면이 거의 안 멈춤 → 착지 직후 바로. 아이폰(WebKit)은 같은 줄에서 돌아 로비가 멈칫 → 진입 막 아래에서(enterGame)
     const UA = navigator.userAgent, WK = /iPhone|iPad|iPod/.test(UA) || (/AppleWebKit/.test(UA) && !/Chrome|Chromium|Android|Edg/.test(UA)) || (navigator.maxTouchPoints > 1 && /Macintosh/.test(UA));
@@ -1019,9 +1019,10 @@
     const st = $('stage'), tg = document.querySelector(sel); if (!tg || COACH.on) return;
     const el = document.createElement('div'); el.id = 'coach3';
     el.innerHTML = '<i class="tb a"></i><i class="tb b"></i><i class="tb c"></i><i class="tb d"></i><i class="hole"></i><i class="hand"></i><div class="bub"><b class="tt"></b><p class="tx"></p></div>';
-    el.querySelector('.tt').textContent = title; el.querySelector('.tx').innerHTML = text; st.appendChild(el); COACH.on = { key, el, sel, t0: performance.now() };
+    el.querySelector('.tt').textContent = title; el.querySelector('.tx').innerHTML = text; st.appendChild(el); COACH.on = { key, el, sel, t0: performance.now(), screen: ui.screen };
     const lay = () => {
-      const c = COACH.on; if (!c || c.el !== el) return; const t2 = document.querySelector(sel); if (!t2 || ui.modal || ui.inGame) { coachEnd(false); return; }
+      const c = COACH.on; if (!c || c.el !== el) return; if (ui.screen !== c.screen) { coachEnd(true); return; }   // [v3.9d] 화면이 바뀌었으면(안내한 탭을 누름) 끝 — 폰에서는 탭이 새로 그려져 click이 안 와 안내가 남아 화면을 막았음
+      const t2 = document.querySelector(sel); if (!t2 || ui.modal || ui.inGame) { coachEnd(false); return; }
       const sr = st.getBoundingClientRect(), k = sr.width / 720, r = t2.getBoundingClientRect(), pad = 8;
       const x = (r.left - sr.left) / k - pad, y = (r.top - sr.top) / k - pad, w = r.width / k + pad * 2, h = r.height / k + pad * 2;
       const set = (q, l, t, ww, hh) => { const e = el.querySelector(q); e.style.cssText = `left:${l}px;top:${t}px;width:${Math.max(0, ww)}px;height:${Math.max(0, hh)}px`; };
@@ -1035,7 +1036,7 @@
     try { SND.play('coin', 0.4); } catch (e) { /* 소리 없음 */ }
   }
   function coachEnd(done) { const c = COACH.on; if (!c) return; c.el.remove(); COACH.on = null; if (done) { S.coach[c.key] = 1; save(); } }
-  document.addEventListener('click', e => { const c = COACH.on; if (c && performance.now() - c.t0 > 400 && e.target.closest && e.target.closest(c.sel)) coachEnd(true); }, true);
+  for (const ev of ['click', 'pointerup']) document.addEventListener(ev, e => { const c = COACH.on; if (c && performance.now() - c.t0 > 400 && e.target.closest && e.target.closest(c.sel)) setTimeout(() => { if (COACH.on === c) coachEnd(true); }, 0); }, true);
   setInterval(() => {
     if (document.getElementById('boot') || ui.modal || ui.inGame || COACH.on || /noboot=1/.test(location.search)) return;   // noboot=1 = 화면 점검 · 캡처용 주소(안내 안 띄움)
     if (ui.screen === 'home' && !S.coach.start) coachShow('start', '#scr [data-act=start]', '수정을 지켜라!', '<b>[시작]</b>을 눌러 첫 판을 해 보세요.<br>조작은 판에서 차근차근 알려 드려요.');
