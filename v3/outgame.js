@@ -16,10 +16,9 @@
   const og = (k, cls) => `<img class="${cls == null ? 'ico' : cls}" src="${PIMG}og_${k}.png" alt="">`;
   const coin = cls => `<img class="${cls == null ? 'ico' : cls}" src="${IMG}i_coin.png" alt="">`;
   // [v3] 아군 = 캐릭터 5계열(그림 img/ally/<계열>_<단계>.png). 옛 아군 종류가 남아 있으면 옛 그림
-  const ART3 = { fire: 'sword', gatling: 'archer', bolt: 'mage', ice: 'frost', light: 'priest' };
   // [v3.1] 운빨풍 2차 그림(5등급 · img/ally2) — 기사(light)는 그림이 나올 때까지 1차 그림
   const FAM2 = { fire: 'fire', gatling: 'mech', bolt: 'storm', ice: 'frost', light: 'knight', corrode: 'demon', combo: 'mage' }, GR5 = [0, 1, 2, 3, 3, 4, 5];
-  const tw = (k, t) => FAM2[k] ? `img/ally2/${FAM2[k]}_${GR5[t || 1]}.png` : ART3[k] ? `img/ally/${ART3[k]}_${t || 1}.png` : `${IMG}t_${k}_${t || 1}.png`;
+  const tw = (k, t) => `img/ally2/${FAM2[k] || 'fire'}_${GR5[t || 1]}.png`;   // [v3.9e] 예전 그림(img/ally · 본편 포탑)으로 대신하지 않음
   const FAMC = D.FAMC;   // [v5.5] 계열 색은 본편 data.js 한 곳에서
   const fc = k => FAMC[D.TOWERS[k].fam] || '#aaa';
   const tname = k => D.TOWERS[k].name;
@@ -966,7 +965,7 @@
     const og = { choice: { commander: S.cmd, pawn: S.pawn, mode: mode === 'endless' ? 'endless' : 'conquest', coop: mode === 'coop', deck: deck().slice(), diff: mode === 'endless' ? 'normal' : DIFFS[di], chapter: n },
       bonus: sb ? sb.fx : null, bonusTxt: sb ? { d: sb.d.join('·'), txt: sb.txt } : null, meta: { nodes: S.nodes, unlocked: S.unlocked, relics: S.relics } };
     const fr = G0.fr = document.createElement('iframe'); fr.id = 'game'; fr.className = 'pre'; fr.title = '마블 디펜스 판'; fr.setAttribute('allow', 'autoplay; fullscreen');
-    fr.src = 'game.html?v=202611231353&embed=1&og=' + encodeURIComponent(JSON.stringify(og));
+    fr.src = 'game.html?v=202611231530&embed=1&og=' + encodeURIComponent(JSON.stringify(og));
     G0.attach = () => { if (!fr.isConnected && ui.inGame === G0) document.body.appendChild(fr); };
     // 크롬(안드로이드 · PC)은 판을 불러와도 이 화면이 거의 안 멈춤 → 착지 직후 바로. 아이폰(WebKit)은 같은 줄에서 돌아 로비가 멈칫 → 진입 막 아래에서(enterGame)
     const UA = navigator.userAgent, WK = /iPhone|iPad|iPod/.test(UA) || (/AppleWebKit/.test(UA) && !/Chrome|Chromium|Android|Edg/.test(UA)) || (navigator.maxTouchPoints > 1 && /Macintosh/.test(UA));

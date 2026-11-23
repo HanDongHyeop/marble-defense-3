@@ -2,7 +2,7 @@
 // 톤: 랜덤다이스2처럼 매끈한 캐주얼(둥근 덩어리 · 부드러운 그라데이션 · 굵은 남색 윤곽). 픽셀 격자 없음.
 // 레이어(아래 → 위): 바탕 그림 → 돌 블록 길 → 굴 · 수정 → 판 받침 · 칸 · 구멍 → 몬스터(그림자 · 몸 · 체력) → 아군(발밑 단계 빛 · 몸 · 단계 별)
 //   → 탄 → 효과(터짐 · 링 · 조각) → 피해 숫자 → 알림 글씨.  위 캔버스(top)는 비워 둠(DOM HUD가 위에 있음).
-// 그림 파일: v3/img/ally/<계열>_<단계>.png · v3/img/mon/<컨셉>_<종류>_<강화>.png · <컨셉>_boss.png · v3/img/map/bg_<컨셉>.jpg · v3/img/obj/*.png
+// 그림 파일: v3/img/px/ally2/<계열>_<등급>.png · v3/img/mon/<컨셉>_<종류>_<강화>.png · <컨셉>_boss.png · v3/img/map/bg_<컨셉>.jpg · v3/img/obj/*.png
 (function (root) {
   const G = root.GEOM, D = root.DATA;
   const TAU = Math.PI * 2;
@@ -48,6 +48,7 @@
       this.ghosts = [];   // 합쳐지며 사라지는 아군(밀려 들어가 겹친 뒤 사라짐)
       this.art = {};
       this.ART = ART; this.artOf = artOf;
+      setTimeout(() => this.preload && this.preload(), 0);   // [v3.9e] 판이 뜨자마자 캐릭터 · 몬스터 그림을 모두 받아 둠(전: 처음 쓰일 때 받아서, 합친 순간 그림이 없어 예전 그림 · 임시 도형이 튀어나옴)
     }
     // ---------------------------------------------------------------- 그림 불러오기(없으면 null → 도형으로 대신)
     pic(key, path) {
@@ -56,9 +57,11 @@
       return a.complete && a.naturalWidth && !a.bad ? a : null;
     }
     allyPic(type, tier) {
-      const f = FAM2[type], g = GRADE[tier] || tier;
-      if (f) { const a = this.pic('a2_' + f + g, 'v3/img/px/ally2/' + f + '_' + g + '.png'); if (a) return a; }
-      const k = artOf(type); return this.pic('a_' + k + tier, 'v3/img/ally/' + k + '_' + tier + '.png');
+      // [v3.9e] 예전 그림(v3/img/ally · 사람 모습) · 임시 도형으로 대신하지 않는다. 아직 못 받았으면 같은 계열의 이미 받은 등급 그림, 그것도 없으면 그리지 않음
+      const f = FAM2[type] || 'fire', g = Math.max(1, Math.min(5, GRADE[tier] || tier || 1));
+      const a = this.pic('a2_' + f + g, 'v3/img/px/ally2/' + f + '_' + g + '.png'); if (a) return a;
+      for (let d = 1; d < 5; d++) for (const q of [g - d, g + d]) { const b = this.art['a2_' + f + q]; if (b && b.complete && b.naturalWidth && !b.bad) return b; }
+      return null;
     }
     monPic(cpt, kind, lv) { return this.pic('m_' + cpt + kind + lv, 'v3/img/px/mon/' + cpt + '_' + kind + '_' + lv + '.png'); }
     bossPic(cpt) { return this.pic('b_' + cpt, 'v3/img/px/mon/' + cpt + '_boss.png'); }
@@ -437,7 +440,6 @@
       c.scale(sx * breathe, sy / breathe);
       if (dis || stop) c.filter = 'grayscale(0.85) brightness(0.8)';
       if (im) { const w = size * (im.src.indexOf('ally2') >= 0 ? 0.52 : 1), h = w * im.naturalHeight / im.naturalWidth; c.drawImage(im, -w / 2, -h * 0.94, w, h); }   // 2차 그림(운빨풍)은 여백이 적어 0.52배(사용자: 칸보다 커서 35% 더 작게)
-      else this.allyShape(c, art, tw.tier, size);
       c.filter = 'none';
       c.restore();
       // 단계 표시(칸 아래 가운데 작은 별 줄) — 같은 단계끼리 합쳐지므로 한눈에 보여야 함
@@ -453,7 +455,7 @@
     drawGhost(c, gh) {
       const a = Math.min(1, (this.time - gh.t) / (gh.life || 0.2)), size = this.allySize(gh.tier), im = this.allyPic(gh.type, gh.tier);
       c.save(); c.globalAlpha = 1 - a * 0.6; c.translate(gh.x, gh.y - 4); c.scale(1 - a * 0.3, 1 - a * 0.3);
-      if (im) { const w = size * (im.src.indexOf('ally2') >= 0 ? 0.52 : 1), h = w * im.naturalHeight / im.naturalWidth; c.drawImage(im, -w / 2, -h * 0.92, w, h); } else this.allyShape(c, artOf(gh.type), gh.tier, size);
+      if (im) { const w = size * (im.src.indexOf('ally2') >= 0 ? 0.52 : 1), h = w * im.naturalHeight / im.naturalWidth; c.drawImage(im, -w / 2, -h * 0.92, w, h); }
       c.restore();
     }
     tierPips(c, x, y, tier) {
@@ -466,13 +468,6 @@
       c.fillStyle = col; c.beginPath();
       for (let k = 0; k < 10; k++) { const a = -Math.PI / 2 + k * Math.PI / 5, rr = k % 2 ? r * 0.48 : r; c.lineTo(x + Math.cos(a) * rr, y + Math.sin(a) * rr); }
       c.closePath(); c.fill();
-    }
-    // 그림이 없을 때: 계열 색 콩 몸 + 큰 눈(시안 몸 규칙과 같은 덩어리)
-    allyShape(c, art, tier, size) {
-      const col = COL[art], w = size * 0.62, h = size * 0.7;
-      c.fillStyle = col; c.beginPath(); c.ellipse(0, -h * 0.5, w / 2, h / 2, 0, 0, TAU); c.fill(); c.lineWidth = 4; c.strokeStyle = OUT; c.stroke();
-      c.fillStyle = '#fff3dd'; c.beginPath(); c.ellipse(0, -h * 0.5, w * 0.34, h * 0.26, 0, 0, TAU); c.fill();
-      c.fillStyle = OUT; c.beginPath(); c.arc(-9, -h * 0.52, 5, 0, TAU); c.arc(9, -h * 0.52, 5, 0, TAU); c.fill();
     }
     drawSel(c, game) {
       if (this.sel == null || !game.tiles[this.sel] || !game.tiles[this.sel].tower) return;

@@ -9,7 +9,7 @@
   const baseImg = U.img;
   U.img = function (k) {
     let m = /^t_(\w+?)_(\d)$/.exec(k);
-    if (m) { const F2 = { fire: 'fire', gatling: 'mech', bolt: 'storm', ice: 'frost', light: 'knight', corrode: 'demon', combo: 'mage' }, GR5 = [0, 1, 2, 3, 3, 4, 5]; return F2[m[1]] ? 'v3/img/ally2/' + F2[m[1]] + '_' + GR5[+m[2]] + '.png' : 'v3/img/ally/' + artOf(m[1]) + '_' + m[2] + '.png'; }
+    if (m) { const F2 = { fire: 'fire', gatling: 'mech', bolt: 'storm', ice: 'frost', light: 'knight', corrode: 'demon', combo: 'mage' }, GR5 = [0, 1, 2, 3, 3, 4, 5]; return 'v3/img/ally2/' + (F2[m[1]] || 'fire') + '_' + GR5[+m[2]] + '.png'; }   // [v3.9e] 예전 그림으로 대신하지 않음
     if (k === 'm_normal') return 'v3/img/mon/meadow_normal_1.png';
     if (k === 'x_crystal') return 'v3/img/obj/crystal.png';
     return baseImg.call(this, k);
@@ -20,7 +20,7 @@
   U.buildDeck = function (deck) {
     const ks = deck || D.DECK;
     $('deckRow').innerHTML = ks.map(k => { const C = D.CHAR && D.CHAR[k]; return `<button class="deck v3card" data-k="${k}" style="--c:${root.V3VIEW.COL[artOf(k)]}">
-      <span class="face sym"><img src="v3/img/sym/${FAMK[k]}.png" onerror="this.onerror=null;this.src='${this.img('t_' + k + '_3')}'" alt=""></span>
+      <span class="face sym"><img src="v3/img/sym/${FAMK[k]}.png" onerror="this.onerror=null;this.src='v3/img/ally2/${FAMK[k]}_1.png'" alt=""></span>
       <span class="nm">${C ? C.name : D.TOWERS[k].name}</span><span class="role">${C ? C.role : ''}</span>
       <span class="lv">Lv 0</span><span class="eff">타격당 +0</span>
       <div class="pr"><span class="coin"></span><b>100</b></div></button>`; }).join('');
@@ -32,8 +32,7 @@
   const GR = root.GRADE3;
   const FAM2 = { fire: 'fire', gatling: 'mech', bolt: 'storm', ice: 'frost', light: 'knight', corrode: 'demon', combo: 'mage' };
   const NAME2 = { fire: '불꽃', gatling: '기계', bolt: '폭풍', ice: '서리', light: '기사' };
-  const OLDT = [0, 1, 2, 3, 5, 6];
-  const face = (type, grade) => '<img src="v3/img/ally2/' + FAM2[type] + '_' + grade + '.png" onerror="this.onerror=null;this.src=\'v3/img/ally/' + artOf(type) + '_' + OLDT[grade] + '.png\'" alt="">';
+  const face = (type, grade) => '<img src="v3/img/ally2/' + FAM2[type] + '_' + grade + '.png" alt="">';   // [v3.9e] 예전 그림으로 대신하지 않음
 
   // 강화 단추 · 창
   const baseBind = U.bind;

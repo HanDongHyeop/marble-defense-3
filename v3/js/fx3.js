@@ -147,7 +147,6 @@
     if (dis || stop) c.filter = 'grayscale(0.85) brightness(0.8)';
     let top = 84;
     if (im) { const two = im.src.indexOf('ally2') >= 0, w = size * (two ? SPR : 1), h = w * im.naturalHeight / im.naturalWidth; if (ima && two) c.drawImage(ima, -w * 0.7, -(h * 1.4 - h * 0.06), w * 1.4, h * 1.4); else c.drawImage(im, -w / 2, -h * 0.94, w, h); top = two ? h * 0.9 : h * 0.72; }
-    else this.allyShape(c, 'sword', tw.tier, size);
     c.filter = 'none';
     c.restore();
     // [v3.9d] 든 아군 위 화살표(통통 튀는 ▼) — 아군이 많을 때 무엇을 들었는지 보이게
