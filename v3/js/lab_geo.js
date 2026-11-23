@@ -55,7 +55,9 @@
   function mixin(Cls, G, GEO, opt) {
     const PERP = opt.perp == null ? 0.5 : opt.perp;
     return class extends Cls {
-      posOf(m) { super.posOf(m); const uv = GEO.laneUV(m.f, m.w * 0.8); m.u = uv[0]; m.v = uv[1]; }
+      posOf(m) { super.posOf(m); if (m.lane) { const p = G.lanePoint(m.f, m.w * 0.8, m.lane); m.x = p[0]; m.y = p[1]; } const uv = GEO.laneUV(m.f, m.w * 0.8, m.lane); m.u = uv[0]; m.v = uv[1]; }
+      // [v3.9] 갈림길 맵: 갈림 뒤에는 같은 갈래의 몬스터끼리만 '가까이'(번개 연쇄 · 폭발이 건너편 갈래로 튀지 않게)
+      near(m, rad, excl) { const L = super.near(m, rad, excl); if (!(G.lanes > 1)) return L; const F = G.forkF; return L.filter(o => (o.lane || 0) === (m.lane || 0) || (o.f < F && m.f < F)); }
       dMT(m, i) { const p = G.tiles[i].padUV; if (m.u == null) this.posOf(m); return Math.hypot(m.u - p[0], m.v - p[1]) - PERP; }
       inRange(i, range, type) {
         const out = [], see = type === 'beacon';

@@ -8,10 +8,10 @@
 (function (root) {
   const R = root.Renderer.prototype, G = root.GEOM, D = root.DATA, TAU = Math.PI * 2;
   const GRADE = { 1: 1, 2: 2, 3: 3, 4: 3, 5: 4, 6: 5 };
-  const FAM = { fire: 'fire', gatling: 'mech', bolt: 'storm', ice: 'frost', light: 'knight' };
+  const FAM = { fire: 'fire', gatling: 'mech', bolt: 'storm', ice: 'frost', light: 'knight', corrode: 'demon', combo: 'mage' };
   const famOf = t => FAM[t] || 'fire';
   // 계열 색: [주색, 밝은 색, 짙은 색]
-  const FC = { fire: ['#ff7a2a', '#ffe08a', '#c8301a'], mech: ['#ffb43a', '#fff6c8', '#d0601a'], storm: ['#b48cff', '#fff29a', '#6a3fd0'], frost: ['#7fdcff', '#f2fdff', '#2a8fd0'], knight: ['#ffd65a', '#fffbe0', '#e09a20'] };
+  const FC = { fire: ['#ff7a2a', '#ffe08a', '#c8301a'], mech: ['#ffb43a', '#fff6c8', '#d0601a'], storm: ['#b48cff', '#fff29a', '#6a3fd0'], frost: ['#7fdcff', '#f2fdff', '#2a8fd0'], knight: ['#ffd65a', '#fffbe0', '#e09a20'], demon: ['#d0487a', '#ffc4dc', '#6a1840'], mage: ['#56d6c8', '#e6fff8', '#1f7f8a'] };
   const GC = ['', ['#eceae6', '#aaa69e'], ['#a8d4ff', '#4a90e0'], ['#d8b0ff', '#8a4ae0'], ['#ffd27a', '#f08a1a'], ['#ff9aa8', '#e0304a']];   // 등급 배지 색(위, 아래)
   const GT = ['', ['#ffffff', '#ecebe6', '#bdb8ae'], ['#d6f0ff', '#6ebcff', '#2a7fe0'], ['#f0dcff', '#c08cff', '#8a3fe0'], ['#fff6c0', '#ffc23a', '#f07a10'], ['#ffe0d0', '#ff6a5a', '#d81e3c']];   // 레벨 글씨 색(위 · 가운데 · 아래)
   const OUT = '#1d1b3a';
@@ -28,6 +28,9 @@
     mech: [{ k: 'recoil', a: 6, m: [0.43, 0.60], s: 'needle', z: 0.7 }, { k: 'recoil', a: 10, m: [0.29, 0.63], s: 'orb' }, { k: 'recoil', a: 9, m: [0.25, 0.70], s: 'twin' }, { k: 'slam', a: -4, m: [0.35, 0.35], s: 'orb', arc: 46 }, { k: 'recoil', a: 7, m: [0.19, 0.72], s: 'mech' }],
     storm: [{ k: 'pulse', m: [0.24, 0.74] }, { k: 'pulse', m: [0.50, 0.60] }, { k: 'lunge', a: 8, m: [0.27, 0.75] }, { k: 'lunge', a: 14, m: [0.23, 0.67] }, { k: 'lunge', a: 12, m: [0.14, 0.67] }],
     frost: [{ k: 'hop', a: 12, m: [0.30, 0.62], s: 'orb', z: 0.7 }, { k: 'lunge', a: 8, m: [0.21, 0.69], s: 'orb' }, { k: 'hop', a: 8, m: [0.44, 0.47], s: 'frost' }, { k: 'breath', a: 8, m: [0.17, 0.71], s: 'cone', hold: 0.75 }, { k: 'slam', a: 12, m: [0.15, 0.77], s: 'crescent', z: 1.2 }],
+    // [v3.9] 악마 · 마법사(공격 자세 그림이 없으면 평소 그림으로 몸짓만)
+    demon: [{ k: 'hop', a: 8, m: [0.30, 0.62], s: 'orb', z: 0.8 }, { k: 'lunge', a: 14, m: [0.16, 0.50], s: 'needle' }, { k: 'pulse', m: [0.30, 0.58], s: 'orb' }, { k: 'slam', a: 10, m: [0.20, 0.62], s: 'crescent', z: 1.1 }, { k: 'breath', a: 8, m: [0.20, 0.58], s: 'cone', hold: 0.75, z: 1.2 }],
+    mage: [{ k: 'lunge', a: 8, m: [0.20, 0.62], s: 'orb', z: 0.7 }, { k: 'hop', a: 8, m: [0.25, 0.75], s: 'star' }, { k: 'slam', a: 8, m: [0.22, 0.42], s: 'orb' }, { k: 'pulse', m: [0.22, 0.38], s: 'star', z: 1.1 }, { k: 'pulse', m: [0.80, 0.42], s: 'star', z: 1.3 }],
     knight: [{ k: 'slam', a: 10, m: [0.29, 0.89], s: 'crescent', z: 0.8 }, { k: 'lunge', a: 16, m: [0.09, 0.72], s: 'needle' }, { k: 'slam', a: 10, m: [0.50, 0.37], s: 'star' }, { k: 'lunge', a: 20, m: [0.09, 0.66], s: 'needle', z: 1.3 }, { k: 'slam', a: 12, m: [0.19, 0.88], s: 'knight', z: 1.2 }],
   };
   const motOf = (f, g) => (MOT[f] || MOT.fire)[Math.max(0, Math.min(4, g - 1))];
@@ -77,7 +80,7 @@
     return baseConsume.call(this, game, rest, A);
   };
   // [pixelfx 가져옴] 타격 · 합치기 효과 = 4배 매끄럽게 구운 시트(pixelfx_가져온목록.md). n = 이름, a~b = 쓰는 구간(0~1 · 앞뒤의 날아오는 탄 · 남는 자국은 뺌), s = 그리는 배율, t = 길이(초)
-  const SHEET = { knight: { n: 'hit-spark', a: 0, b: 1, s: 0.5, t: 0.4 }, fire: { n: 'hit-spark', a: 0, b: 1, s: 0.56, t: 0.42 }, mech: { n: 'bullet-impact', a: 0, b: 0.3, s: 0.5, t: 0.36 }, storm: { n: 'zap-hit', a: 0.3, b: 0.78, s: 0.42, t: 0.4 }, frost: { n: 'ice-shatter', a: 0.2, b: 0.5, s: 0.4, t: 0.55 }, merge: { n: 'poof', a: 0, b: 0.7, s: 0.5, t: 0.6 } };
+  const SHEET = { knight: { n: 'hit-spark', a: 0, b: 1, s: 0.5, t: 0.4 }, fire: { n: 'hit-spark', a: 0, b: 1, s: 0.56, t: 0.42 }, mech: { n: 'bullet-impact', a: 0, b: 0.3, s: 0.5, t: 0.36 }, storm: { n: 'zap-hit', a: 0.3, b: 0.78, s: 0.42, t: 0.4 }, frost: { n: 'ice-shatter', a: 0.2, b: 0.5, s: 0.4, t: 0.55 }, merge: { n: 'poof', a: 0, b: 0.7, s: 0.5, t: 0.6 }, demon: { n: 'hit-spark', a: 0, b: 1, s: 0.5, t: 0.4 }, mage: { n: 'zap-hit', a: 0.3, b: 0.78, s: 0.42, t: 0.4 } };
   const FXM = root.FXSHEETS || {};
   R.sheetPic = function (n, k) { return this.pic('fx_' + n + k, 'v3/img/fx/' + FXM[n].sheets[k]); };
   // 시트 한 프레임 그리기(원점 = 맞은 자리). q = 0~1 진행. 그렸으면 true(그림이 아직 안 왔으면 false → 손으로 그린 효과로 대신)
@@ -160,23 +163,13 @@
   // 레벨 글씨: 판(배경) 없음. 굵은 남색 윤곽 2겹 + 등급 색 그라데이션 글씨 + 윗빛. 등급: 회백 · 파랑 · 보라 · 주황금 · 진홍(MAX)
   //   age = 등급이 바뀐 뒤 지난 시간(튀어 오름 · 별 조각) · 전설 · MAX는 빛 띠가 글씨 위로 지나감
   R.lvBadge = function (c, x, y, g, age, seed) {
-    const T = this.time, max = g >= 5, txt = max ? 'MAX' : 'Lv.' + g, fs = max ? 21 : 19;
-    let sc = 1, lift = Math.sin(T * 2.4 + seed) * 1.2;
-    if (age >= 0 && age < 0.5) { const k = age / 0.5; sc = 1 + Math.sin(k * Math.PI) * 0.6 * (1 - k * 0.4); lift -= Math.sin(k * Math.PI) * 10; }
-    else if (max) sc = 1 + Math.sin(T * 5) * 0.05;
-    c.save(); c.translate(x, y + lift + 2); c.scale(sc, sc); c.transform(1, 0, -0.14, 1, 0, 0);
-    c.font = fs + 'px Jua, sans-serif'; c.textAlign = 'center'; c.textBaseline = 'middle'; c.lineJoin = 'round';
-    // 글씨 뒤 반투명 그늘(테두리 · 판 모양 없음): 글씨 폭만큼만, 가장자리로 갈수록 옅어지게 3겹 — 밝은 칸 · 캐릭터 위에서도 읽히게
-    { const tw2 = c.measureText(txt).width; for (let k = 0; k < 3; k++) { const px = 3 + k * 4, py = 1 + k * 2.5; c.fillStyle = 'rgba(14,10,30,' + (0.2 - k * 0.04) + ')'; this.rr(c, -tw2 / 2 - px, -fs * 0.5 - py + 1, tw2 + px * 2, fs + py * 2, (fs + py * 2) / 2); c.fill(); } }
-    c.lineWidth = 7; c.strokeStyle = OUT; c.strokeText(txt, 0, 2.5);          // 아래 두께
-    c.lineWidth = 5.5; c.strokeText(txt, 0, 0);
-    c.lineWidth = 2; c.strokeStyle = '#ffffff'; if (g >= 2) c.strokeText(txt, 0, 0);   // 흰 속테(희귀부터) — 어두운 판 · 밝은 판 모두에서 읽힘
-    const gr = c.createLinearGradient(0, -fs * 0.5, 0, fs * 0.5); gr.addColorStop(0, GT[g][0]); gr.addColorStop(0.55, GT[g][1]); gr.addColorStop(1, GT[g][2]);
-    c.fillStyle = gr; c.fillText(txt, 0, 0);
-    if (g >= 4) {
-      const w = c.measureText(txt).width, k = ((T * (max ? 0.9 : 0.55) + seed * 0.37) % 1) * (w + 40) - w / 2 - 20;
-      c.save(); c.beginPath(); c.rect(k - 7, -fs, 14, fs * 2); c.clip(); c.fillStyle = '#ffffff'; c.fillText(txt, 0, 0); c.restore();
-    }
+    // [v3.9] 시안의 레벨 표: 짙은 남색 판 + 흰 픽셀 글씨(갈무리11 · 판 캔버스의 논리 픽셀 2px에 맞춰 22px). MAX는 금색. 등급이 오르면 튀어 오름
+    const max = g >= 5, txt = max ? 'MAX' : 'Lv.' + g; let lift = 0;
+    if (age >= 0 && age < 0.4) lift = -Math.sin(age / 0.4 * Math.PI) * 10;
+    c.save(); c.font = '22px Gal, Jua, sans-serif'; c.textAlign = 'left'; c.textBaseline = 'alphabetic';
+    const w = Math.ceil(c.measureText(txt).width / 2) * 2, px = Math.round((x - w / 2) / 2) * 2, py = Math.round((y + lift - 6) / 2) * 2;
+    c.fillStyle = OUT; this.rr(c, px - 6, py - 12, w + 10, 24, 4); c.fill();
+    c.fillStyle = max ? '#ffd23a' : g >= 4 ? '#ffb86a' : g === 3 ? '#e0c0ff' : g === 2 ? '#b0dcff' : '#ffffff'; c.fillText(txt, px, py + 8);
     c.restore();
     if (age >= 0 && age < 0.45) { const k = age / 0.45; for (let n = 0; n < 5; n++) { const a = -Math.PI / 2 + (n - 2) * 0.55, d = 14 + k * 26; c.globalAlpha = 1 - k; this.star(c, x + Math.cos(a) * d, y + Math.sin(a) * d, 4.5 * (1 - k * 0.5), GT[g][1]); } c.globalAlpha = 1; }
   };

@@ -34,7 +34,7 @@
       pickCard() { return false; }
       zoneFull(z) { return z >= 0 && super.zoneFull(z); }
       // 몬스터 체력: 본편 공식은 '판을 계속 도는' 전제(초반 ×3 혹)라 반 바퀴만 가는 실험실에선 초반이 너무 셈 → 초반만 덜어 냄(1R ×0.55 → 10R ×0.95)
-      hpR(r) { const R = Math.max(1, r || this.round); return super.hpR(r) * (C.hpMul || 1) * (1 - (C.early == null ? 0.45 : C.early) * Math.exp(-(R - 1) / 4)) * (1 + (C.hpLate || 0) * (R - 1)); }   // [v3.1] hpLate = 라운드마다 체력 +비율(전설 30배 · 신화 90배라 후반이 가팔라야 함)
+      hpR(r) { const R = Math.max(1, r || this.round); return super.hpR(r) * (C.hpMul || 1) * (1 - (C.early == null ? 0.45 : C.early) * Math.exp(-(R - 1) / 4)) * (1 + (C.hpLate || 0) * (R - 1)) * ((G.map && G.map.hp) || 1); }   // [v3.1] hpLate = 라운드마다 체력 +비율(전설 30배 · 신화 90배라 후반이 가팔라야 함)
 
       // -------------------------------------------------------- 웨이브 · 양쪽 출발
       sidePattern(r) {
@@ -62,11 +62,12 @@
       spawnMonster(kind, f, w, extra) {
         const m = super.spawnMonster(kind, f, w, extra);
         if (m.dir == null) m.dir = 1;
+        if (G.lanes > 1) { if (extra && extra.lane != null) m.lane = extra.lane; else { this._laneN = (this._laneN || 0) + 1; m.lane = this._laneN % G.lanes; } } else m.lane = 0;   // [v3.9] 갈림길: 몬스터가 번갈아 갈래를 고름
         m.rnd = this.round;   // [v3] 나온 라운드 = 강화 외형 단계(7 · 14라운드부터 금 · 가시 · 색 바뀜)
         this.posOf(m);
         return m;
       }
-      monSpeed(m) { return super.monSpeed(m) * C.spd; }
+      monSpeed(m) { return super.monSpeed(m) * C.spd * (G.speedK || 1); }   // [v3.9] speedK = 길 길이가 달라도 걷는 px 속도는 같게
 
       // -------------------------------------------------------- 보스 1마리 = 왼쪽 · 2마리 = 양쪽
       spawnBoss() {
@@ -154,6 +155,7 @@
         for (let k = n0; k < this.monsters.length; k++) {
           const c = this.monsters[k];
           if (c.kind === 'mini' && m.dir < 0) { c.dir = -1; c.f = m.f + (m.f - c.f); this.posOf(c); }
+          if (m.lane && c.lane !== m.lane) { c.lane = m.lane; this.posOf(c); }
         }
       }
 

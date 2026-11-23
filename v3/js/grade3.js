@@ -14,7 +14,12 @@
   const MERGE_MAX = 3, LEGEND_T = 5, MYTH_T = 6, LEGEND_CAP = 3, MYTH_CAP = 1;
   // 조절 값(봇으로 맞춤 · Node에서 G3='{"legendFrom":5}'로 바꿔 시험): 전설 조합은 legendFrom 라운드부터 · 신화 각성 게이지 = 전설이 처치한 수
   // [v3.6 실험] heroMerge = 영웅(Lv.3)끼리 부딪혔을 때: null = 안 합쳐짐(지금) / 'upg' = 뒤 영웅이 흡수되고 앞 영웅 계열 강화 +absorbLv / 'star' = 앞 영웅에 별 +1(그 한 명만 피해 +starMul)
-  const C3 = { legendFrom: 6, mythKills: 150, upgHit: 0.6, heroMerge: null, absorbLv: 1, absorbCap: 30, starMul: 0.5, sameType: false, randType: true, drag: true, allRange: true, move: false };
+  const C3 = { legendFrom: 6, mythKills: 150, upgHit: 0.6, heroMerge: null, absorbLv: 1, absorbCap: 30, starMul: 0.5, sameType: false, randType: true, drag: true, allRange: false, move: false, shotSpd: 1.9, shotMin: 700 };
+  // [v3.9 · 2026-11-23 사용자] 반경 복구 — 캐릭터(계열 × 등급)마다 다름. 값 = 원 반지름(100px = 초원 판 1칸). 가장 작은 반경 2.0 = 제 칸 + 바깥 1.5칸.
+  //   단거리(등급이 올라도 거의 안 커짐 · 대신 피해가 큼): 용(fire · 숨결) · 기사(light · 칼). 나머지는 등급이 오르면 대체로 커지되 계열마다 계단이 다름
+  const RANGE = { fire: [2.0, 2.0, 2.2, 2.2, 2.5], light: [2.0, 2.0, 2.3, 2.5, 2.7], corrode: [2.2, 2.2, 2.6, 3.0, 3.4], bolt: [2.3, 2.5, 2.8, 3.2, 3.7], gatling: [2.4, 2.6, 2.9, 3.3, 3.8], ice: [2.5, 2.5, 3.0, 3.4, 4.0], combo: [2.8, 3.0, 3.3, 3.8, 4.5] };
+  const POWER = { fire: 1.3, light: 1.12 };   // 단거리 계열의 피해 배율
+  const SHOT_T = [0, 1, 1.1, 1.25, 1.25, 1.45, 1.7];   // 등급별 탄 속도 배율(1등급도 빠르게 · shotSpd가 전체 배율)
   // [v3.8] allRange = 사거리 없음(판 어디서든 모든 몬스터에 닿음 — 랜덤다이스처럼 자리가 뜻이 없음) · move = 빈 칸으로 끌어 자리 옮기기(allRange면 필요 없어 끔)
   // [v3.7] drag = 끌어서(또는 탭-탭) 합치기: 같은 종류 + 같은 등급이면 판 어디서든 합쳐지고 신화까지 올라감(밀기 · 전설 조합 · 신화 각성 · 개수 제한 없음). randType = 합친 결과의 계열이 무작위(랜덤다이스)   // [v3.7 실험] sameType = 같은 종류 + 같은 레벨만 합쳐짐(랜덤다이스) / randType = 합친 결과의 종류가 무작위
   if (isNode && process.env.G3) Object.assign(C3, JSON.parse(process.env.G3));
@@ -30,6 +35,7 @@
     { id: 'boss', name: '보스 처치(보스마다 신화석)', goal: 4, reward: { myth: 0 }, repeat: true },
   ];
 
+  const UPX = 120 / 1.68;   // 판 좌표 1 = px
   function install(SIM, D) {
     D = D || (isNode ? require('../../js/data.js') : root.DATA);
     const Base = SIM.Game;
@@ -61,7 +67,7 @@
       grade(t) { return GRADE[t] || t; }
       // 탄 1발 피해 = 기본 × 등급 배율 / 탄 수 + (기본 공격력 × UPG_HIT × 강화 Lv)
       dmgMul(i) {
-        const tw = this.tiles[i].tower, base = super.dmgMul(i) * (1 + C3.starMul * (tw.star || 0)), lv = this.upg[tw.type] || 0; if (!lv) return base;
+        const tw = this.tiles[i].tower, base = super.dmgMul(i) * (1 + C3.starMul * (tw.star || 0)) * (this.allRange ? 1 : POWER[tw.type] || 1), lv = this.upg[tw.type] || 0; if (!lv) return base;
         const n = tw.type === 'gatling' ? 3 * tw.tier : T.shots[tw.tier];
         return base * (1 + C3.upgHit * lv * n / T.vol[tw.tier]);
       }
@@ -110,7 +116,10 @@
         return true;
       }
       // [v3.7] 자리 옮기기: 아군을 빈 칸으로 끌면 그 칸으로 감(값 없음). 밀기가 없어져 소환된 자리에 묶이면 길에서 먼 칸의 아군은 공격이 안 닿는다(봇: 성장 없음 0/20)
-      rangeOf(i) { return this.allRange ? 99 : super.rangeOf(i); }
+      rangeOf(i) { if (this.allRange) return 99; const tw = this.tiles[i].tower, R = tw && RANGE[tw.type]; if (!R) return super.rangeOf(i); return R[(GRADE[tw.tier] || 1) - 1] * 100 / UPX - 1; }   // 판정: 몬스터까지 거리 ≤ rangeOf + 1(판 좌표)
+      rangePx(i) { return (this.rangeOf(i) + 1) * UPX; }
+      // [v3.9] 탄이 훨씬 빠르게(1등급부터) · 등급이 오르면 더 빠르게
+      shot(kind, i, m, dmg, speed, delay, extra) { const tw = this.tiles[i].tower; return super.shot(kind, i, m, dmg, Math.max(speed, C3.shotMin) * C3.shotSpd * SHOT_T[tw ? tw.tier : 1], delay, extra); }
       moveTo(a, b) {
         if (!this.canMove || this.over || a === b) return false;
         const A = this.tiles[a], Bt = this.tiles[b];
@@ -245,6 +254,6 @@
     SIM.Game = GradeGame;
     return GradeGame;
   }
-  const API = { install, C3, GRADE, TIER_OF, GNAME, PARTNER, ORDER, MISSIONS };
+  const API = { install, C3, RANGE, GRADE, TIER_OF, GNAME, PARTNER, ORDER, MISSIONS };
   if (isNode) module.exports = API; else root.GRADE3 = API;
 })(typeof window !== 'undefined' ? window : globalThis);

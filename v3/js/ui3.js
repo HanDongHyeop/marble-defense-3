@@ -9,13 +9,13 @@
   const baseImg = U.img;
   U.img = function (k) {
     let m = /^t_(\w+?)_(\d)$/.exec(k);
-    if (m) { const F2 = { fire: 'fire', gatling: 'mech', bolt: 'storm', ice: 'frost', light: 'knight' }, GR5 = [0, 1, 2, 3, 3, 4, 5]; return F2[m[1]] ? 'v3/img/ally2/' + F2[m[1]] + '_' + GR5[+m[2]] + '.png' : 'v3/img/ally/' + artOf(m[1]) + '_' + m[2] + '.png'; }
+    if (m) { const F2 = { fire: 'fire', gatling: 'mech', bolt: 'storm', ice: 'frost', light: 'knight', corrode: 'demon', combo: 'mage' }, GR5 = [0, 1, 2, 3, 3, 4, 5]; return F2[m[1]] ? 'v3/img/ally2/' + F2[m[1]] + '_' + GR5[+m[2]] + '.png' : 'v3/img/ally/' + artOf(m[1]) + '_' + m[2] + '.png'; }
     if (k === 'm_normal') return 'v3/img/mon/meadow_normal_1.png';
     if (k === 'x_crystal') return 'v3/img/obj/crystal.png';
     return baseImg.call(this, k);
   };
 
-  const FAMK = { fire: 'fire', gatling: 'mech', bolt: 'storm', ice: 'frost', light: 'knight' };
+  const FAMK = { fire: 'fire', gatling: 'mech', bolt: 'storm', ice: 'frost', light: 'knight', corrode: 'demon', combo: 'mage' };
   // 강화 카드(창 안): 얼굴 · 이름 · 역할 · Lv · 값. 본편 update()가 .lv · .pr b · poor · max를 갱신한다
   U.buildDeck = function (deck) {
     const ks = deck || D.DECK;
@@ -30,7 +30,7 @@
 
   // [v3.1] 보이는 등급 · 이름
   const GR = root.GRADE3;
-  const FAM2 = { fire: 'fire', gatling: 'mech', bolt: 'storm', ice: 'frost', light: 'knight' };
+  const FAM2 = { fire: 'fire', gatling: 'mech', bolt: 'storm', ice: 'frost', light: 'knight', corrode: 'demon', combo: 'mage' };
   const NAME2 = { fire: '불꽃', gatling: '기계', bolt: '폭풍', ice: '서리', light: '기사' };
   const OLDT = [0, 1, 2, 3, 5, 6];
   const face = (type, grade) => '<img src="v3/img/ally2/' + FAM2[type] + '_' + grade + '.png" onerror="this.onerror=null;this.src=\'v3/img/ally/' + artOf(type) + '_' + OLDT[grade] + '.png\'" alt="">';
@@ -169,6 +169,6 @@
     const pic = box.querySelector('.ib-pic'); if (pic) pic.style.setProperty('--c', root.V3VIEW.COL[artOf(tw.type)]);
     for (const el of box.querySelectorAll('.ib-land, .ib-sub:not(.aw)')) el.remove();
     // 사거리 = 캐릭터 둘레 원(칸 수)
-    const st = box.querySelectorAll('.ib-stats > div'); if (st[3]) st[3].querySelector('b').textContent = g.allRange ? '판 전체' : '반경 ' + (+((g.rangeOf(i) + 1) / root.GEOM.CFG.CS).toFixed(1)) + '칸';
+    const st = box.querySelectorAll('.ib-stats > div'); if (st[3]) st[3].querySelector('b').textContent = g.allRange ? '판 전체' : '반경 ' + (+(g.rangePx(i) / 100).toFixed(1)) + '칸';
   };
 })(window);

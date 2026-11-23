@@ -18,17 +18,19 @@
       for (let i = 0; i < N * N; i++) { const [u, v] = cellUV(i); G.tiles[i].i = i; GEO.setSlot(G.tiles[i], u, v, 1.1, CS * 0.42); G.tiles[i].home = G.tiles[i].tower; }
     }
     root.LAB_SLIDE_INFO = { N, CS, M0 }; root.LAB_GEO_INST = GEO;
-    const man = (i, j) => Math.abs((i % NC) - (j % NC)) + Math.abs(Math.floor(i / NC) - Math.floor(j / NC));
+    const man = (i, j) => { if (G.grid) { const a = G.grid(i), b = G.grid(j); return Math.abs(a[0] - b[0]) + Math.abs(a[1] - b[1]); } return Math.abs((i % NC) - (j % NC)) + Math.abs(Math.floor(i / NC) - Math.floor(j / NC)); };   // [v3.9] 맵마다 판 모양이 달라 칸 격자는 기하가 알려 줌
     const DIRS = { '+U': [1, 0], '-U': [-1, 0], '+V': [0, 1], '-V': [0, -1] };
 
     const Mixed = GEOAPI.mixin(SIM.Game, G, GEO, { perp: 0.5, nbr: man });
     class SlideGame extends Mixed {
       constructor(opt) {
+        if (G.use) G.use(opt.map || G.CH_MAP[opt.mode === 'endless' ? 1 : Math.max(1, Math.min(6, opt.chapter || 1))]);   // [v3.9] 장마다 맵(길 · 판 모양)이 다름 — 판을 만들기 전에 기하를 바꿈
         super(opt);
+        const NCELL = G.NCELL || NC * NR;
         while (this.tiles.length < NCELL) this.tiles.push({ i: this.tiles.length, corner: false, cornerKind: null, zone: -1, trait: null, tower: null, warn: null, occ: null, stopUntil: 0 });
         for (const t of this.tiles) { t.corner = false; t.cornerKind = null; t.trait = null; t.zone = -1; t.blocked = t.i >= NCELL; }
         // [v3] 구멍 칸(난이도마다): 막힌 칸 — 소환도 안 되고 밀 때 벽
-        const H = (LAB.C.holes && LAB.C.holes[this.diff || 'normal']) || [];
+        const H = (G.map && G.map.holes && G.map.holes[this.diff || 'normal']) || (LAB.C.holes && LAB.C.holes[this.diff || 'normal']) || [];
         this.holes = H.filter(i => i < NCELL);
         for (const i of this.holes) this.tiles[i].blocked = true;
         this.slideCd = 0; this.slides = 0;

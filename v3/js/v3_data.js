@@ -1,12 +1,14 @@
 // 마블 디펜스 3 — 아군 = 캐릭터 5계열 × 6단계(2026-11-18). 규칙(공격 방식)은 본편 포탑 다섯 종류를 그대로 쓰고 이름 · 그림만 캐릭터로.
 //   검사 = 화염(fire) · 궁수 = 개틀링(gatling, 연사) · 마법사 = 번개(bolt, 연쇄) · 서리 = 빙결(ice) · 사제 = 성광(light, 이웃 공속 버프)
 (function (root) {
-  const D = root.DATA; if (!D) return;
+  const D = root.DATA; if (!D) return; const M0 = root.META;
   const CHAR = {
     fire:    { name: '불꽃 검사', art: 'sword',  role: '근거리 화력 · 화상', tiers: ['', '나무칼 꼬마', '냄비 검사', '불꽃 검사', '화염 기사', '염화 검성', '용염 기사'] },
     gatling: { name: '숲 궁수',   art: 'archer', role: '빠른 연사',         tiers: ['', '새총 꼬마', '꼬마 사냥꾼', '숲 궁수', '쌍석궁 사수', '바람 궁사', '폭풍 사수'] },
     bolt:    { name: '번개 마법사', art: 'mage', role: '연쇄 번개',         tiers: ['', '견습 마법사', '찌릿 마법사', '번개 마법사', '뇌전 술사', '폭풍 대마법사', '천둥 현자'] },
     ice:     { name: '서리 꼬마', art: 'frost',  role: '얼려서 묶기',       tiers: ['', '털모자 꼬마', '눈덩이 투수', '고드름 창병', '서리 기사', '빙하 수호자', '겨울 군주'] },
+    corrode: { name: '꼬마 악마', art: 'demon', role: '저주 · 맞은 몬스터가 피해를 더 받음', tiers: ['', '꼬마 임프', '삼지창 악마', '늪 악마', '늪 악마', '가고일', '지옥 군주'] },
+    combo:   { name: '마법사', art: 'mage', role: '먼 거리 · 2연타', tiers: ['', '두건 견습생', '빗자루 마녀', '뼈 주술사', '뼈 주술사', '대마법사', '별의 현자'] },
     light:   { name: '빛의 사제', art: 'priest', role: '옆 아군 공속 업',    tiers: ['', '종지기 꼬마', '꼬마 성가대', '빛의 사제', '견습 천사', '대사제', '대천사'] },
   };
   for (const k in CHAR) { D.TOWERS[k].name = CHAR[k].name; D.TOWERS[k].role = CHAR[k].role; }
@@ -34,9 +36,13 @@
   ];
   D.RELIC_MAX = 10;
   D.relicCost = lv => 300 + lv * 350;   // Lv → Lv+1 금화
-  D.DECK = ['fire', 'gatling', 'bolt', 'ice', 'light'];
+  D.DECK = ['fire', 'gatling', 'bolt', 'ice', 'light'];   // 기본 덱(5종)
+  D.V3_ALL = D.DECK.concat(['corrode', 'combo']);   // [v3.9] 악마 · 마법사 계열 추가(그려 둔 7계열 35종 모두). 한 판에는 5종(덱) — 7종을 다 넣으면 같은 종류가 안 모여 합치기가 막힘(봇 79% → 33%)
+  if (M0 && M0.UNLOCK) { delete M0.UNLOCK.corrode; delete M0.UNLOCK.combo; }
+  if (M0 && M0.BASE) for (const k of D.V3_ALL) if (!M0.BASE.includes(k)) M0.BASE.push(k);
+  D.deckOk = d => Array.isArray(d) && d.length === 5 && new Set(d).size === 5 && d.every(k => D.V3_ALL.includes(k));
   D.V3_DECK = D.DECK.slice();
-  D.ALL = D.DECK.slice();   // 도감 · 덱 목록 = 캐릭터 5계열
+  D.ALL = D.V3_ALL.slice();   // 도감 · 덱 목록 = 캐릭터 7계열
   // 성장 탭: 계열(원소 · 기계 · 비전 · 성역)마다 이 게임의 캐릭터만 · 캐릭터가 없는 계열(심연 · 조커)과 잠긴 옛 포탑 열기는 숨김
   const M = root.META;
   if (M && M.FAMS && !M._v3) {

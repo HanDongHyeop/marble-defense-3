@@ -17,7 +17,9 @@
     App.fit = function () {
       baseFit.call(this);
       const c = $('world'), H = root.GEOM.CFG.FIELD_H, R = this.R || 1;
-      if (c && c.height !== Math.round(H * R)) { c.width = Math.round(720 * R); c.height = Math.round(H * R); c.getContext('2d').setTransform(R, 0, 0, R, 0, 0); }
+      const PXR = root.PIXEL_R || 0.5;   // [v3.9] 판 캔버스를 360×495로 그려 키움(image-rendering: pixelated) → 판 전체가 같은 픽셀 계단. 기기 배율(R)은 안 씀
+      if (c && (c.height !== Math.round(H * PXR) || c.width !== Math.round(720 * PXR))) { c.width = Math.round(720 * PXR); c.height = Math.round(H * PXR); }
+      if (c) { const x = c.getContext('2d'); x.setTransform(PXR, 0, 0, PXR, 0, 0); x.imageSmoothingEnabled = true; x.imageSmoothingQuality = 'high'; }
     };
     App.fit();
   }
@@ -78,14 +80,14 @@
   const baseStart = App.start;
   App.start = function (choice, seed) {
     const ch = Object.assign(LAB.choice(), choice || {}); if (!root.DATA.COMMANDERS[ch.commander]) ch.commander = 'cheer';   // 도박사 · 건축가는 없어짐 ch.coop = false;
-    if (LAB.V3) ch.deck = root.DATA.V3_DECK.slice();   // [v3] 아군 = 캐릭터 5계열 고정
+    if (LAB.V3 && !root.DATA.deckOk(ch.deck)) ch.deck = root.DATA.V3_DECK.slice();   // [v3.9] 덱 = 7계열 중 5종(로비 덱 탭에서 바꿈)
     baseStart.call(this, ch, seed);
-    { const ci = $('cmdImg'), id = this.game.cmd.id; ci.src = 'v3/img/cmd/' + id + '.png'; ci.onerror = () => { ci.onerror = null; ci.src = 'assets/img/c_cheer.png'; }; $('cmdBtn').dataset.grade = root.DATA.COMMANDERS[id].grade || 'rare'; }
+    { const ci = $('cmdImg'), id = this.game.cmd.id; ci.src = 'v3/img/cmd/' + id + '.png'; ci.onerror = () => { ci.onerror = null; ci.src = 'assets/img/c_cheer.png'; }; $('cmdBtn').dataset.grade = root.DATA.COMMANDERS[id].grade || 'rare'; $('cmdBtn').dataset.cmd = id; }
     if (this.game.applyRelics) this.game.applyRelics(this.embed ? ((this.embedMeta && this.embedMeta.relics) || {}) : {});   // [v3.5] 유물(아웃게임 S.relics)
     // [v3.1] 신화 각성 해금(판 밖 성장 탭 'myth.<종류>') — 첫 계열(불)은 처음부터 열림. 단독으로 연 판(시험용)은 모두 열림
     if (this.game && this.game.mythOpen) {
       const nodes = (this.embedMeta && this.embedMeta.nodes) || {};
-      this.game.mythOpen = new Set(this.embed ? ['fire'].concat(root.DATA.V3_DECK.filter(k => nodes['myth.' + k])) : root.DATA.V3_DECK);
+      this.game.mythOpen = new Set(this.embed ? ['fire'].concat(root.DATA.V3_ALL.filter(k => nodes['myth.' + k])) : root.DATA.V3_ALL);
     }
     setupDom();
     // 처음 하는 판: 규칙 카드(창이 떠 있는 동안 판은 멈춤)

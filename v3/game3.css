@@ -98,7 +98,7 @@ body.v3.upopen #panel { z-index: 31; }
 body.v3.upopen #truckBtn { visibility: hidden; }
 
 /* ===== [v3.1] 판 4×5(캔버스 990) · 조작부 290 = 금화 · [지휘관 · 소환 · 강화] · 아래 줄(미션 · 조합 · 신화석 · 배속) ===== */
-body.v3 #world { height: 990px; }
+body.v3 #world { height: 990px; image-rendering: pixelated; image-rendering: crisp-edges; image-rendering: pixelated; }   /* [v3.9] 360×495로 그린 판을 픽셀 계단 그대로 키움 */
 body.v3 #panel { top: 990px; height: 290px; }
 body.v3 #goldRow { height: 44px; margin-top: 4px; }
 body.v3 #goldRow b { font-size: 28px; }
@@ -225,3 +225,66 @@ body.v3 #cmdBtn img { width: 98px; height: 98px; border-radius: 0; object-fit: c
 
 /* [v3.7] 끌어서 합치기: 방향 단추 없음 → 소환 단추가 그 자리까지 넓어짐 */
 body.dragmode #dpad { display: none; }
+
+/* ============================================================ [v3.9 · 2026-11-23] 시안과 같은 픽셀 단추 · 패널 · 칩
+   부품 = 확정 시안(ld_L1)에서 자른 그림(img/ui · tools/bake_ui.py) + 9분할 틀 + 갈무리11 글꼴. 위치 · 동작은 그대로, 겉모습만. 시안처럼 아래 줄은 아이콘만(글씨 라벨 없음) */
+@font-face { font-family: Gal; src: url(font/Galmuri11-Bold.woff2) format('woff2'); font-display: swap; }
+body.v3 #panel, body.v3 #topbar, body.v3 #subbar { font-family: Gal, Jua, sans-serif; }
+body.v3 #panel { background: none; box-shadow: none; border-radius: 0; isolation: isolate; }
+body.v3 #panel::before { content: ''; position: absolute; left: 0; right: 0; top: -6px; bottom: 0; z-index: -1; pointer-events: none; border: solid transparent; border-width: 14px 14px 0; border-image: url(img/ui/panel.png) 16 16 0 16 fill stretch; image-rendering: pixelated; }
+body.v3 #panel b, body.v3 #topbar b, body.v3 #subbar b { font-weight: 400; color: #fff; -webkit-text-stroke: 5px #181b3a; paint-order: stroke fill; text-shadow: none; letter-spacing: 1px; }
+/* 금화 칩 */
+body.v3 #goldRow { background: none; box-shadow: none; border-radius: 0; border: solid transparent; border-width: 0 22px; border-image: url(img/ui/chip_dark.png) 0 24 fill stretch; image-rendering: pixelated; height: 45px; min-width: 110px; padding: 0 6px 0 0; gap: 10px; }
+body.v3 #goldRow .coin { width: 42px; height: 42px; margin-left: -18px; background: url(img/ui/ic_coin.png) center / contain no-repeat; border: 0; box-shadow: none; border-radius: 0; image-rendering: pixelated; }
+body.v3 #goldRow .coin::before, body.v3 #goldRow .coin::after { display: none; }
+body.v3 #goldTxt { font-size: 33px; }
+/* 소환 단추 */
+body.v3 #rollBtn { background: none; box-shadow: none; border-radius: 0; border: solid transparent; border-width: 25px; border-image: url(img/ui/btn_green.png) 30 fill stretch; image-rendering: pixelated; height: 118px; }
+body.v3 #rollBtn:active, body.v3 #rollBtn.press { transform: translateY(4px); box-shadow: none; filter: brightness(.92); }
+body.v3 #rollBtn .labSumm { margin: -22px 0 0; height: 46px; }
+body.v3 #rollBtn .labSumm b { display: none; }
+body.v3 #rollBtn .labSumm .sp { width: 44px; height: 46px; background: url(img/ui/ic_plus.png) center / contain no-repeat; image-rendering: pixelated; }
+body.v3 #rollBtn .labSumm .sp::before, body.v3 #rollBtn .labSumm .sp::after { display: none; }
+body.v3 #rollBtn .cost { background: none; border-radius: 0; border: solid transparent; border-width: 0 18px; border-image: url(img/ui/chip_green.png) 0 20 fill stretch; height: 39px; padding: 0 4px 0 0; margin: 2px 0 -22px; gap: 6px; font-size: 33px; text-shadow: none; }
+body.v3 #rollBtn .cost .coin { width: 33px; height: 35px; margin-left: -8px; background: url(img/ui/ic_coin2.png) center / contain no-repeat; border: 0; box-shadow: none; border-radius: 0; }
+body.v3 #rollBtn .cost .coin::before, body.v3 #rollBtn .cost .coin::after { display: none; }
+body.v3 #rollBtn.poor { filter: saturate(.45) brightness(.8); }
+body.v3 #autoBtn { border-radius: 4px; background: #181b3a; box-shadow: none; border: 0; }
+body.v3 #autoBtn b { -webkit-text-stroke: 0; font-size: 13px; }
+body.v3 #autoBtn .kn { border-radius: 3px; box-shadow: none; }
+/* 지휘관 단추 */
+body.v3 #cmdBtn, body.v3 #cmdBtn[data-grade] { width: 130px; height: 118px; border-radius: 0; background: url(img/ui/btn_blank.png) center / 100% 100% no-repeat; box-shadow: none; image-rendering: pixelated; }
+body.v3 #cmdBtn[data-cmd=cheer] { background-image: url(img/ui/btn_cmd.png); }
+body.v3 #cmdBtn[data-cmd=cheer] img { visibility: hidden; }
+body.v3 #cmdBtn[data-grade=epic] { filter: hue-rotate(48deg); } body.v3 #cmdBtn[data-grade=legend] { filter: hue-rotate(182deg) saturate(1.3); }
+body.v3 #cmdBtn img { width: 78px; height: 78px; margin-top: -8px; }
+body.v3 #cmdBtn .cd { border-radius: 14px; }
+body.v3 #cmdBtn .tag { display: none; }
+/* 아래 줄: 아이콘만 */
+body.v3 #subRow { gap: 6px; padding: 6px 14px 0; height: 80px; }
+body.v3 #subRow .sub { height: 70px; border-radius: 0; background: none; box-shadow: none; border: solid transparent; border-width: 25px; border-image: url(img/ui/btn_purple.png) 30 fill stretch; image-rendering: pixelated; gap: 6px; font-family: Gal, Jua, sans-serif; }
+body.v3 #subRow .sub.on { transform: translateY(3px); filter: brightness(1.2); background: none; box-shadow: none; }
+body.v3 #subRow .sub:active { transform: translateY(3px); }
+body.v3 #subRow .sub small { display: none; }
+body.v3 #subRow .sub b { font-size: 33px; white-space: nowrap; }
+body.v3 #subRow #misBtn b, body.v3 #subRow #mixBtn b, body.v3 #subRow #upBtn b { display: none; }
+body.v3 #subRow .sub .si { flex: none; width: 46px; height: 46px; background: center / contain no-repeat; border: 0; border-radius: 0; box-shadow: none; image-rendering: pixelated; }
+body.v3 #subRow .sub .si::before, body.v3 #subRow .sub .si::after { display: none; }
+body.v3 #subRow .si.mis { background-image: url(img/ui/ic_list.png); width: 46px; height: 37px; }
+body.v3 #subRow .si.mix { background-image: url(img/ui/ic_coin3.png); }
+body.v3 #subRow .si.gem { background-image: url(img/ui/ic_gem.png); width: 35px; height: 40px; transform: none; }
+body.v3 #subRow .chip3 b { color: #fff; font-size: 33px; }
+body.v3 #subRow .sub i { right: -18px; top: -22px; font-family: Gal, sans-serif; font-size: 13px; border-radius: 3px; background: #181b3a; color: #ffe08a; padding: 1px 5px; }
+body.v3 #subRow #upBtn { flex: 1.08; height: 70px; border: 0; border-radius: 0; background: url(img/ui/btn_up.png) center / 100% 100% no-repeat; box-shadow: none; }
+body.v3 #subRow #upBtn .ico { display: none; }
+body.v3 #subRow #upBtn .dot { right: 2px; top: 0; width: 14px; height: 14px; border-radius: 3px; background: #ff3a4a; border: 3px solid #181b3a; box-sizing: content-box; }
+/* 위쪽 칩 */
+body.v3 #topbar .pill, body.v3 #subbar .pill { background: none; box-shadow: none; border-radius: 0; border: solid transparent; border-width: 0 22px; border-image: url(img/ui/chip_dark.png) 0 24 fill stretch; image-rendering: pixelated; }
+body.v3 #topbar .pill b, body.v3 #subbar .pill b { -webkit-text-stroke: 0; font-size: 26px; }
+body.v3 #subbar .pill b { font-size: 21px; }
+body.v3 #gauge .bar { display: none; }
+body.v3 #gauge { flex-basis: auto; gap: 8px; }
+body.v3 #pauseBtn { border-width: 0 16px; border-radius: 0; }
+body.v3 #pauseBtn .pz { border-radius: 0; }
+body.v3 #truckBtn { border-radius: 8px; box-shadow: none; border: 4px solid #181b3a; background: #262a50; }
+body.v3 #truckBtn .tag { border-radius: 3px; font-family: Gal, Jua, sans-serif; }

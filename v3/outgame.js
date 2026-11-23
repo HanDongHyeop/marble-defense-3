@@ -18,7 +18,7 @@
   // [v3] 아군 = 캐릭터 5계열(그림 img/ally/<계열>_<단계>.png). 옛 아군 종류가 남아 있으면 옛 그림
   const ART3 = { fire: 'sword', gatling: 'archer', bolt: 'mage', ice: 'frost', light: 'priest' };
   // [v3.1] 운빨풍 2차 그림(5등급 · img/ally2) — 기사(light)는 그림이 나올 때까지 1차 그림
-  const FAM2 = { fire: 'fire', gatling: 'mech', bolt: 'storm', ice: 'frost', light: 'knight' }, GR5 = [0, 1, 2, 3, 3, 4, 5];
+  const FAM2 = { fire: 'fire', gatling: 'mech', bolt: 'storm', ice: 'frost', light: 'knight', corrode: 'demon', combo: 'mage' }, GR5 = [0, 1, 2, 3, 3, 4, 5];
   const tw = (k, t) => FAM2[k] ? `img/ally2/${FAM2[k]}_${GR5[t || 1]}.png` : ART3[k] ? `img/ally/${ART3[k]}_${t || 1}.png` : `${IMG}t_${k}_${t || 1}.png`;
   const FAMC = D.FAMC;   // [v5.5] 계열 색은 본편 data.js 한 곳에서
   const fc = k => FAMC[D.TOWERS[k].fam] || '#aaa';
@@ -91,7 +91,7 @@
   if (!D.COMMANDERS[S.cmd]) S.cmd = 'cheer';   // [v3.3] 도박사 · 건축가 없음   // v2: 도박사(황금 주사위)는 없음
   if (S.miss == null) S.miss = 0;
   if (!S.relics) S.relics = {};   // [v3.5] 유물 레벨
-  S.decks = S.decks.map(() => D.DECK.slice());   // [v3] 덱 = 캐릭터 5계열 고정
+  S.decks = S.decks.map(d => D.deckOk(d) ? d : D.DECK.slice());   // [v3.9] 덱 = 캐릭터 7계열 중 5종
   // [v5.4] 로비 소리: 배경음(본편 bgm_lobby) · 단추 톡 · 주사위 · 혜택. 폰은 첫 터치 때 켜진다(자동 재생 막힘). 판에 들어가면 멈추고 나오면 다시
   const SFXD = '../assets/sfx/';
   // [v5.7] 아이폰에서 로비가 무음이던 원인: 첫 터치를 pointerdown에서 받았는데, 터치의 pointerdown은 '소리 허용 동작'이 아니다(HTML 규칙 — pointerup · touchend · click만).
@@ -374,7 +374,7 @@
   function mythPanel(F) {
     const rows = F.towers.filter(k => MYTH_NAME[k]).map(k => {
       const on = mythOn(k);
-      return `<div class="mythrow ${on ? 'on' : ''}"><span class="mpic"><img src="img/ally2/${({ fire: 'fire', gatling: 'mech', bolt: 'storm', ice: 'frost', light: 'knight' })[k]}_5.png" onerror="this.style.opacity=.3" alt=""></span>
+      return `<div class="mythrow ${on ? 'on' : ''}"><span class="mpic"><img src="img/ally2/${({ fire: 'fire', gatling: 'mech', bolt: 'storm', ice: 'frost', light: 'knight', corrode: 'demon', combo: 'mage' })[k]}_5.png" onerror="this.style.opacity=.3" alt=""></span>
         <div class="tx"><b>${MYTH_NAME[k]}</b><small>${on ? (k === MYTH_FREE ? '처음부터 열림 · ' : '') + '판에서 전설 → 신화 각성 가능' : '열면: 판에서 이 계열 전설이 게이지를 채우고 신화석 1개로 신화 각성'}</small></div>
         ${on ? '<span class="mok">해금됨</span>' : B('mythOpen', k, 'btn small" style="min-width:110px', `코어 ${MYTH_CORE}`)}</div>`;
     }).join('');
@@ -684,7 +684,8 @@
       open({ type: 'sheet', title: '수정 지키기 · 판 규칙', body: () => `<ol class="v2rules">
         <li>몬스터가 <b>왼쪽 위 굴</b>에서 나와 판을 한 바퀴 돌아 <b>위쪽 수정</b>으로 가요. 닿은 만큼 수정이 깎이고(보스 −8) 0이 되면 패배.</li>
         <li><b>[소환]</b> = 빈 칸에 일반(Lv.1) 아군. <b>같은 캐릭터 · 같은 레벨</b> 둘을 <b>끌어서 겹치면</b>(또는 하나를 누르고 짝을 누르면) 합쳐져 한 등급 올라요. 신화까지 올라가고, 합친 뒤 계열은 운이에요.</li>
-        <li>아군은 <b>판 어디에 있든</b> 모든 몬스터를 공격해요. 자리는 신경 쓰지 않아도 돼요.</li>
+        <li>아군마다 <b>공격 반경</b>이 달라요(누르면 원으로 보여요). 용 · 기사는 반경이 짧은 대신 세고, 마법사는 멀리 쏴요.</li>
+        <li>아군은 7계열이고, 한 판에는 <b>덱에 넣은 5계열</b>만 나와요. 덱 탭에서 바꿀 수 있어요.</li>
         <li>보스: 5 · 10라운드는 1마리, 15 · 20라운드는 <b>2마리</b>가 함께 와요.</li></ol>
         <div class="note">별 3개 = 승리 · 수정 70% 이상 지키기 · 전설 아군 만들기</div>` });
     },
@@ -965,7 +966,7 @@
     const og = { choice: { commander: S.cmd, pawn: S.pawn, mode: mode === 'endless' ? 'endless' : 'conquest', coop: mode === 'coop', deck: deck().slice(), diff: mode === 'endless' ? 'normal' : DIFFS[di], chapter: n },
       bonus: sb ? sb.fx : null, bonusTxt: sb ? { d: sb.d.join('·'), txt: sb.txt } : null, meta: { nodes: S.nodes, unlocked: S.unlocked, relics: S.relics } };
     const fr = G0.fr = document.createElement('iframe'); fr.id = 'game'; fr.className = 'pre'; fr.title = '마블 디펜스 판'; fr.setAttribute('allow', 'autoplay; fullscreen');
-    fr.src = 'game.html?v=202611191556&embed=1&og=' + encodeURIComponent(JSON.stringify(og));
+    fr.src = 'game.html?v=202611231159&embed=1&og=' + encodeURIComponent(JSON.stringify(og));
     G0.attach = () => { if (!fr.isConnected && ui.inGame === G0) document.body.appendChild(fr); };
     // 크롬(안드로이드 · PC)은 판을 불러와도 이 화면이 거의 안 멈춤 → 착지 직후 바로. 아이폰(WebKit)은 같은 줄에서 돌아 로비가 멈칫 → 진입 막 아래에서(enterGame)
     const UA = navigator.userAgent, WK = /iPhone|iPad|iPod/.test(UA) || (/AppleWebKit/.test(UA) && !/Chrome|Chromium|Android|Edg/.test(UA)) || (navigator.maxTouchPoints > 1 && /Macintosh/.test(UA));

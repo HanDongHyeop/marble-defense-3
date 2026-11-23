@@ -10,7 +10,7 @@
   const ART_FALLBACK = { tyrant: 'sword', poison: 'frost', railgun: 'archer', mining: 'archer', summon: 'mage', combo: 'mage', beacon: 'priest', growth: 'priest', corrode: 'frost', greed: 'sword', prism: 'priest' };
   const artOf = type => ART[type] || ART_FALLBACK[type] || 'sword';
   // [v3.1] 운빨존많겜풍 2차 그림(5등급): v3/img/ally2/<계열>_<등급 1~5>.png — 없으면 1차 그림(6단계)으로
-  const FAM2 = { fire: 'fire', gatling: 'mech', bolt: 'storm', ice: 'frost', light: 'knight' };
+  const FAM2 = { fire: 'fire', gatling: 'mech', bolt: 'storm', ice: 'frost', light: 'knight', corrode: 'demon', combo: 'mage' };
   const GRADE = { 1: 1, 2: 2, 3: 3, 4: 3, 5: 4, 6: 5 };
   const FH = () => (G.CFG.FIELD_H || 900);
   const COL = { sword: '#ff7a3a', archer: '#5fd35a', mage: '#b07cff', frost: '#6fd8ff', priest: '#ffd65a' };
@@ -26,6 +26,7 @@
     temple:  { ground: ['#e9d9a8', '#cdb782'], stone: ['#fff1c9', '#e0c98f', '#b39a62'], slab: ['#b89c62', '#94794a'], cell: ['#fff6da', '#ecd9a6'], cellEdge: '#8e7342', hole: '#5e4a2a' },
     abyss:   { ground: ['#2c2448', '#1b1530'], stone: ['#5d5480', '#433b62', '#2a2442'], slab: ['#2a2244', '#1d1733'], cell: ['#4e4474', '#3a3159'], cellEdge: '#16112a', hole: '#0b0816' },
   };
+  const PXART = { meadow: { top: '#72ae46', edge: '#706256' }, volcano: { top: '#322a36', edge: '#1e1824' }, snow: { top: '#dbebfe', edge: '#3468b0' } };   // 픽셀 바탕이 있는 컨셉: 화면 위 여백 색 · 길 테 색(시안 값)
   const OUT = '#1d1b3a';   // 윤곽 남색(그림 시안과 같은 색)
 
   // 결정적 난수(길 돌 크기 흔들림 — 매 프레임 같은 모양)
@@ -62,7 +63,7 @@
       for (const f of Object.values(FAM2)) for (let g = 1; g <= 5; g++) this.pic('a2_' + f + g, 'v3/img/ally2/' + f + '_' + g + '.png');   // 기사 2차 그림은 아직(나오면 이 조건 지움)
       for (const c of ['meadow', 'snow', 'volcano']) { for (const kd of ['normal', 'fast', 'giant']) for (let l = 1; l <= 3; l++) this.monPic(c, kd, l); this.bossPic(c); }
       for (const b of Object.values(BG)) this.bgPic(b);
-      for (const o of ['crystal', 'den', 'cart']) this.objPic(o);
+      for (const o of ['crystal', 'cart']) this.objPic(o);
     }
 
     cardBusy() { return false; }
@@ -73,7 +74,7 @@
       const tw = g.tiles[i] && g.tiles[i].tower, p = this.drawPos(g, i, tw), s = this.allySize(tw ? tw.tier : 1);
       return { x: p[0] - s / 2, y: p[1] - s * 0.86, w: s, h: s, cx: p[0], cy: p[1] };
     }
-    allySize(tier) { return G.CFG.cell * 1.34; }   // 그림 칸(정사각) 한 변 — 같은 계열 6단계를 같은 창으로 잘라 단계 간 크기 비율은 그림에 들어 있음
+    allySize(tier) { return Math.max(80, G.CFG.cell) * 1.34; }   // [v3.9] 칸이 작은 맵(용암 76)도 캐릭터는 너무 작아지지 않게   // 그림 칸(정사각) 한 변 — 같은 계열 6단계를 같은 창으로 잘라 단계 간 크기 비율은 그림에 들어 있음
     drawPos(g, i, tw) { const h = G.tiles[i].tower; if (!tw) return [h[0], h[1] + G.CFG.cell * 0.3]; const p = this.pos[tw.id]; return p ? [p.x, p.y] : [h[0], h[1] + G.CFG.cell * 0.3]; }
 
     // ---------------------------------------------------------------- 사건 → 연출 · 소리
@@ -178,8 +179,8 @@
       this.slideAt = { t: this.time, dir: e.dir };
     }
     chainFx(pts) { if (pts && pts.length > 1) this.fx.push({ k: 'chain', pts: pts.map(p => [p[0], p[1] - 20]), t: this.time, life: 0.25 }); }
-    cryPos() { const p = G.lanePoint(G.END || 12, 0); return [p[0], p[1] - 4]; }
-    denPos() { const p = G.lanePoint(0, 0); return [p[0] + 6, p[1] + 2]; }
+    cryPos() { const p = G.endPx || G.lanePoint(G.END || 12, 0); return [p[0], p[1] + 22]; }
+    denPos() { const p = G.startPx || G.lanePoint(0, 0); return [p[0], p[1]]; }
 
     // ---------------------------------------------------------------- 매 프레임
     frame(game, dt, ui) {
@@ -213,40 +214,24 @@
     }
 
     // ---------------------------------------------------------------- 바탕
+    // [v3.9] 맵 바탕 = 확정 시안의 '길 없는 바탕'(px_<컨셉>.png · 720×990). 없는 컨셉(공장 · 신전 · 심연)은 예전 그림
+    pxOf(game) { const name = BG[game.chapter || 1] || 'meadow'; return PXART[name] ? name : null; }
+    pat(c, key, path) { const im = this.pic(key, path); if (!im) return null; this._pat = this._pat || {}; return this._pat[key] || (this._pat[key] = c.createPattern(im, 'repeat')); }
     drawGround(c, game) {
-      const name = BG[game.chapter || 1] || 'meadow', pal = PAL[name], im = this.bgPic(name);
-      if (im) {
-        const H = FH(), s = Math.max(720 / im.naturalWidth, H / im.naturalHeight), w = im.naturalWidth * s, h = im.naturalHeight * s; c.drawImage(im, (720 - w) / 2, (H - h) / 2, w, h);
-        if (this._gtopFor !== name) {   // 판 위쪽 화면 밖(폰 비율 여백)을 바탕 그림 맨 위 색으로 이어 칠함
-          this._gtopFor = name;
-          try { const d = c.getImageData(0, 2, 720, 1).data; let r = 0, g2 = 0, b = 0, n = 0; for (let k = 0; k < d.length; k += 16) { r += d[k]; g2 += d[k + 1]; b += d[k + 2]; n++; } document.body.style.setProperty('--gtop', `rgb(${r / n | 0},${g2 / n | 0},${b / n | 0})`); } catch (e) { /* 읽기 막힘 */ }
-        }
-        return;
-      }
-      if (this._gtopFor !== '_' + name) { this._gtopFor = '_' + name; document.body.style.setProperty('--gtop', pal.ground[0]); }
-      const gr = c.createLinearGradient(0, 0, 0, FH()); gr.addColorStop(0, pal.ground[0]); gr.addColorStop(1, pal.ground[1]);
-      c.fillStyle = gr; c.fillRect(0, 0, 720, FH());
+      const name = BG[game.chapter || 1] || 'meadow', pal = PAL[name], px = this.pxOf(game), im = px ? this.pic('px_' + px, 'v3/img/map/px_' + px + '.png') : this.bgPic(name), H = FH();
+      const top = px ? PXART[px].top : pal.ground[0];
+      if (this._gtopFor !== name) { this._gtopFor = name; document.body.style.setProperty('--gtop', top); }
+      if (im) { if (px) c.drawImage(im, 0, 0, 720, H); else { const k = Math.max(720 / im.naturalWidth, H / im.naturalHeight), w = im.naturalWidth * k, h = im.naturalHeight * k; c.drawImage(im, (720 - w) / 2, (H - h) / 2, w, h); } return; }
+      c.fillStyle = top; c.fillRect(0, 0, 720, H);
     }
-    // 돌 블록 길: 둘레 길 가운데 선을 따라 둥근 네모 돌을 촘촘히(랜덤다이스2 길 느낌). 모서리 돌은 크게
-    // [v3.3] 길 = 타일이 아니라 이어진 흙길(사용자). 둥근 네모 고리 한 줄: 짙은 가장자리 → 길 바닥 → 안쪽 밝은 띠 → 드문드문 자갈 · 바퀴 자국
+    // [v3.9] 길 = 좌표로 그리는 띠(시안 합성과 같은 방식): 짙은 테 → 질감 면. 갈림길은 여러 줄을 한 번에(테를 먼저 다 그리고 면을 덮어 이음매가 없음)
     drawPath(c, game) {
-      const pal = this.pal(game), L = G.CFG.L * G.u, r = L * 0.55, pts = G.lanePts.map(q => G.P(q[0], q[1]));
-      // [v3.6] 열린 길(굴 → 수정): 꺾임점을 둥글게 이은 한 줄
-      const ring = (lw, col) => { c.lineWidth = lw; c.strokeStyle = col; c.beginPath(); c.moveTo(pts[0][0], pts[0][1]); for (let k = 1; k < pts.length - 1; k++) c.arcTo(pts[k][0], pts[k][1], pts[k + 1][0], pts[k + 1][1], r); c.lineTo(pts[pts.length - 1][0], pts[pts.length - 1][1]); c.stroke(); };
+      const pal = this.pal(game), px = this.pxOf(game), W = G.CFG.RW || 54, L = G.lanesPx || [];
+      const face = (px && this.pat(c, 'tr_' + px, 'v3/img/map/tex_' + px + '_road.png')) || pal.stone[1];
+      const line = (lw, st) => { c.lineWidth = lw; c.strokeStyle = st; for (const pts of L) { c.beginPath(); c.moveTo(pts[0][0], pts[0][1]); for (let k = 1; k < pts.length; k++) c.lineTo(pts[k][0], pts[k][1]); c.stroke(); } };
       c.save(); c.lineJoin = 'round'; c.lineCap = 'round';
-      c.translate(0, 5); ring(L * 0.98, 'rgba(20,14,30,0.22)'); c.translate(0, -5);   // 아래 그늘
-      ring(L * 0.98, pal.stone[2]);
-      ring(L * 0.86, pal.stone[1]);
-      ring(L * 0.6, pal.stone[0]);
-      // 바퀴 자국 두 줄(점선) + 자갈
-      c.setLineDash([18, 22]); c.lineCap = 'round'; ring(3, 'rgba(60,40,30,0.18)'); c.setLineDash([]);
-      const n = Math.round(2 * G.LANE_LEN * G.u / 46);
-      for (let k = 0; k < n; k++) {
-        const j = hash(k * 3 + (game.chapter || 1) * 17); if (j < 0.45) continue;
-        const p = G.lanePoint(k / n * 24, (hash(k * 5 + 1) - 0.5) * 1.5), s = 4 + j * 6;
-        c.fillStyle = j > 0.8 && pal.lava ? pal.lava : 'rgba(40,28,36,0.28)'; c.beginPath(); c.ellipse(p[0], p[1], s, s * 0.7, 0, 0, TAU); c.fill();
-        c.fillStyle = 'rgba(255,255,255,0.25)'; c.beginPath(); c.ellipse(p[0] - 1, p[1] - 2, s * 0.5, s * 0.25, 0, 0, TAU); c.fill();
-      }
+      line(W + 8, px ? PXART[px].edge : pal.stone[2]);
+      line(W, face);
       c.restore();
     }
     stone(c, x, y, w, h, pal, j) {
@@ -264,24 +249,22 @@
         c.lineWidth = 1.5; c.beginPath(); c.moveTo(x - w * 0.1, y - h * 0.02); c.lineTo(x + w * 0.08, y - h * 0.1); c.stroke(); }
     }
     rr(c, x, y, w, h, r) { c.beginPath(); c.moveTo(x + r, y); c.arcTo(x + w, y, x + w, y + h, r); c.arcTo(x + w, y + h, x, y + h, r); c.arcTo(x, y + h, x, y, r); c.arcTo(x, y, x + w, y, r); c.closePath(); }
+    // [v3.9] 몬스터 입구 = 길 시작에 앉아 있는 그 맵의 보스(숨쉬기). 보스가 길에 나가 있는 동안은 자리가 빔
     drawDen(c, game) {
-      const [x, y] = this.denPos(), im = this.objPic('den');
-      if (im) { const w = 150, h = w * im.naturalHeight / im.naturalWidth; c.drawImage(im, x - w / 2, y - h * 0.62, w, h); return; }
-      // 대신: 어두운 돌문 + 보라 소용돌이
-      c.fillStyle = '#3a2f4a'; c.beginPath(); c.ellipse(x, y, 62, 44, 0, 0, TAU); c.fill();
-      c.lineWidth = 4; c.strokeStyle = OUT; c.stroke();
-      const sw = c.createRadialGradient(x, y, 4, x, y, 40); sw.addColorStop(0, '#f2c8ff'); sw.addColorStop(0.5, '#9a4cff'); sw.addColorStop(1, '#2a1640');
-      c.fillStyle = sw; c.beginPath(); c.ellipse(x, y, 44, 30, 0, 0, TAU); c.fill();
-      c.save(); c.translate(x, y); c.rotate(this.time * 2); c.strokeStyle = 'rgba(255,255,255,0.5)'; c.lineWidth = 3; c.beginPath(); c.arc(0, 0, 20, 0, 4); c.stroke(); c.restore();
+      const S0 = G.startPx; if (!S0) return;
+      if ((game.boss && game.boss.alive) || (game.boss2 && game.boss2.alive)) return;
+      const im = this.bossPic(this.concept(game)); if (!im) return;
+      const T = this.time, b = Math.sin(T * 2.2), w = 112, h = w * im.naturalHeight / im.naturalWidth, x = S0[0] + 2, y = S0[1] + 50, d = G.laneDir(0, 1);
+      c.fillStyle = 'rgba(20,10,30,0.3)'; c.beginPath(); c.ellipse(x, y - 2, w * 0.4, w * 0.12, 0, 0, TAU); c.fill();
+      c.save(); c.translate(x, y); if (d[0] > 0.3) c.scale(-1, 1); c.scale(1 + b * 0.025, 1 - b * 0.03); c.drawImage(im, -w / 2, -h * 0.96, w, h); c.restore();
     }
     drawCrystal(c, game) {
       const [x, y] = this.cryPos(), cry = game.cry || { hp: 1, max: 1 }, k = Math.max(0, cry.hp / cry.max), hit = this.time - (this.cryHit || -9);
       const bob = Math.sin(this.time * 2) * 4, jig = hit < 0.3 ? Math.sin(hit * 60) * 4 : 0;
       // 받침 빛
-      const gl = c.createRadialGradient(x, y + 10, 4, x, y + 10, 80); gl.addColorStop(0, `rgba(200,160,255,${0.45 * k + 0.1})`); gl.addColorStop(1, 'rgba(200,160,255,0)');
-      c.fillStyle = gl; c.beginPath(); c.ellipse(x, y + 10, 80, 40, 0, 0, TAU); c.fill();
+      c.fillStyle = 'rgba(20,10,30,0.28)'; c.beginPath(); c.ellipse(x, y, 34, 10, 0, 0, TAU); c.fill();   // [v3.9] 번지는 빛 대신 납작한 그림자(픽셀 톤)
       const im = this.objPic('crystal');
-      if (im) { const w = 104, h = w * im.naturalHeight / im.naturalWidth; c.drawImage(im, x - w / 2 + jig, y - h * 0.86 + bob, w, h); }
+      if (im) { const w = 88, h = w * im.naturalHeight / im.naturalWidth; c.drawImage(im, x - w / 2 + jig, y - h * 0.92 + bob, w, h); }
       else {
         c.save(); c.translate(x + jig, y - 40 + bob);
         const gr = c.createLinearGradient(-30, -50, 30, 40); gr.addColorStop(0, '#f5e6ff'); gr.addColorStop(0.5, '#b788ff'); gr.addColorStop(1, '#6a3fd0');
@@ -299,32 +282,19 @@
       }
       if (hit < 0.25) { c.fillStyle = `rgba(255,80,80,${0.5 - hit * 2})`; c.beginPath(); c.arc(x, y - 40, 60, 0, TAU); c.fill(); }
     }
+    // [v3.9] 판 = 받침 없이 자리 조각만(땅보다 톤이 살짝 다른 둥근 네모 · 칸 사이 틈) — 시안 F1
     drawBoard(c, game) {
-      const pal = this.pal(game), B = G.boardRect, pad = 12, NCELL = G.NCELL || G.N * G.N, cs = G.CFG.cell;
-      // 받침(판 전체를 한 덩어리 돌판으로)
-      c.fillStyle = 'rgba(20,14,30,0.25)'; this.rr(c, B.x - pad, B.y - pad + 10, B.w + pad * 2, B.h + pad * 2, 26); c.fill();
-      const gr = c.createLinearGradient(0, B.y - pad, 0, B.y + B.h + pad); gr.addColorStop(0, pal.slab[0]); gr.addColorStop(1, pal.slab[1]);
-      c.fillStyle = gr; this.rr(c, B.x - pad, B.y - pad, B.w + pad * 2, B.h + pad * 2, 26); c.fill();
-      c.lineWidth = 4; c.strokeStyle = OUT; c.stroke();
-      // 칸
-      for (let i = 0; i < NCELL; i++) {
-        const t = game.tiles[i], h = G.tiles[i].tower, x = h[0] - cs / 2 + 5, y = h[1] - cs / 2 + 5, w = cs - 10;
-        if (t && t.blocked) {   // 구멍: 판이 뚫려 땅 아래가 보임 + 작은 돌
-          c.fillStyle = pal.hole; this.rr(c, x + 4, y + 4, w - 8, w - 8, 18); c.fill();
-          const ig = c.createLinearGradient(0, y, 0, y + w); ig.addColorStop(0, 'rgba(0,0,0,0.45)'); ig.addColorStop(0.4, 'rgba(0,0,0,0)');
-          c.fillStyle = ig; this.rr(c, x + 4, y + 4, w - 8, w - 8, 18); c.fill();
-          c.fillStyle = pal.stone[1]; c.beginPath(); c.ellipse(h[0] - 14, h[1] + 16, 12, 8, 0, 0, TAU); c.ellipse(h[0] + 16, h[1] + 20, 8, 6, 0, 0, TAU); c.fill();
-          continue;
-        }
-        c.fillStyle = pal.cellEdge; this.rr(c, x, y + 6, w, w, 20); c.fill();
-        const cg = c.createLinearGradient(0, y, 0, y + w); cg.addColorStop(0, pal.cell[0]); cg.addColorStop(1, pal.cell[1]);
-        c.fillStyle = cg; this.rr(c, x, y, w, w, 20); c.fill();
-        c.fillStyle = 'rgba(255,255,255,0.22)'; this.rr(c, x + 10, y + 8, w - 20, 12, 6); c.fill();
+      const pal = this.pal(game), px = this.pxOf(game), n = G.NCELL || 20, cs = G.CFG.cell, r = Math.max(6, cs * 0.08);
+      const face = px && this.pat(c, 'ts_' + px, 'v3/img/map/tex_' + px + '_slot.png');
+      for (let i = 0; i < n; i++) {
+        const t = game.tiles[i], h = G.tiles[i].tower, x = h[0] - cs / 2 + 4, y = h[1] - cs / 2 + 4, w = cs - 8;
+        if (t && t.blocked) { c.fillStyle = pal.hole; this.rr(c, x + 3, y + 3, w - 6, w - 6, r); c.fill(); c.fillStyle = 'rgba(0,0,0,0.3)'; this.rr(c, x + 3, y + 3, w - 6, 10, 4); c.fill(); continue; }
+        if (face) { c.globalAlpha = 0.84; c.fillStyle = face; this.rr(c, x, y, w, w, r); c.fill(); c.globalAlpha = 1; }
+        else { c.fillStyle = this.alpha(pal.cell[1], 0.42); this.rr(c, x, y, w, w, r); c.fill(); }
       }
-      // 밀기 안 됨(움직일 게 없음) → 판이 그 방향으로 살짝 흔들림
     }
     drawWaveArrows(c, game) {
-      const w = this.waveArrows; if (!w) return; const a = this.time - w.t; if (a > 2.2) return;
+      const w = null; if (!w) return; const a = this.time - w.t; if (a > 2.2) return;
       const [x, y] = this.denPos(), al = Math.min(1, a * 4) * Math.min(1, (2.2 - a) * 2);
       for (let k = 0; k < 3; k++) { c.fillStyle = `rgba(255,90,90,${al})`; const py = y + 86 + k * 26 + (a * 60) % 26; c.beginPath(); c.moveTo(x - 6, py + 12); c.lineTo(x - 18, py - 6); c.lineTo(x + 6, py - 6); c.closePath(); c.fill(); }   // [v3.6] 굴 아래로 내려가는 화살표
     }
@@ -336,12 +306,12 @@
       const boss = !!m.boss, kind = m.kind;
       const base = boss ? 'boss' : kind === 'fast' || kind === 'mini' ? 'fast' : kind === 'giant' || kind === 'elite' ? 'giant' : 'normal';
       const lv = this.monLv(game, m);
-      let size = boss ? 160 : base === 'giant' ? 104 : base === 'fast' ? 66 : 72;
+      let size = boss ? 124 : base === 'giant' ? 84 : base === 'fast' ? 54 : 58;   // [v3.9] 길 폭 54에 맞춤
       if (kind === 'mini') size *= 0.72; if (kind === 'splitter') size *= 0.86; if (kind === 'goldmon') size *= 0.9;
       size *= 1 + (lv - 1) * 0.06;
       const stunned = T < 0 ? false : game.t < m.stunUntil, frozen = game.t < (m.frozenUntil || 0);
       const hop = stunned || frozen ? 0 : Math.abs(Math.sin((T * (base === 'fast' ? 14 : 8)) + m.id)) * (base === 'giant' || boss ? 3 : 6);
-      const d = G.laneDir(m.f, m.dir || 1), face = Math.abs(d[0]) > 0.01 ? Math.sign(d[0]) : (m.dir || 1) > 0 ? -1 : 1;
+      const d = G.laneDir(m.f, m.dir || 1, m.lane), face = Math.abs(d[0]) > 0.01 ? Math.sign(d[0]) : (m.dir || 1) > 0 ? -1 : 1;
       const x = m.x, y = m.y;
       // 그림자
       c.fillStyle = 'rgba(20,10,30,0.28)'; c.beginPath(); c.ellipse(x, y + 4, size * 0.34, size * 0.11, 0, 0, TAU); c.fill();
