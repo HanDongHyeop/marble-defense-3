@@ -52,15 +52,15 @@
     }
     allyPic(type, tier) {
       const f = FAM2[type], g = GRADE[tier] || tier;
-      if (f) { const a = this.pic('a2_' + f + g, 'v3/img/ally2/' + f + '_' + g + '.png'); if (a) return a; }
+      if (f) { const a = this.pic('a2_' + f + g, 'v3/img/px/ally2/' + f + '_' + g + '.png'); if (a) return a; }
       const k = artOf(type); return this.pic('a_' + k + tier, 'v3/img/ally/' + k + '_' + tier + '.png');
     }
-    monPic(cpt, kind, lv) { return this.pic('m_' + cpt + kind + lv, 'v3/img/mon/' + cpt + '_' + kind + '_' + lv + '.png'); }
-    bossPic(cpt) { return this.pic('b_' + cpt, 'v3/img/mon/' + cpt + '_boss.png'); }
+    monPic(cpt, kind, lv) { return this.pic('m_' + cpt + kind + lv, 'v3/img/px/mon/' + cpt + '_' + kind + '_' + lv + '.png'); }
+    bossPic(cpt) { return this.pic('b_' + cpt, 'v3/img/px/mon/' + cpt + '_boss.png'); }
     bgPic(name) { return this.pic('bg_' + name, 'v3/img/map/bg_' + name + '.jpg'); }
-    objPic(name) { return this.pic('o_' + name, 'v3/img/obj/' + name + '.png'); }
+    objPic(name) { return this.pic('o_' + name, 'v3/img/' + (name === 'crystal' ? 'px/' : '') + 'obj/' + name + '.png'); }   // [v3.9c] 캐릭터 · 몬스터 · 수정 = 고운 픽셀로 구운 그림(tools/bake_px.py)
     preload() {
-      for (const f of Object.values(FAM2)) for (let g = 1; g <= 5; g++) this.pic('a2_' + f + g, 'v3/img/ally2/' + f + '_' + g + '.png');   // 기사 2차 그림은 아직(나오면 이 조건 지움)
+      for (const f of Object.values(FAM2)) for (let g = 1; g <= 5; g++) this.pic('a2_' + f + g, 'v3/img/px/ally2/' + f + '_' + g + '.png');   // 기사 2차 그림은 아직(나오면 이 조건 지움)
       for (const c of ['meadow', 'snow', 'volcano']) { for (const kd of ['normal', 'fast', 'giant']) for (let l = 1; l <= 3; l++) this.monPic(c, kd, l); this.bossPic(c); }
       for (const b of Object.values(BG)) this.bgPic(b);
       for (const o of ['crystal', 'cart']) this.objPic(o);
@@ -187,7 +187,8 @@
       const c = this.ctx; this.time += dt; const T = this.time;
       this.game = game;
       c.save();
-      if (this.shake > 0) { c.translate((Math.random() - 0.5) * this.shake, (Math.random() - 0.5) * this.shake); this.shake = Math.max(0, this.shake - dt * 40); }
+      this._shx = this._shy = 0;
+      if (this.shake > 0) { this._shx = (Math.random() - 0.5) * this.shake; this._shy = (Math.random() - 0.5) * this.shake; c.translate(this._shx, this._shy); this.shake = Math.max(0, this.shake - dt * 40); }
       this.drawGround(c, game);
       this.drawPath(c, game);
       this.drawBoard(c, game);
@@ -203,8 +204,12 @@
       this.drawCrystal(c, game);
       for (const it of list) { if (it.m) this.drawMonster(c, game, it.m); else if (it.t) this.drawAlly(c, game, it.t); else this.drawGhost(c, it.gh); }
       this.drawSel(c, game);
-      this.drawShots(c, game);
-      this.drawFx(c, dt);
+      // [v3.9c] 탄 · 이펙트는 따로 둔 낮은 해상도 층(fxpx · 540 격자 · pixelated)에 그려 픽셀 계단을 줌. 판 · 캐릭터 · 글씨는 기기 해상도 그대로
+      const fc = root.FXCTX || c;
+      if (fc !== c) { fc.save(); fc.clearRect(0, 0, 720, FH()); fc.translate(this._shx || 0, this._shy || 0); }
+      this.drawShots(fc, game);
+      this.drawFx(fc, dt);
+      if (fc !== c) fc.restore();
       this.drawTexts(c);
       this.drawBanners(c);
       c.restore();

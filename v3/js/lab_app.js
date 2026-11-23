@@ -17,9 +17,11 @@
     App.fit = function () {
       baseFit.call(this);
       const c = $('world'), H = root.GEOM.CFG.FIELD_H, R = this.R || 1;
-      const PXR = root.PIXEL_R || 0.5;   // [v3.9] 판 캔버스를 360×495로 그려 키움(image-rendering: pixelated) → 판 전체가 같은 픽셀 계단. 기기 배율(R)은 안 씀
-      if (c && (c.height !== Math.round(H * PXR) || c.width !== Math.round(720 * PXR))) { c.width = Math.round(720 * PXR); c.height = Math.round(H * PXR); }
-      if (c) { const x = c.getContext('2d'); x.setTransform(PXR, 0, 0, PXR, 0, 0); x.imageSmoothingEnabled = true; x.imageSmoothingQuality = 'high'; }
+      if (c && c.height !== Math.round(H * R)) { c.width = Math.round(720 * R); c.height = Math.round(H * R); c.getContext('2d').setTransform(R, 0, 0, R, 0, 0); }
+      // [v3.9c] 판은 기기 해상도 그대로(선명). 탄 · 이펙트만 낮은 해상도 층(540 격자)에 그려 키움 — 판 전체를 360으로 그렸더니 화질이 낮아 보임(사용자)
+      let fx = $('fxpx'); if (!fx && c) { fx = document.createElement('canvas'); fx.id = 'fxpx'; c.parentNode.insertBefore(fx, c.nextSibling); }
+      const PXR = root.PIXEL_FX || 0.75;
+      if (fx) { if (fx.width !== Math.round(720 * PXR) || fx.height !== Math.round(H * PXR)) { fx.width = Math.round(720 * PXR); fx.height = Math.round(H * PXR); } const x = fx.getContext('2d'); x.setTransform(PXR, 0, 0, PXR, 0, 0); root.FXCTX = x; }
     };
     App.fit();
   }

@@ -34,9 +34,9 @@
     knight: [{ k: 'slam', a: 10, m: [0.29, 0.89], s: 'crescent', z: 0.8 }, { k: 'lunge', a: 16, m: [0.09, 0.72], s: 'needle' }, { k: 'slam', a: 10, m: [0.50, 0.37], s: 'star' }, { k: 'lunge', a: 20, m: [0.09, 0.66], s: 'needle', z: 1.3 }, { k: 'slam', a: 12, m: [0.19, 0.88], s: 'knight', z: 1.2 }],
   };
   const motOf = (f, g) => (MOT[f] || MOT.fire)[Math.max(0, Math.min(4, g - 1))];
-  R.atkPic = function (type, tier) { const f = famOf(type), g = GRADE[tier] || 1; return FAM[type] ? this.pic('a2k_' + f + g, 'v3/img/ally2/' + f + '_' + g + '_atk.png') : null; };
+  R.atkPic = function (type, tier) { const f = famOf(type), g = GRADE[tier] || 1; return FAM[type] ? this.pic('a2k_' + f + g, 'v3/img/px/ally2/' + f + '_' + g + '_atk.png') : null; };
   const basePre = R.preload;
-  R.preload = function () { basePre.call(this); for (const n in (root.FXSHEETS || {})) root.FXSHEETS[n].sheets.forEach((s, k) => this.pic('fx_' + n + k, 'v3/img/fx/' + s)); for (const f of Object.values(FAM)) for (let g = 1; g <= 5; g++) this.pic('a2k_' + f + g, 'v3/img/ally2/' + f + '_' + g + '_atk.png'); };
+  R.preload = function () { basePre.call(this); for (const n in (root.FXSHEETS || {})) root.FXSHEETS[n].sheets.forEach((s, k) => this.pic('fx_' + n + k, 'v3/img/fx/' + s)); for (const f of Object.values(FAM)) for (let g = 1; g <= 5; g++) this.pic('a2k_' + f + g, 'v3/img/px/ally2/' + f + '_' + g + '_atk.png'); };
   // 발사 위치(화면 좌표): 공격 그림 안의 점(입 · 손 · 총구 · 무기 끝)을 그 캐릭터가 보는 방향에 맞춰 옮김
   R.muzzle = function (game, i) {
     const t = game.tiles[i], tw = t && t.tower; if (!tw || !FAM[tw.type]) return null;

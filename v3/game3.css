@@ -98,7 +98,8 @@ body.v3.upopen #panel { z-index: 31; }
 body.v3.upopen #truckBtn { visibility: hidden; }
 
 /* ===== [v3.1] 판 4×5(캔버스 990) · 조작부 290 = 금화 · [지휘관 · 소환 · 강화] · 아래 줄(미션 · 조합 · 신화석 · 배속) ===== */
-body.v3 #world { height: 990px; image-rendering: pixelated; image-rendering: crisp-edges; image-rendering: pixelated; }   /* [v3.9] 360×495로 그린 판을 픽셀 계단 그대로 키움 */
+body.v3 #world { height: 990px; }
+#fxpx { position: absolute; left: 0; top: 0; width: 720px; height: 990px; pointer-events: none; image-rendering: pixelated; image-rendering: crisp-edges; image-rendering: pixelated; }   /* [v3.9c] 탄 · 이펙트 층(540 격자) */
 body.v3 #panel { top: 990px; height: 290px; }
 body.v3 #goldRow { height: 44px; margin-top: 4px; }
 body.v3 #goldRow b { font-size: 28px; }
