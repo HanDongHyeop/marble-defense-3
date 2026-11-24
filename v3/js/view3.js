@@ -66,7 +66,7 @@
     monPic(cpt, kind, lv) { return this.pic('m_' + cpt + kind + lv, 'v3/img/px/mon/' + cpt + '_' + kind + '_' + lv + '.png'); }
     bossPic(cpt) { return this.pic('b_' + cpt, 'v3/img/px/mon/' + cpt + '_boss.png'); }
     bgPic(name) { return this.pic('bg_' + name, 'v3/img/map/bg_' + name + '.jpg'); }
-    objPic(name) { return this.pic('o_' + name, 'v3/img/' + (name === 'crystal' ? 'px/' : '') + 'obj/' + name + '.png'); }   // [v3.9c] 캐릭터 · 몬스터 · 수정 = 고운 픽셀로 구운 그림(tools/bake_px.py)
+    objPic(name) { return this.pic('o_' + name, 'v3/img/' + (name === 'crystal' || name === 'cart' ? 'px/' : '') + 'obj/' + name + '.png'); }   // [v3.9c] 캐릭터 · 몬스터 · 수정 = 고운 픽셀로 구운 그림(tools/bake_px.py)
     preload() {
       for (const f of Object.values(FAM2)) for (let g = 1; g <= 5; g++) this.pic('a2_' + f + g, 'v3/img/px/ally2/' + f + '_' + g + '.png');   // 기사 2차 그림은 아직(나오면 이 조건 지움)
       for (const c of ['meadow', 'snow', 'volcano']) { for (const kd of ['normal', 'fast', 'giant']) for (let l = 1; l <= 3; l++) this.monPic(c, kd, l); this.bossPic(c); }
@@ -336,7 +336,24 @@
 
     // ---------------------------------------------------------------- 몬스터
     monLv(game, m) { const r = m.rnd || game.round || 1; return r >= 14 ? 3 : r >= 7 ? 2 : 1; }
+    // [v3.10] 보물 수레(전 '현금 수송차'): 일반 몬스터 그림을 같이 써서 구분이 안 됐음 → 금화 수레 그림 · 흔들리며 굴러감 · 반짝이 · 금색 체력 막대
+    drawCart(c, game, m) {
+      const T = this.time, im = this.objPic('cart'), x = m.x, y = m.y, size = 78;
+      const d = G.laneDir(m.f, m.dir || 1, m.lane), face = Math.abs(d[0]) > 0.01 ? Math.sign(d[0]) : (m.dir || 1) > 0 ? -1 : 1;
+      c.fillStyle = 'rgba(20,10,30,0.28)'; c.beginPath(); c.ellipse(x, y + 4, size * 0.4, size * 0.12, 0, 0, TAU); c.fill();
+      const hitK = Math.max(0, 1 - (game.t - (m.hitT || -9)) * 8);
+      c.save(); c.translate(x, y - Math.abs(Math.sin(T * 10 + m.id)) * 2); c.rotate(Math.sin(T * 9 + m.id) * 0.05);
+      if (face > 0) c.scale(-1, 1);
+      if (im) { const h = size * im.naturalHeight / im.naturalWidth; c.drawImage(im, -size / 2, -h * 0.92, size, h); if (hitK > 0) { c.globalCompositeOperation = 'lighter'; c.globalAlpha = hitK * 0.5; c.drawImage(im, -size / 2, -h * 0.92, size, h); } }
+      c.restore();
+      for (let k = 0; k < 3; k++) { const p = (T * 1.3 + k / 3 + m.id * 0.17) % 1, sx = x + Math.sin(k * 2.4 + m.id) * size * 0.3, sy = y - size * 0.55 - p * 26, s = 3 * (1 - p) + 1;
+        c.fillStyle = 'rgba(255,230,110,' + (1 - p).toFixed(2) + ')'; c.fillRect(Math.round(sx - s), Math.round(sy - 1), Math.round(s * 2), 2); c.fillRect(Math.round(sx - 1), Math.round(sy - s), 2, Math.round(s * 2)); }
+      const bw = 50, k = Math.max(0, m.hp / m.maxHp), by = y + 10;
+      c.fillStyle = 'rgba(20,14,30,0.8)'; this.rr(c, x - bw / 2 - 2, by - 2, bw + 4, 9, 4); c.fill();
+      c.fillStyle = '#ffc83a'; this.rr(c, x - bw / 2, by, bw * k, 5, 2.5); c.fill();
+    }
     drawMonster(c, game, m) {
+      if (m.kind === 'truck') return this.drawCart(c, game, m);
       const cpt = this.concept(game), T = this.time;
       const boss = !!m.boss, kind = m.kind;
       const base = boss ? 'boss' : kind === 'fast' || kind === 'mini' ? 'fast' : kind === 'giant' || kind === 'elite' ? 'giant' : 'normal';

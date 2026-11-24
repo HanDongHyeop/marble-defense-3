@@ -69,5 +69,5 @@
     D.BOSSES.piggy.desc = '수정에 닿으면 가진 금화의 50% 보너스(수정은 안 깨짐)';
     D.BOSSES.goblin.desc = '수정에 닿기 전에 잡으면 금화 보너스';
   }
-  if (D.MONSTERS) { D.MONSTERS.normal.name = '돌블록'; D.MONSTERS.fast.name = '날개돌'; D.MONSTERS.giant.name = '큰바위'; }
+  if (D.MONSTERS) { D.MONSTERS.normal.name = '돌블록'; D.MONSTERS.fast.name = '날개돌'; D.MONSTERS.giant.name = '큰바위'; if (D.MONSTERS.truck) D.MONSTERS.truck.name = '보물 수레'; }   // [v3.10] 수송차 → 보물 수레(컨셉에 맞게)
 })(typeof window !== 'undefined' ? window : globalThis);

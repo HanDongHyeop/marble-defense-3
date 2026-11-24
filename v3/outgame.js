@@ -18,7 +18,8 @@
   // [v3] 아군 = 캐릭터 5계열(그림 img/ally/<계열>_<단계>.png). 옛 아군 종류가 남아 있으면 옛 그림
   // [v3.1] 운빨풍 2차 그림(5등급 · img/ally2) — 기사(light)는 그림이 나올 때까지 1차 그림
   const FAM2 = { fire: 'fire', gatling: 'mech', bolt: 'storm', ice: 'frost', light: 'knight', corrode: 'demon', combo: 'mage' }, GR5 = [0, 1, 2, 3, 3, 4, 5];
-  const tw = (k, t) => `img/ally2/${FAM2[k] || 'fire'}_${GR5[t || 1]}.png`;   // [v3.9e] 예전 그림(img/ally · 본편 포탑)으로 대신하지 않음
+  const PXC = { 1: 'meadow', 2: 'snow', 3: 'volcano', 4: 'meadow', 5: 'snow', 6: 'volcano' };   // [v3.10] 장 → 판 바탕 컨셉(view3 CONCEPT와 같음)
+const tw = (k, t) => `img/px/ally2/${FAM2[k] || 'fire'}_${GR5[t || 1]}.png`;   // [v3.9e] 예전 그림(img/ally · 본편 포탑)으로 대신하지 않음
   const FAMC = D.FAMC;   // [v5.5] 계열 색은 본편 data.js 한 곳에서
   const fc = k => FAMC[D.TOWERS[k].fam] || '#aaa';
   const tname = k => D.TOWERS[k].name;
@@ -190,7 +191,7 @@
   </div>`;
   const TABS = [['shop', '상점'], ['deck', '덱'], ['home', '전투'], ['grow', '성장'], ['collect', '수집']];
   const tabs = cur => `<nav class="tabs">${TABS.map(([k, n]) => {
-    const icon = k === 'deck' ? `<img class="ico" src="${tw('fire', 3)}" alt="">` : k === 'home' ? `<img class="ico" src="img/obj/crystal.png" alt="">` : k === 'grow' ? `<img class="ico" src="${IMG}k_seed.png" alt="">` : og(k === 'shop' ? 'shop' : 'palette');
+    const icon = k === 'deck' ? `<img class="ico" src="${tw('fire', 3)}" alt="">` : k === 'home' ? `<img class="ico" src="img/px/obj/crystal.png" alt="">` : k === 'grow' ? `<img class="ico" src="${IMG}k_seed.png" alt="">` : og(k === 'shop' ? 'shop' : 'palette');
     const d = k === 'shop' ? dot(!S.shop.free) : k === 'grow' ? dot(canOpenTower().length) : '';
     return B('go', k, `tab ${cur === k ? 'on' : ''}`, d + icon + n);
   }).join('')}</nav>`;
@@ -227,7 +228,7 @@
     </div>
     <div class="dstage v2">
       <div class="pedestal"></div><i class="shadowd"></i><i class="ring"></i><i class="puff a"></i><i class="puff b"></i>
-      ${B('crystalInfo', null, 'bigcrystal', `<img src="img/obj/crystal.png" alt=""><i class="halo"></i><i class="tw a"></i><i class="tw b"></i><i class="tw c"></i>`)}
+      ${B('crystalInfo', null, 'bigcrystal', `<img src="img/px/obj/crystal.png" alt=""><i class="halo"></i><i class="tw a"></i><i class="tw b"></i><i class="tw c"></i>`)}
       <div class="lastroll">수정을 누르면 판 규칙</div>
     </div>
     ${B('go', 'deck', 'luck v2deck', `<span class="k">내 덱</span><span class="dk5">${deck().map(k => `<img src="${tw(k, 3)}" alt="">`).join('')}</span><b>›</b>`)}
@@ -373,7 +374,7 @@
   function mythPanel(F) {
     const rows = F.towers.filter(k => MYTH_NAME[k]).map(k => {
       const on = mythOn(k);
-      return `<div class="mythrow ${on ? 'on' : ''}"><span class="mpic"><img src="img/ally2/${({ fire: 'fire', gatling: 'mech', bolt: 'storm', ice: 'frost', light: 'knight', corrode: 'demon', combo: 'mage' })[k]}_5.png" onerror="this.style.opacity=.3" alt=""></span>
+      return `<div class="mythrow ${on ? 'on' : ''}"><span class="mpic"><img src="img/px/ally2/${({ fire: 'fire', gatling: 'mech', bolt: 'storm', ice: 'frost', light: 'knight', corrode: 'demon', combo: 'mage' })[k]}_5.png" onerror="this.style.opacity=.3" alt=""></span>
         <div class="tx"><b>${MYTH_NAME[k]}</b><small>${on ? (k === MYTH_FREE ? '처음부터 열림 · ' : '') + '판에서 전설 → 신화 각성 가능' : '열면: 판에서 이 계열 전설이 게이지를 채우고 신화석 1개로 신화 각성'}</small></div>
         ${on ? '<span class="mok">해금됨</span>' : B('mythOpen', k, 'btn small" style="min-width:110px', `코어 ${MYTH_CORE}`)}</div>`;
     }).join('');
@@ -517,7 +518,7 @@
     const next = R.win && R.ch < 6 && chOpen(R.ch + 1);
     const head = R.endless ? '토벌 끝' : R.win ? '승리!' : '패배';
     const third = R.endless ? B('retry', 'endless', 'btn green', '다시 토벌') : R.mode === 'weekly' ? B('retry', 'weekly', 'btn green', '다시 도전') : next ? B('nextCh', R.ch + 1, 'btn green', '다음 장 ▶') : R.win ? B('go', 'map', 'btn green', '지도 ▶') : B('retry', R.mode === 'coop' ? 'coop' : 'solo', 'btn green', '다시 도전');
-    return `<div class="resbg" style="background-image:url(img/map/hb_ch${R.endless ? 1 : R.ch}.jpg)"></div>
+    return `<div class="resbg" style="background-image:url(img/map/px_${PXC[R.endless ? 1 : R.ch] || 'meadow'}.png)"></div>
     <div class="resbox panel ${R.win || R.endless ? '' : 'lose'}"><div class="ribbon ${R.win ? '' : 'purple'}">${head}</div>
       <div class="chn">${R.endless ? '무한 토벌' : `${R.mode === 'weekly' ? '주간 도전 · ' : ''}${R.ch}장 ${C.name} · ${DIFFN[R.d]}`}${R.mode === 'coop' ? ' · AI 협동' : ''}</div>
       ${R.endless ? `<div class="bigkill">${fmt(R.kills)}<span>마리 처치 · 최고 ${fmt(S.rec.best)}</span></div>`
@@ -576,7 +577,7 @@
     if (ui.screen !== 'home') { bg.innerHTML = ''; return; }
     const [c1, c2, c3] = CHTHEME[S.chapter];
     const layer = document.createElement('div'); layer.className = 'chbg';
-    layer.style.background = `radial-gradient(ellipse 60% 30% at 50% 42%, ${c1}55, transparent 70%), radial-gradient(ellipse 120% 55% at 50% 0%, ${c2}77, transparent 70%), linear-gradient(${c3}, #16122b 80%)`;
+    layer.style.background = `#23264e url(img/map/px_${PXC[S.chapter] || 'meadow'}.png) center top / cover no-repeat`;   // [v3.10] 톤 전체 적용: 홈 바탕 = 판 바탕 픽셀 그림(+ tone_og.css 남색 덮개)
     layer.innerHTML = Array.from({ length: 14 }, (_, k) => `<i style="left:${(k * 53 + 17) % 100}%;top:${(k * 37 + 11) % 56 + 8}%;width:${10 + (k % 4) * 6}px;height:${10 + (k % 4) * 6}px;animation-delay:-${k * 0.7}s;background:${k % 2 ? c1 : c2}"></i>`).join('');
     const old = bg.querySelector('.chbg'); bg.appendChild(layer);
     if (old) { layer.style.opacity = 0; requestAnimationFrame(() => requestAnimationFrame(() => { layer.style.opacity = 1; })); setTimeout(() => old.remove(), 400); }
@@ -929,7 +930,7 @@
     if (!x) {
       x = document.createElement('div'); x.id = 'xfer';
       const streaks = Array.from({ length: 22 }, (_, k) => { const r = (k * 9301 + 49297) % 233280 / 233280; return `<i style="left:${(k * 4.7 + r * 3) % 100}%;width:${2 + (k % 3)}px;height:${140 + (k * 37) % 320}px;animation-duration:${1.1 + r * 1.4}s;animation-delay:-${(k * 0.37) % 2}s;background:linear-gradient(transparent, ${STREAK_C[k % 5]})"></i>`; }).join('');
-      const pips = Array.from({ length: 6 }, (_, k) => `<span class="xdie" style="left:${8 + k * 16}%;animation-delay:-${k * 1.3}s;animation-duration:${7 + (k % 3) * 2}s"><img src="img/obj/crystal.png" alt=""></span>`).join('');
+      const pips = Array.from({ length: 6 }, (_, k) => `<span class="xdie" style="left:${8 + k * 16}%;animation-delay:-${k * 1.3}s;animation-duration:${7 + (k % 3) * 2}s"><img src="img/px/obj/crystal.png" alt=""></span>`).join('');
       x.innerHTML = `<div class="xbg"></div><div class="xstreak">${streaks}</div><div class="xdice">${pips}</div><div class="xstage" data-fit><div class="xmid"></div><div class="xword"></div><div class="xtip"><b>Tip.</b> ${TIPS[Math.floor(Math.random() * TIPS.length)]}</div></div>`;
       document.body.appendChild(x); fit();
       requestAnimationFrame(() => requestAnimationFrame(() => x.classList.add('in')));
@@ -965,7 +966,7 @@
     const og = { choice: { commander: S.cmd, pawn: S.pawn, mode: mode === 'endless' ? 'endless' : 'conquest', coop: mode === 'coop', deck: deck().slice(), diff: mode === 'endless' ? 'normal' : DIFFS[di], chapter: n },
       bonus: sb ? sb.fx : null, bonusTxt: sb ? { d: sb.d.join('·'), txt: sb.txt } : null, meta: { nodes: S.nodes, unlocked: S.unlocked, relics: S.relics } };
     const fr = G0.fr = document.createElement('iframe'); fr.id = 'game'; fr.className = 'pre'; fr.title = '마블 디펜스 판'; fr.setAttribute('allow', 'autoplay; fullscreen');
-    fr.src = 'game.html?v=202611231548&embed=1&og=' + encodeURIComponent(JSON.stringify(og));
+    fr.src = 'game.html?v=202611241139&embed=1&og=' + encodeURIComponent(JSON.stringify(og));
     G0.attach = () => { if (!fr.isConnected && ui.inGame === G0) document.body.appendChild(fr); };
     // 크롬(안드로이드 · PC)은 판을 불러와도 이 화면이 거의 안 멈춤 → 착지 직후 바로. 아이폰(WebKit)은 같은 줄에서 돌아 로비가 멈칫 → 진입 막 아래에서(enterGame)
     const UA = navigator.userAgent, WK = /iPhone|iPad|iPod/.test(UA) || (/AppleWebKit/.test(UA) && !/Chrome|Chromium|Android|Edg/.test(UA)) || (navigator.maxTouchPoints > 1 && /Macintosh/.test(UA));
@@ -1045,7 +1046,7 @@
   function boot(q) {
     const b = $('boot'); if (!b) return;
     if (q.get('noboot')) { b.remove(); setTimeout(prefetchGame, 1500); return; }
-    b.querySelectorAll('.bdie').forEach((e, k) => { e.innerHTML = k ? '<b class="v2tile">3</b>' : `<img src="img/obj/crystal.png" alt="">`; });   // v2: 로고 옆 = 수정 · '2' 칸
+    b.querySelectorAll('.bdie').forEach((e, k) => { e.innerHTML = k ? '<b class="v2tile">3</b>' : `<img src="img/px/obj/crystal.png" alt="">`; });   // v2: 로고 옆 = 수정 · '2' 칸
     const T = 3000 + Math.random() * 2000; ui.bootT = T;
     const pre = [PIMG + 'load_key.jpg', ...M.CHAPTERS.map(C => 'img/map/hb_ch' + C.n + '.jpg'), ...D.ALL.map(k => tw(k, 3)), IMG + 'c_' + S.cmd + '.png', IMG + 'x_crystal.png', IMG + 'i_coin.png'];
     let loaded = 0; pre.forEach(u => { const im = new Image(); im.onload = im.onerror = () => loaded++; im.src = u; });

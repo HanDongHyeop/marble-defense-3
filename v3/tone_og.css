@@ -1,0 +1,64 @@
+/* 마블 디펜스 3 v3.10 — 톤 전체 적용(2026-11-24 사용자 확정: 시안 '톤 전체 적용'으로 전부). 로비 · 창에 판 화면의 픽셀 톤. 원본 시안 = mock/tone_og.css */
+@font-face { font-family: Gal; src: url(font/Galmuri11-Bold.woff2) format('woff2'); }
+#wrap, #wrap *, #modal, #modal * { font-family: Gal, Jua, sans-serif !important; font-weight: 400 !important; text-shadow: none !important; letter-spacing: 0 !important; }
+#wrap *::before, #wrap *::after { text-shadow: none !important; }
+/* 바탕 */
+.bgnavy { background: #23264e !important; }
+.bgnavy::before, .bgnavy::after { display: none !important; }
+.chbg { background-size: cover !important; background-position: center top !important; filter: none !important; }
+.chbg::after { content: ''; position: absolute; inset: 0; background: rgba(24, 27, 58, .62); }
+.hbig { opacity: 0; }
+/* 패널 */
+.panel, .equip, .pcard, .node, .goal, .mythrow, .treehead, .vipcard, .fork, .stagecard, .luck, .note, .tray {
+  background: #2b2f63 !important; border: 4px solid #181b3a !important; border-radius: 12px !important; box-shadow: inset 0 4px 0 #474d92 !important; backdrop-filter: none !important; }
+.tray { border-radius: 16px 16px 0 0 !important; background: #1c1f44 !important; box-shadow: inset 0 4px 0 #343a78 !important; }
+.note { background: #171a3c !important; box-shadow: none !important; border-width: 3px !important; border-color: #323880 !important; }
+.node.lock, .node.max { filter: none !important; }
+.node.lock { background: #20234a !important; box-shadow: none !important; }
+/* 칩(재화 · 프로필) */
+.cur, .prof, .gear, .dchip, .lvbig, .nico, .mpic { background: #171a3c !important; border: 3px solid #323880 !important; border-radius: 12px !important; box-shadow: none !important; }
+.prof .face { border-radius: 8px !important; box-shadow: none !important; background: #3f86e8 !important; }
+.cur .plus { border-radius: 5px !important; background: #4cb86e !important; box-shadow: none !important; border: 2px solid #181b3a !important; }
+.dot { border-radius: 4px !important; background: #ff3a4a !important; border: 3px solid #181b3a !important; box-shadow: none !important; }
+/* 버튼 */
+.btn, .arrow, .rbtn, .famtab, .ptab, .chip { border: 4px solid #181b3a !important; border-radius: 12px !important; background: #5648a4 !important; box-shadow: inset 0 4px 0 #8274d4, inset 0 -7px 0 #3a2f7a !important; color: #fff !important; filter: none !important; }
+.btn.green, .startbtn { background: #4cb86e !important; box-shadow: inset 0 4px 0 #86e6a2, inset 0 -8px 0 #2f9152 !important; }
+.btn.gold { background: #ffb41e !important; box-shadow: inset 0 4px 0 #ffe08a, inset 0 -7px 0 #d0820a !important; color: #3a2408 !important; }
+.btn.blue, .btn.ad { background: #3f86e8 !important; box-shadow: inset 0 4px 0 #86bcff, inset 0 -7px 0 #2a60ba !important; }
+.btn.sec { background: #464b8c !important; box-shadow: inset 0 4px 0 #6d73b8, inset 0 -7px 0 #2c3068 !important; }
+.btn.off, .rbtn.lockd, .ptab.lock { background: #3a3d5e !important; box-shadow: inset 0 4px 0 #55597e, inset 0 -7px 0 #26283f !important; color: #9a9cc0 !important; }
+.btn.small { box-shadow: inset 0 3px 0 rgba(255,255,255,.3), inset 0 -5px 0 rgba(0,0,0,.25) !important; }
+.famtab, .ptab, .chip { background: #2b2f63 !important; box-shadow: inset 0 4px 0 #474d92, inset 0 -5px 0 #1d2048 !important; border-radius: 10px !important; }
+.famtab.on, .ptab.on, .chip.on { background: #3f86e8 !important; box-shadow: inset 0 4px 0 #86bcff, inset 0 -5px 0 #2a60ba !important; }
+/* 캐릭터 카드(계열 색 단색) */
+.ecard, .tcard, .famtower { border: 4px solid #181b3a !important; border-radius: 12px !important; background: var(--fc, #5648a4) !important; box-shadow: inset 0 4px 0 rgba(255,255,255,.35), inset 0 -7px 0 rgba(0,0,0,.28) !important; }
+.ecard::before, .tcard::before, .famtower::before, .ecard::after, .tcard::after, .famtower::after { box-shadow: none !important; border-radius: 6px !important; }
+/* 상점 */
+.shophero { border: 4px solid #181b3a !important; border-radius: 12px !important; background: #d0468a !important; box-shadow: inset 0 4px 0 #f08abc, inset 0 -8px 0 #9a2a62 !important; }
+.sitem { border: 4px solid #181b3a !important; border-radius: 12px !important; box-shadow: inset 0 4px 0 rgba(255,255,255,.2), inset 0 -7px 0 rgba(0,0,0,.3) !important; }
+.sitem.deal { background: #2f4a9a !important; } .sitem.gem { background: #8a2f5e !important; } .sitem.gold { background: #8a5a1e !important; } .sitem.deco { background: #4a3a8a !important; }
+.sitem .pr, .shophero .btn { border: 3px solid #181b3a !important; border-radius: 10px !important; box-shadow: inset 0 3px 0 rgba(255,255,255,.4), inset 0 -4px 0 rgba(0,0,0,.2) !important; background: #ffb41e !important; color: #3a2408 !important; }
+.sitem .pr.gem { background: #e85aa0 !important; color: #fff !important; } .sitem .pr.ad { background: #3f86e8 !important; color: #fff !important; }
+.sitem .tg, .shophero .hk, .sitem .bonus, .tag { border-radius: 4px !important; box-shadow: none !important; background: #181b3a !important; color: #ffe08a !important; }
+.shophero .off { border-radius: 10px !important; background: #ff3a4a !important; color: #fff !important; border: 3px solid #181b3a !important; box-shadow: none !important; }
+/* 아래 탭 */
+nav.tabs { background: #1c1f44 !important; border-top: 4px solid #181b3a !important; box-shadow: inset 0 4px 0 #343a78 !important; }
+nav.tabs .tab { background: none !important; box-shadow: none !important; border-radius: 0 !important; }
+nav.tabs .tab.on { background: #5648a4 !important; border: 4px solid #181b3a !important; border-bottom: 0 !important; border-radius: 12px 12px 0 0 !important; box-shadow: inset 0 4px 0 #8274d4 !important; }
+/* 홈 수정: 번지는 빛 없이 */
+.halo, .puff { display: none !important; }
+/* 진행 막대 */
+.bar { border-radius: 4px !important; box-shadow: none !important; }
+.bar i, .bar > span { border-radius: 2px !important; box-shadow: none !important; background-image: none !important; }
+/* 재화 숫자: 갈무리는 폭이 넓어 살짝 작게 */
+.cur b, .cur span:not(.plus) { font-size: 13px !important; }
+.cur { padding-right: 6px !important; }
+/* 결과 창 */
+.resbox { background: #2b2f63 !important; border: 4px solid #181b3a !important; border-radius: 12px !important; box-shadow: inset 0 4px 0 #474d92 !important; }
+.ribbon { border: 4px solid #181b3a !important; border-radius: 8px !important; background: #8a5ae0 !important; box-shadow: inset 0 4px 0 #c0a0ff, inset 0 -6px 0 #5f36b0 !important; }
+.ribbon::before, .ribbon::after { display: none !important; }
+.rstat > div, .rew, .qprog { background: #171a3c !important; border: 3px solid #323880 !important; border-radius: 10px !important; box-shadow: none !important; }
+.resbg::after { content: ''; position: absolute; inset: 0; background: rgba(24, 27, 58, .72); }
+
+/* 결과 배경 = 판 바탕 픽셀 그림을 어둡게 */
+.resbg { background-size: cover !important; background-position: center top !important; filter: brightness(.45) !important; }

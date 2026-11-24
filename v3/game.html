@@ -9,16 +9,17 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
 <meta name="theme-color" content="#1b1838">
 <title>마블 디펜스 3</title>
-<link rel="stylesheet" href="css/font.css?v=202611231548">
-<link rel="stylesheet" href="css/style.css?v=202611231548">
-<link rel="stylesheet" href="css/v54.css?v=202611231548">
-<link rel="stylesheet" href="css/v56.css?v=202611231548">
-<link rel="stylesheet" href="css/v57.css?v=202611231548">
-<link rel="stylesheet" href="css/v58.css?v=202611231548">
-<link rel="stylesheet" href="css/v59.css?v=202611231548">
-<link rel="stylesheet" href="v3/lab.css?v=202611231548">
-<link rel="stylesheet" href="v3/game.css?v=202611231548">
-<link rel="stylesheet" href="v3/game3.css?v=202611231548">
+<link rel="stylesheet" href="css/font.css?v=202611241139">
+<link rel="stylesheet" href="css/style.css?v=202611241139">
+<link rel="stylesheet" href="css/v54.css?v=202611241139">
+<link rel="stylesheet" href="css/v56.css?v=202611241139">
+<link rel="stylesheet" href="css/v57.css?v=202611241139">
+<link rel="stylesheet" href="css/v58.css?v=202611241139">
+<link rel="stylesheet" href="css/v59.css?v=202611241139">
+<link rel="stylesheet" href="v3/lab.css?v=202611241139">
+<link rel="stylesheet" href="v3/game.css?v=202611241139">
+<link rel="stylesheet" href="v3/game3.css?v=202611241139">
+  <link rel="stylesheet" href="v3/tone_game.css?v=202611241139">
 </head>
 <body class="v3">
 <div id="wrap">
@@ -42,7 +43,7 @@
     <div id="comboBox" class="hudbox" hidden><div class="hd">연속 출동</div><div id="comboN">×0</div><div id="comboPct">+0%</div><div id="stackTxt" hidden></div></div>
 
     <button id="p2Btn" hidden><span class="p2tag">2P</span><span class="dice2"><span class="die" id="p2A"></span><span class="die" id="p2B"></span></span><b id="p2Cost">20</b><i id="p2Gold">금화 0</i></button>
-    <button id="truckBtn" class="roundbtn" aria-label="현금 수송차"><img src="v3/img/obj/cart.png" alt="" onerror="this.src='assets/img/x_truck.png'"><div class="cd" id="truckCd"></div><span class="tag">수송차</span></button>
+    <button id="truckBtn" class="roundbtn" aria-label="보물 수레"><img src="v3/img/px/obj/cart.png" alt="" onerror="this.src='assets/img/x_truck.png'"><div class="cd" id="truckCd"></div><span class="tag">보물 수레</span></button>
 
     <div id="offerCard" hidden>
       <div class="oc-imgs"><img id="ocFrom" alt=""><span class="arr">▶</span><img id="ocTo" alt=""></div>
@@ -84,34 +85,34 @@
     <div id="loading"><div class="ld">불러오는 중…</div></div>
   </div>
 </div>
-<script src="v3/js/manifest3.js?v=202611231548"></script>
-<script src="js/data.js?v=202611231548"></script>
-<script src="v3/js/geom3.js?v=202611231548"></script>
-<script src="js/meta.js?v=202611231548"></script>
-<script src="v3/js/v2_data.js?v=202611231548"></script>
-<script src="v3/js/v3_data.js?v=202611231548"></script>
-<script src="js/behave.js?v=202611231548"></script>
-<script src="js/coop.js?v=202611231548"></script>
-<script src="js/sim.js?v=202611231548"></script>
-<script src="v3/js/lab_cfg.js?v=202611231548"></script>
-<script src="v3/js/lab_core.js?v=202611231548"></script>
-<script src="v3/js/lab_geo.js?v=202611231548"></script>
-<script src="v3/js/lab_slide.js?v=202611231548"></script>
+<script src="v3/js/manifest3.js?v=202611241139"></script>
+<script src="js/data.js?v=202611241139"></script>
+<script src="v3/js/geom3.js?v=202611241139"></script>
+<script src="js/meta.js?v=202611241139"></script>
+<script src="v3/js/v2_data.js?v=202611241139"></script>
+<script src="v3/js/v3_data.js?v=202611241139"></script>
+<script src="js/behave.js?v=202611241139"></script>
+<script src="js/coop.js?v=202611241139"></script>
+<script src="js/sim.js?v=202611241139"></script>
+<script src="v3/js/lab_cfg.js?v=202611241139"></script>
+<script src="v3/js/lab_core.js?v=202611241139"></script>
+<script src="v3/js/lab_geo.js?v=202611241139"></script>
+<script src="v3/js/lab_slide.js?v=202611241139"></script>
 <script>LAB_CORE(SIM, DATA, GEOM, LAB); LAB_SLIDE(SIM, DATA, GEOM, LAB, LAB_GEO);</script>
-<script src="v3/js/grade3.js?v=202611231548"></script>
+<script src="v3/js/grade3.js?v=202611241139"></script>
 <script>GRADE3.install(SIM, DATA);</script>
-<script src="v3/js/lab_botlogic.js?v=202611231548"></script>
-<script src="js/audio.js?v=202611231548"></script>
-<script src="js/haptic.js?v=202611231548"></script>
-<script src="js/net.js?v=202611231548"></script>
-<script src="v3/js/view3.js?v=202611231548"></script>
-<script src="v3/js/fxsheets.js?v=202611231548"></script>
-<script src="v3/js/fx3.js?v=202611231548"></script>
-<script src="js/ui.js?v=202611231548"></script>
-<script src="v3/js/lab_app.js?v=202611231548"></script>
-<script src="v3/js/lab_ui.js?v=202611231548"></script>
-<script src="v3/js/ui3.js?v=202611231548"></script>
-<script src="v3/js/tut3.js?v=202611231548"></script>
-<script src="js/main.js?v=202611231548"></script>
+<script src="v3/js/lab_botlogic.js?v=202611241139"></script>
+<script src="js/audio.js?v=202611241139"></script>
+<script src="js/haptic.js?v=202611241139"></script>
+<script src="js/net.js?v=202611241139"></script>
+<script src="v3/js/view3.js?v=202611241139"></script>
+<script src="v3/js/fxsheets.js?v=202611241139"></script>
+<script src="v3/js/fx3.js?v=202611241139"></script>
+<script src="js/ui.js?v=202611241139"></script>
+<script src="v3/js/lab_app.js?v=202611241139"></script>
+<script src="v3/js/lab_ui.js?v=202611241139"></script>
+<script src="v3/js/ui3.js?v=202611241139"></script>
+<script src="v3/js/tut3.js?v=202611241139"></script>
+<script src="js/main.js?v=202611241139"></script>
 </body>
 </html>

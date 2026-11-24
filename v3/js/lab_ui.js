@@ -93,6 +93,7 @@
     baseOnEvent.call(this, e);
     if (e.ev === 'full') { this.toast('빈 자리가 없어요', '끌어서 합치세요', '같은 캐릭터 + 같은 레벨', true, 1.4); root.SFX.error(); }
     if (e.ev === 'labWave' && C.sides === 'waves' && !C.oneWay && !e.boss && e.tag !== 'even') this.toast(e.round + ' 웨이브', e.tag === 'left' ? '◀ 왼쪽으로 많이 와요' : '오른쪽으로 많이 와요 ▶', MAP === 'dial' ? '센 포탑을 그쪽으로 돌려 대세요' : '그쪽 가장자리로 밀어 두세요', false, 1.8);
+    if (e.ev === 'bossWait') this.toast('보스가 다가와요', '남은 몬스터를 모두 잡으면 나타나요', '', false, 2.2);   // [v3.10]
     if (e.ev === 'cryHit' && root.HAPTIC && root.HAPTIC.buzz) try { root.HAPTIC.buzz(e.boss ? 140 : 40); } catch (er) { /* 없음 */ }
   };
 
