@@ -62,6 +62,7 @@
       const tt = Math.min(...bs.map(b => Math.max(0, ((C.oneWay ? 24 : 12) - root.SIM.prog(b)) / Math.max(0.05, g.monSpeed(b) || 0.05))));
       $('timerTxt').textContent = `${Math.floor(tt / 60)}:${String(Math.floor(tt % 60)).padStart(2, '0')}`;
     }
+    if (g.bossWait != null && g.bossGap != null && timerTxt) timerTxt.textContent = '0:0' + Math.max(0, Math.ceil((C.bossPrep || 5) - (g.t - g.bossGap)));   // [v3.10b] 보스 준비 시간 세기
     if (MAP === 'slide') this.labWavePanel(g);
   };
   U.labWavePanel = function (g) {
@@ -94,6 +95,7 @@
     if (e.ev === 'full') { this.toast('빈 자리가 없어요', '끌어서 합치세요', '같은 캐릭터 + 같은 레벨', true, 1.4); root.SFX.error(); }
     if (e.ev === 'labWave' && C.sides === 'waves' && !C.oneWay && !e.boss && e.tag !== 'even') this.toast(e.round + ' 웨이브', e.tag === 'left' ? '◀ 왼쪽으로 많이 와요' : '오른쪽으로 많이 와요 ▶', MAP === 'dial' ? '센 포탑을 그쪽으로 돌려 대세요' : '그쪽 가장자리로 밀어 두세요', false, 1.8);
     if (e.ev === 'bossWait') this.toast('보스가 다가와요', '남은 몬스터를 모두 잡으면 나타나요', '', false, 2.2);   // [v3.10]
+    if (e.ev === 'bossPrep') this.toast('보스 등장까지 ' + e.sec + '초', '배치 · 합치기를 정리하세요', '', false, 2.6);   // [v3.10b]
     if (e.ev === 'cryHit' && root.HAPTIC && root.HAPTIC.buzz) try { root.HAPTIC.buzz(e.boss ? 140 : 40); } catch (er) { /* 없음 */ }
   };
 

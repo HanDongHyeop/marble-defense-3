@@ -70,11 +70,11 @@
       monSpeed(m) { return super.monSpeed(m) * C.spd * (G.speedK || 1); }   // [v3.9] speedK = 길 길이가 달라도 걷는 px 속도는 같게
 
       // -------------------------------------------------------- 보스 1마리 = 왼쪽 · 2마리 = 양쪽
-      // [v3.10] 보스는 판에 일반 몹이 하나도 없을 때만 나온다 — 남아 있으면 기다렸다가(bossWait) 다 없어지고 1.5초 뒤 등장(사용자: '일반 몹과 보스 등장 사이에 간격이 없다')
+      // [v3.10] 보스는 판에 일반 몹이 하나도 없을 때만 나온다 — 남아 있으면 기다렸다가(bossWait) 다 없어지고 준비 시간 뒤 등장(사용자: '일반 몹과 보스 등장 사이에 간격이 없다')
       spawnBoss() {
-        if (this.monsters.some(m => m.alive && m.kind !== 'truck' && !m.boss)) { this.bossWait = this.t; this.bossGap = null; this.emit('bossWait', {}); return; }
-        this.bossWait = null; this.bossGap = null;
-        this.spawnBossNow();
+        // [v3.10b] 남은 몹이 없어도 항상 '준비 시간'(C.bossPrep, 기본 5초)을 준 뒤 등장 — 사용자 승인: 보스 앞 준비 시간 · 보스 소개
+        const left = this.monsters.some(m => m.alive && m.kind !== 'truck' && !m.boss);
+        this.bossWait = this.t; this.bossGap = null; if (left) this.emit('bossWait', {});
       }
       waveClear() { return this.bossWait != null ? false : super.waveClear(); }
       spawnBossNow() {
@@ -173,7 +173,7 @@
         if (this.round === 0) { if (this.t >= this.startAt) this.startRound(); }
         else if (this.bossWait != null) {   // 보스 대기: 라운드 시계를 멈추고 일반 몹이 다 없어지길 기다림
           if (this.monsters.some(m => m.alive && m.kind !== 'truck' && !m.boss)) this.bossGap = null;
-          else { if (this.bossGap == null) this.bossGap = this.t; if (this.t - this.bossGap >= 1.5) { this.bossWait = null; this.bossGap = null; this.roundT = 0; this.spawnBossNow(); } }
+          else { if (this.bossGap == null) { this.bossGap = this.t; this.emit('bossPrep', { sec: C.bossPrep || 5 }); } if (this.t - this.bossGap >= (C.bossPrep || 5)) { this.bossWait = null; this.bossGap = null; this.roundT = 0; this.spawnBossNow(); } }
         }
         else {
           this.roundT += dt;
