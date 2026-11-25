@@ -14,12 +14,14 @@
   const MERGE_MAX = 3, LEGEND_T = 5, MYTH_T = 6, LEGEND_CAP = 3, MYTH_CAP = 1;
   // 조절 값(봇으로 맞춤 · Node에서 G3='{"legendFrom":5}'로 바꿔 시험): 전설 조합은 legendFrom 라운드부터 · 신화 각성 게이지 = 전설이 처치한 수
   // [v3.6 실험] heroMerge = 영웅(Lv.3)끼리 부딪혔을 때: null = 안 합쳐짐(지금) / 'upg' = 뒤 영웅이 흡수되고 앞 영웅 계열 강화 +absorbLv / 'star' = 앞 영웅에 별 +1(그 한 명만 피해 +starMul)
-  const C3 = { legendFrom: 6, mythKills: 150, upgHit: 0.6, heroMerge: null, absorbLv: 1, absorbCap: 30, starMul: 0.5, sameType: false, randType: true, drag: true, allRange: false, move: false, shotSpd: 1.9, shotMin: 700 };
+  const C3 = { legendFrom: 6, mythKills: 150, upgHit: 0.6, heroMerge: null, absorbLv: 1, absorbCap: 30, starMul: 0.5, sameType: false, randType: false, anyType: true, frzPlus: 0.5, drag: true, allRange: false, move: false, shotSpd: 1.9, shotMin: 700 };
   // [v3.9 · 2026-11-23 사용자] 반경 복구 — 캐릭터(계열 × 등급)마다 다름. 값 = 원 반지름(100px = 초원 판 1칸). 가장 작은 반경 2.0 = 제 칸 + 바깥 1.5칸.
   //   단거리(등급이 올라도 거의 안 커짐 · 대신 피해가 큼): 용(fire · 숨결) · 기사(light · 칼). 나머지는 등급이 오르면 대체로 커지되 계열마다 계단이 다름
   const RANGE = { fire: [2.0, 2.0, 2.2, 2.2, 2.5], light: [2.0, 2.0, 2.3, 2.5, 2.7], corrode: [2.2, 2.2, 2.6, 3.0, 3.4], bolt: [2.3, 2.5, 2.8, 3.2, 3.7], gatling: [2.4, 2.6, 2.9, 3.3, 3.8], ice: [2.5, 2.5, 3.0, 3.4, 4.0], combo: [2.8, 3.0, 3.3, 3.8, 4.5] };
   const POWER = { fire: 1.3, light: 1.12 };   // 단거리 계열의 피해 배율
   const SHOT_T = [0, 1, 1.1, 1.25, 1.25, 1.45, 1.7];   // 등급별 탄 속도 배율(1등급도 빠르게 · shotSpd가 전체 배율)
+  // [v3.10 · 2026-11-25 사용자] anyType = 같은 등급이면 계열이 달라도 합쳐짐 · 끌어 놓은 쪽이 사라지고 가만히 있던 쪽이 제 계열 그대로 한 등급 오름(randType 끔 — 결과 계열 무작위 없음). 흔적 넘겨주기는 다음 단계
+  // [v3.10] frzPlus = 서리 얼음 5칸이 차서 얼 때 얼림 시간 +0.5초(1 → 1.5초 · 보스 제외)
   // [v3.8] allRange = 사거리 없음(판 어디서든 모든 몬스터에 닿음 — 랜덤다이스처럼 자리가 뜻이 없음) · move = 빈 칸으로 끌어 자리 옮기기(allRange면 필요 없어 끔)
   // [v3.7] drag = 끌어서(또는 탭-탭) 합치기: 같은 종류 + 같은 등급이면 판 어디서든 합쳐지고 신화까지 올라감(밀기 · 전설 조합 · 신화 각성 · 개수 제한 없음). randType = 합친 결과의 계열이 무작위(랜덤다이스)   // [v3.7 실험] sameType = 같은 종류 + 같은 레벨만 합쳐짐(랜덤다이스) / randType = 합친 결과의 종류가 무작위
   if (isNode && process.env.G3) Object.assign(C3, JSON.parse(process.env.G3));
@@ -99,7 +101,11 @@
         if (!this.dragMode) return super.canMerge(a, b);
         if (a === b) return false;
         const A = this.tiles[a] && this.tiles[a].tower, B2 = this.tiles[b] && this.tiles[b].tower;
-        return !!(A && B2 && A.type === B2.type && A.tier === B2.tier && A.tier < MYTH_T && !this.tiles[a].occ && !this.tiles[b].occ);
+        return !!(A && B2 && (C3.anyType || A.type === B2.type) && A.tier === B2.tier && A.tier < MYTH_T && !this.tiles[a].occ && !this.tiles[b].occ);
+      }
+      emit(ev, o) {
+        if (ev === 'frozen' && C3.frzPlus && o && o.id != null) { const m = this.monsters.find(q => q.id === o.id); if (m && !m.boss && Math.abs((m.frozenUntil || 0) - this.t - 1) < 0.01) m.frozenUntil += C3.frzPlus; }
+        return super.emit(ev, o);
       }
       dragMerge(a, b) {
         if (this.over || !this.canMerge(a, b)) return false;

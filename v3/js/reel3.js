@@ -1,7 +1,7 @@
 // 마블 디펜스 3 — 미니 릴 소환(2026-11-25 사용자 스펙)
 //   소환 단추 오른쪽 위 [릴] 단추를 켜고 소환을 누르면 → 단추 안 3칸 릴이 돌고 멈춘 모양대로 결과.
 //   · 다 다름 40% = 꽝(소환 안 됨 · 금화는 씀) · 2개 같음 40% = 그 계열 일반 · 3개 같음 20% = 그 계열 영웅(3단계)
-//   · 값 = 지금 소환 값 × 1.3 · 한 번 쓰면 20초(판 시간) 뒤 다시 쓸 수 있음 · 쓰면 저절로 꺼짐
+//   · 비용 = 지금 일반 소환 비용 × 1.2(꽝이어도 소환 비용 사다리 +2) · 한 번 쓰면 20초(판 시간) 뒤 다시 쓸 수 있음 · 쓰면 저절로 꺼짐
 //   · 금화가 모자라면 켜지지 않음(켜 둔 뒤 모자라지면 저절로 꺼짐) · 다시 쓸 수 있게 되면 [릴]이 톡 튀어 알림
 //   · 첫 보스를 잡기 전에는 자물쇠로 잠김(누르면 '보스 1을 잡으세요'가 [미니릴] 위에 잠깐) · [미니릴] = 작은 슬롯머신(7 7 7 · 레버) · 기다리는 동안 밝은 몸통 위로 어둠이 걷히고 가운데 남은 초
 //   · [v3.10] AUTO(자동 소환) 단추는 없앰
@@ -13,7 +13,7 @@
   const q = new URLSearchParams(location.search);
   const R = {
     CD: +q.get('reelcd') || 20,                                   // 다시 쓰기(판 시간 초)
-    MUL: 1.3,                                                     // 값 배율
+    MUL: 1.2,                                                     // 비용 배율(일반 소환 비용 × 1.2 · 일반 비용이 오르면 같이 오름)
     P: (q.get('reelp') || '0.4,0.4,0.2').split(',').map(Number),  // 꽝 · 2개 · 3개
     STOP: [0.5, 0.78, 1.06],                                      // 칸마다 멈추는 때(실제 초) — 앞 두 칸이 같으면 셋째 칸은 더 늦게(두근)
     TEASE: 0.45,
@@ -151,6 +151,7 @@
     const wins = [...document.querySelectorAll('#reelFace .win')], fx = $('reelFx');
     const done = ms => setTimeout(() => { st.spin = false; wins.forEach(w => { w.className = 'win'; }); paint(ui, true); }, ms);
     if (st.g !== g || g.over) { st.spin = false; return; }
+    g.rollCost += (root.DATA.ECON && root.DATA.ECON.rollStep) || 2; g.rolls++; g.stats.rolls++; g.lastRollT = g.t;   // 꽝이어도 소환 비용은 오름
     if (res.kind === 0) {   // 꽝: 펑
       wins.forEach(w => w.classList.add('miss'));
       fx.innerHTML = '<div class="puff">' + Array.from({ length: 8 }, (_, i) => `<i style="--a:${i * 45}deg;--d:${i % 2 ? 46 : 62}px"></i>`).join('') + '<b>꽝!</b></div>';
@@ -160,8 +161,6 @@
     const e = empties(g); if (!e.length) { done(300); return; }   // (도는 동안 다른 소환이 막혀 있어 생기지 않음 — 혹시 모를 오류 방지만)
     const tier = res.kind === 3 ? 3 : 1;
     const t = g.pickOne(e);
-    g.rollCost += (root.DATA.ECON && root.DATA.ECON.rollStep) || 2;
-    g.rolls++; g.stats.rolls++; g.lastRollT = g.t;
     g.build(t.i, res.type, tier); g.emit('summon', { i: t.i });
     if (res.kind === 2) {
       wins.forEach((w, n) => { if (res.sym[n] === res.type) w.classList.add('hit2'); else w.classList.add('dim'); });

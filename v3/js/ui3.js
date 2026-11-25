@@ -133,7 +133,7 @@
       }).join('');
       const gb = kind => { const I = g.gambleInfo(kind), nm = kind === 'hero' ? '영웅 뽑기' : '희귀 뽑기', cost = kind === 'hero' ? '신화석 1' : '금화 50';
         return '<button class="gb ' + kind + (I.ok ? ' go' : '') + '" data-v3="gamble" data-k="' + kind + '" ' + (I.ok ? '' : 'disabled') + '><b>' + nm + '</b><span>성공 ' + Math.round(I.p * 100) + '%</span><em>' + cost + '</em></button>'; };
-      if (DM) html = '<div class="v3mix"><div class="gbrow">' + gb('rare') + gb('hero') + '</div><div class="lsep">전설 · 신화는 같은 캐릭터끼리 합쳐서 만들어요</div></div>';
+      if (DM) html = '<div class="v3mix"><div class="gbrow">' + gb('rare') + gb('hero') + '</div><div class="lsep">전설 · 신화는 같은 등급끼리 합쳐서 만들어요</div></div>';
       else html = '<div class="v3mix">' + rows + (legs ? '<div class="lsep">판 위 전설</div>' + legs : '') + '<div class="lsep">행운 뽑기 — 성공하면 빈 칸에 그 등급 아군(계열 무작위)</div><div class="gbrow">' + gb('rare') + gb('hero') + '</div></div>';
     }
     if (html !== this._sheetSig) { this._sheetSig = html; $('v3SheetB').innerHTML = html; }

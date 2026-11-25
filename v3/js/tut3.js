@@ -24,7 +24,7 @@
     return [
       { t: '아군 소환', x: '<b>[소환]</b>을 눌러 아군을 불러 보세요.<br>두 번 눌러 볼까요?', hole: () => rectOf('#rollBtn'), hand: 'tap',
         enter() { g().gold = Math.max(g().gold, 300); this.r0 = g().stats.rolls; }, done() { return g().stats.rolls >= this.r0 + 2; } },
-      { t: '끌어서 합치기', x: '같은 캐릭터를 <b>끌어서 겹쳐</b> 보세요.<br>같은 캐릭터 · 같은 레벨이면 합쳐져 <b>레벨이 올라요</b>.<br>어떤 계열이 나올지는 운!', hole: boardRect, hand: 'swipe',
+      { t: '끌어서 합치기', x: '하나를 <b>끌어서 다른 하나에 겹쳐</b> 보세요.<br>같은 등급이면 합쳐져 <b>등급이 올라요</b>.<br>가만히 있던 쪽이 남아요!', hole: boardRect, hand: 'swipe',
         enter() { this.place(); this.m0 = g().stats.merges; },
         place() { const G0 = g(); for (const t of G0.tiles) if (!t.blocked) t.tower = null; G0.build(12, 'fire', 1); G0.build(14, 'fire', 1); },
         tick() { const G0 = g(); if (G0.stats.merges > this.m0) return; if (G0.towersList().length !== 2) this.place(); },
@@ -35,7 +35,7 @@
         enter() { ui.hideInfo(); g().gold = Math.max(g().gold, 300); }, done() { return !$('upSheet').hidden; } },
       { t: '강화', x: '계열 카드를 눌러 <b>강화</b>해 보세요.<br>판 위 그 계열이 모두 강해져요.', hole: () => rectOf('#upSheet'), hand: 'tap', bubble: 'top',
         enter() { this.u0 = Object.values(g().upg).reduce((a, b) => a + b, 0); g().gold = Math.max(g().gold, 300); }, done() { return Object.values(g().upg).reduce((a, b) => a + b, 0) > this.u0; }, leave() { if (ui.upOpen) ui.upOpen(false); } },
-      { t: '전설과 신화', x: '같은 캐릭터끼리 계속 합치면<br>일반 → 희귀 → 영웅 → <b>전설</b> → <b>신화</b>까지 올라가요.<br><b>[뽑기]</b>에서는 금화 · 신화석으로 행운 뽑기를 해요.<br>신화석은 보스와 <b>[미션]</b>에서 얻어요.', hole: () => { const a = rectOf('#misBtn'), b = rectOf('#mixBtn'); return { x: a.x, y: a.y, w: b.x + b.w - a.x, h: a.h }; }, next: '알겠어요', block: true },
+      { t: '전설과 신화', x: '같은 등급끼리 계속 합치면<br>일반 → 희귀 → 영웅 → <b>전설</b> → <b>신화</b>까지 올라가요.<br><b>[뽑기]</b>에서는 금화 · 신화석으로 행운 뽑기를 해요.<br>신화석은 보스와 <b>[미션]</b>에서 얻어요.', hole: () => { const a = rectOf('#misBtn'), b = rectOf('#mixBtn'); return { x: a.x, y: a.y, w: b.x + b.w - a.x, h: a.h }; }, next: '알겠어요', block: true },
       { t: '수정을 지켜라', x: '몬스터가 <b>왼쪽 위 굴</b>에서 나와 판을 한 바퀴 돌아<br><b>위쪽 수정</b>으로 가요. 닿으면 수정이 깎이고, 0이 되면 끝!', hole: () => { const p = R().cryPos(); return { x: p[0] - 70, y: p[1] - 110, w: 140, h: 150 }; }, next: '시작!', block: true },
     ];
   }
