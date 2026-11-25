@@ -1,34 +1,50 @@
 /* 마블 디펜스 3 — 미니 릴 소환(v3/js/reel3.js). 픽셀 톤: 남색 실선 4px · 평면 색 · 안쪽 띠 그림자 */
 :root { --rl-navy: #181b3a; --rl-gold: #ffc21e; --rl-gold2: #ff9d0a; --rl-purple: #7a5cff; --rl-purple2: #5a3fd6; --rl-cream: #fff6d8; }
 
-/* ---------- [릴] 단추(소환 단추 오른쪽 위 · AUTO와 짝) ---------- */
-#reelBtn { position: absolute; z-index: 4; right: 8px; top: 7px; height: 40px; min-width: 112px; padding: 0 10px 0 8px; box-sizing: border-box; display: flex; align-items: center; gap: 5px; border-radius: 6px; background: var(--rl-navy); color: #8a8fb8; overflow: visible; cursor: pointer; }
-#reelBtn::after { content: ''; position: absolute; inset: -16px -14px -14px -16px; }   /* 손가락 여유 */
-#reelBtn .ri { display: flex; gap: 2px; }
-#reelBtn .ri i { width: 11px; height: 18px; border-radius: 2px; background: #3a3f70; }
-#reelBtn .lb { font-family: Gal, Jua, sans-serif; font-size: 20px; line-height: 1; letter-spacing: .5px; }
-#reelBtn .sec { font-style: normal; font-family: Gal, Jua, sans-serif; font-size: 18px; color: #b9bde0; }
-#reelBtn .sec:empty { display: none; }
-#reelBtn .cdw { position: absolute; inset: 0; border-radius: 6px; pointer-events: none; background: conic-gradient(rgba(10,12,30,.72) var(--p, 0%), transparent 0); }
-#reelBtn .spark { position: absolute; inset: -6px; border-radius: 10px; pointer-events: none; opacity: 0; }
-/* 쓸 수 있음(꺼진 상태): 금색 테가 숨 쉬듯 · 릴 칸이 번갈아 반짝 */
-#reelBtn.ready { color: var(--rl-gold); box-shadow: 0 0 0 2px var(--rl-gold); animation: rlBreath 1.3s ease-in-out infinite; }
-#reelBtn.ready .ri i { background: var(--rl-gold); animation: rlBlink 0.9s steps(1) infinite; }
+/* ---------- [미니릴] 단추 = 작은 슬롯머신(소환 단추 오른쪽 위) ----------
+   빨간 몸통 + 크림 창 3칸(7 7 7) + 오른쪽 레버 + 아래 이름표. 기다리는 동안은 밝은 몸통 위로 어둠이 시계 방향으로 걷히고 가운데에 남은 초 */
+#reelBtn { position: absolute; z-index: 4; right: 10px; top: 6px; display: flex; align-items: flex-start; gap: 0; cursor: pointer; overflow: visible; }
+#reelBtn::after { content: ''; position: absolute; inset: -12px -12px -18px -14px; }   /* 손가락 여유 */
+#reelBtn .mc { position: relative; width: 98px; height: 46px; box-sizing: border-box; border: 3px solid var(--rl-navy); border-radius: 9px; background: #e8463c; box-shadow: inset 0 6px 0 #ffc21e, inset 0 -5px 0 #ad2a25; display: flex; align-items: center; justify-content: center; padding-top: 5px; overflow: hidden; }
+#reelBtn .ri { display: flex; gap: 3px; }
+#reelBtn .ri i { -webkit-text-stroke: 0 !important; text-shadow: none; width: 24px; height: 27px; box-sizing: border-box; border: 2px solid var(--rl-navy); border-radius: 4px; background: var(--rl-cream); color: #e8463c; font-style: normal; font-family: Gal, Jua, sans-serif; font-size: 22px; line-height: 23px; text-align: center; }
+#reelBtn .lever { position: relative; width: 14px; height: 46px; }
+#reelBtn .lever::before { content: ''; position: absolute; left: 1px; top: 16px; width: 7px; height: 16px; border: 2px solid var(--rl-navy); border-left: 0; border-radius: 0 4px 4px 0; background: #9aa0c8; }
+#reelBtn .lever i { position: absolute; left: 6px; top: -2px; width: 4px; height: 24px; background: #c9cde6; border: 2px solid var(--rl-navy); transform-origin: 50% 100%; transition: transform .18s; }
+#reelBtn .lever i::before { content: ''; position: absolute; left: -7px; top: -12px; width: 14px; height: 14px; border-radius: 50%; background: #e8463c; border: 2px solid var(--rl-navy); box-shadow: inset -2px -2px 0 #ad2a25; }
+#reelBtn .lb { position: absolute; left: 49px; bottom: -13px; transform: translateX(-50%); padding: 1px 8px; border-radius: 6px; background: var(--rl-navy); color: var(--rl-gold); font-family: Gal, Jua, sans-serif; font-size: 15px; line-height: 18px; white-space: nowrap; -webkit-text-stroke: 0 !important; text-shadow: none; }
+#reelBtn .cdw { position: absolute; inset: 0; z-index: 2; pointer-events: none; background: conic-gradient(rgba(10,10,28,.8) var(--p, 0%), transparent 0); }
+#reelBtn .sec { position: absolute; inset: 0; z-index: 3; display: none; place-items: center; padding-top: 4px; font-style: normal; font-family: Gal, Jua, sans-serif; font-size: 26px; color: #fff; text-shadow: 2px 0 0 var(--rl-navy), -2px 0 0 var(--rl-navy), 0 2px 0 var(--rl-navy), 0 -2px 0 var(--rl-navy); pointer-events: none; }
+#reelBtn .spark { position: absolute; left: -4px; top: -4px; width: 106px; height: 54px; border-radius: 12px; pointer-events: none; opacity: 0; }
+#reelBtn .lock { display: none; position: absolute; z-index: 3; left: 50%; top: 50%; width: 22px; height: 27px; margin: -12px 0 0 -11px; background: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 18 22'><path d='M4 10V7a5 5 0 0 1 10 0v3' fill='none' stroke='%23ffffff' stroke-width='3'/><rect x='1.5' y='9.5' width='15' height='11' rx='2' fill='%23ffffff' stroke='%23181b3a' stroke-width='1.5'/><rect x='8' y='13' width='2' height='4' fill='%23181b3a'/></svg>") center / contain no-repeat; filter: drop-shadow(0 2px 0 #181b3a); }
+/* 쓸 수 있음: 7이 차례로 금빛 반짝 + 몸통 둘레 금빛 숨쉬기 */
+#reelBtn.ready .mc { animation: rlBreath 1.3s ease-in-out infinite; }
+#reelBtn.ready .ri i { animation: rlBlink 0.9s steps(1) infinite; }
 #reelBtn.ready .ri i:nth-child(2) { animation-delay: .3s; } #reelBtn.ready .ri i:nth-child(3) { animation-delay: .6s; }
-/* 켜짐 */
-#reelBtn.on { background: var(--rl-gold); color: var(--rl-navy); box-shadow: 0 0 0 2px var(--rl-navy), 0 0 14px 2px rgba(255,194,30,.75); }
-#reelBtn.on .ri i { background: var(--rl-navy); }
-/* 기다리는 중(시계 바늘처럼 어둠이 걷힘) · 금화 부족 */
-#reelBtn.cd { color: #6c7099; box-shadow: 0 0 0 2px #3a3f70; }
-#reelBtn.cd .sec { color: #fff; font-size: 20px; }
-#reelBtn.poor { color: #6c7099; }
-#reelBtn.poor .lb::before { content: ''; display: inline-block; width: 11px; height: 11px; margin-right: 3px; vertical-align: -1px; border-radius: 50%; background: #5a5e86; box-shadow: inset 0 0 0 2px #3a3f70; }
-/* 다시 쓸 수 있게 된 순간: 톡 튀어 오름 + 빛 고리 */
-#reelBtn.wake { animation: rlWake .7s cubic-bezier(.2,1.6,.4,1) 1, rlBreath 1.3s ease-in-out .7s infinite; }
+/* 켜짐: 레버가 당겨짐 · 창이 금색 · 이름표 금색 */
+#reelBtn.on .mc { box-shadow: inset 0 6px 0 #ffc21e, inset 0 -5px 0 #ad2a25, 0 0 14px 3px rgba(255,194,30,.85); }
+#reelBtn.on .ri i { background: #ffe066; }
+#reelBtn.on .lever i { transform: rotate(160deg) translateY(-2px); }
+#reelBtn.on .lb { background: var(--rl-gold); color: var(--rl-navy); }
+/* 기다리는 중: 밝은 몸통 위로 어둠이 걷힘 + 남은 초 */
+#reelBtn.cd .sec { display: grid; }
+#reelBtn.cd .sec::before { content: ''; position: absolute; left: 50%; top: 50%; width: 36px; height: 30px; margin: -13px 0 0 -18px; border-radius: 8px; background: var(--rl-navy); z-index: -1; }
+#reelBtn .sec { isolation: isolate; }
+#reelBtn.cd .lb { color: #c9cde6; }
+/* 금화 부족 */
+#reelBtn.poor .mc { filter: saturate(.25) brightness(.75); }
+#reelBtn.poor .lb { color: #8a8fb8; }
+/* 잠김(첫 보스 전): 회색 슬롯 + 자물쇠 */
+#reelBtn.locked .mc { filter: grayscale(1) brightness(.55); }
+#reelBtn.locked .lock { display: block; }
+#reelBtn.locked .lever { filter: grayscale(1) brightness(.6); }
+#reelBtn.locked .lb { color: #8a8fb8; }
+/* 다시 쓸 수 있게 된 순간 · 열리는 순간: 톡 튀어 오름 + 빛 고리 */
+#reelBtn.wake { animation: rlWake .7s cubic-bezier(.2,1.6,.4,1) 1; }
 #reelBtn.wake .spark { animation: rlRing .7s ease-out 1; }
 #reelBtn.shake { animation: rlShake .32s 1; }
-@keyframes rlBreath { 0%,100% { box-shadow: 0 0 0 2px var(--rl-gold), 0 0 0 0 rgba(255,194,30,0); } 50% { box-shadow: 0 0 0 2px var(--rl-gold), 0 0 12px 3px rgba(255,194,30,.55); } }
-@keyframes rlBlink { 0% { background: var(--rl-gold); } 50% { background: #fff3b0; } }
+@keyframes rlBreath { 0%,100% { box-shadow: inset 0 6px 0 #ffc21e, inset 0 -5px 0 #ad2a25, 0 0 0 0 rgba(255,194,30,0); } 50% { box-shadow: inset 0 6px 0 #ffc21e, inset 0 -5px 0 #ad2a25, 0 0 12px 4px rgba(255,214,60,.9); } }
+@keyframes rlBlink { 0% { background: var(--rl-cream); color: #e8463c; } 50% { background: #ffe066; color: #c0201a; } }
 @keyframes rlWake { 0% { transform: scale(1); } 35% { transform: scale(1.32) translateY(-4px); } 100% { transform: scale(1); } }
 @keyframes rlRing { 0% { opacity: 1; box-shadow: 0 0 0 0 rgba(255,230,120,.95); } 100% { opacity: 0; box-shadow: 0 0 0 16px rgba(255,230,120,0); } }
 @keyframes rlShake { 0%,100% { transform: translateX(0); } 25% { transform: translateX(-5px); } 75% { transform: translateX(5px); } }
@@ -96,3 +112,13 @@ body.v3 #rollBtn.reel-on:not(.reel-spin) #reelFace .win:nth-child(3) img { anima
 #stage .reelFlash { position: absolute; inset: 0; z-index: 40; pointer-events: none; background: radial-gradient(circle at 50% 85%, rgba(255,240,170,.85), rgba(255,255,255,0) 70%); animation: rlFlash .55s ease-out both; }
 @keyframes rlFlash { 0% { opacity: 0; } 15% { opacity: 1; } 100% { opacity: 0; } }
 body.v3 #rollBtn { overflow: visible; }
+
+/* ---------- AUTO 없앰(v3.10) ---------- */
+#autoBtn { display: none !important; }
+#reelBtn .tip { -webkit-text-stroke: 0 !important; text-shadow: none; position: absolute; z-index: 6; right: 0; bottom: calc(100% + 10px); padding: 4px 10px; border-radius: 6px; background: var(--rl-navy); color: #fff; font-family: Gal, Jua, sans-serif; font-size: 18px; white-space: nowrap; pointer-events: none; opacity: 0; }
+#reelBtn .tip::after { content: ''; position: absolute; right: 22px; top: 100%; border: 6px solid transparent; border-top-color: var(--rl-navy); }
+#reelBtn .tip.show { animation: rlTip .9s ease-out 1; }
+@keyframes rlTip { 0% { opacity: 0; transform: translateY(6px); } 15% { opacity: 1; transform: none; } 70% { opacity: 1; } 100% { opacity: 0; transform: translateY(-4px); } }
+/* 열리는 순간: 크게 튀며 빛 고리 */
+#reelBtn.unlock { animation: rlWake .8s cubic-bezier(.2,1.6,.4,1) 1; }
+#reelBtn.unlock .spark { animation: rlRing .8s ease-out 2; }
