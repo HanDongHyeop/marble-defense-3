@@ -7,14 +7,14 @@
 #reelBtn::after { content: ''; position: absolute; inset: -12px -12px -18px -14px; }   /* 손가락 여유 */
 #reelBtn .mc { position: relative; width: 98px; height: 46px; box-sizing: border-box; border: 3px solid var(--rl-navy); border-radius: 9px; background: #e8463c; box-shadow: inset 0 6px 0 #ffc21e, inset 0 -5px 0 #ad2a25; display: flex; align-items: center; justify-content: center; padding-top: 5px; overflow: hidden; }
 #reelBtn .ri { display: flex; gap: 3px; }
-#reelBtn .ri i { -webkit-text-stroke: 0 !important; text-shadow: none; width: 24px; height: 27px; box-sizing: border-box; border: 2px solid var(--rl-navy); border-radius: 4px; background: var(--rl-cream); color: #e8463c; font-style: normal; font-family: Gal, Jua, sans-serif; font-size: 22px; line-height: 23px; text-align: center; }
+#reelBtn .ri i { -webkit-text-stroke: 0 !important; text-shadow: none; width: 24px; height: 27px; box-sizing: border-box; border: 2px solid var(--rl-navy); border-radius: 4px; background: var(--rl-cream); color: #e8463c; font-style: normal; font-family: Disp, Jua, sans-serif; font-size: 22px; line-height: 23px; text-align: center; }
 #reelBtn .lever { position: relative; width: 14px; height: 46px; }
 #reelBtn .lever::before { content: ''; position: absolute; left: 1px; top: 16px; width: 7px; height: 16px; border: 2px solid var(--rl-navy); border-left: 0; border-radius: 0 4px 4px 0; background: #9aa0c8; }
 #reelBtn .lever i { position: absolute; left: 6px; top: -2px; width: 4px; height: 24px; background: #c9cde6; border: 2px solid var(--rl-navy); transform-origin: 50% 100%; transition: transform .18s; }
 #reelBtn .lever i::before { content: ''; position: absolute; left: -7px; top: -12px; width: 14px; height: 14px; border-radius: 50%; background: #e8463c; border: 2px solid var(--rl-navy); box-shadow: inset -2px -2px 0 #ad2a25; }
-#reelBtn .lb { position: absolute; left: 49px; bottom: -13px; transform: translateX(-50%); padding: 1px 8px; border-radius: 6px; background: var(--rl-navy); color: var(--rl-gold); font-family: Gal, Jua, sans-serif; font-size: 15px; line-height: 18px; white-space: nowrap; -webkit-text-stroke: 0 !important; text-shadow: none; }
+#reelBtn .lb { position: absolute; left: 49px; bottom: -13px; transform: translateX(-50%); padding: 1px 8px; border-radius: 6px; background: var(--rl-navy); color: var(--rl-gold); font-family: Disp, Jua, sans-serif; font-size: 15px; line-height: 18px; white-space: nowrap; -webkit-text-stroke: 0 !important; text-shadow: none; }
 #reelBtn .cdw { position: absolute; inset: 0; z-index: 2; pointer-events: none; background: conic-gradient(rgba(10,10,28,.8) var(--p, 0%), transparent 0); }
-#reelBtn .sec { position: absolute; inset: 0; z-index: 3; display: none; place-items: center; padding-top: 4px; font-style: normal; font-family: Gal, Jua, sans-serif; font-size: 26px; color: #fff; text-shadow: 2px 0 0 var(--rl-navy), -2px 0 0 var(--rl-navy), 0 2px 0 var(--rl-navy), 0 -2px 0 var(--rl-navy); pointer-events: none; }
+#reelBtn .sec { position: absolute; inset: 0; z-index: 3; display: none; place-items: center; padding-top: 4px; font-style: normal; font-family: Disp, Jua, sans-serif; font-size: 26px; color: #fff; text-shadow: 2px 0 0 var(--rl-navy), -2px 0 0 var(--rl-navy), 0 2px 0 var(--rl-navy), 0 -2px 0 var(--rl-navy); pointer-events: none; }
 #reelBtn .spark { position: absolute; left: -4px; top: -4px; width: 106px; height: 54px; border-radius: 12px; pointer-events: none; opacity: 0; }
 #reelBtn .lock { display: none; position: absolute; z-index: 3; left: 50%; top: 50%; width: 22px; height: 27px; margin: -12px 0 0 -11px; background: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 18 22'><path d='M4 10V7a5 5 0 0 1 10 0v3' fill='none' stroke='%23ffffff' stroke-width='3'/><rect x='1.5' y='9.5' width='15' height='11' rx='2' fill='%23ffffff' stroke='%23181b3a' stroke-width='1.5'/><rect x='8' y='13' width='2' height='4' fill='%23181b3a'/></svg>") center / contain no-repeat; filter: drop-shadow(0 2px 0 #181b3a); }
 /* 쓸 수 있음: 7이 차례로 금빛 반짝 + 몸통 둘레 금빛 숨쉬기 */
@@ -61,7 +61,7 @@ body.v3 #rollBtn.reel-on #reelFace { display: flex; flex-direction: column; alig
 #reelFace .wins { display: flex; gap: 8px; padding: 4px 8px; border-radius: 10px; background: var(--rl-navy); }
 #reelFace .win { width: 66px; height: 56px; border-radius: 6px; background: var(--rl-cream); box-shadow: inset 0 -5px 0 #e6d6a8; display: grid; place-items: center; overflow: hidden; position: relative; }
 #reelFace .win img { width: 48px; height: 48px; image-rendering: pixelated; object-fit: contain; }
-#reelFace .rcost { display: flex; align-items: center; gap: 5px; height: 28px; padding: 0 10px 0 6px; border-radius: 8px; background: var(--rl-purple2); font-family: Gal, Jua, sans-serif; color: #fff; }
+#reelFace .rcost { display: flex; align-items: center; gap: 5px; height: 28px; padding: 0 10px 0 6px; border-radius: 8px; background: var(--rl-purple2); font-family: Disp, Jua, sans-serif; color: #fff; }
 #reelFace .rcost b { font-size: 26px; line-height: 1; }
 #reelFace .rcost small { font-size: 13px; color: #d9ceff; }
 #reelFace .rcost .coin { width: 26px; height: 26px; background: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 48 48'><circle cx='24' cy='24' r='19' fill='%23ffc21e' stroke='%23181b3a' stroke-width='5'/><circle cx='24' cy='24' r='12' fill='none' stroke='%23ff9d0a' stroke-width='4'/></svg>") center / contain no-repeat; }
@@ -88,14 +88,14 @@ body.v3 #rollBtn.reel-on:not(.reel-spin) #reelFace .win:nth-child(3) img { anima
 #reelFx .puff { position: absolute; left: 50%; top: 44%; width: 0; height: 0; }
 #reelFx .puff i { position: absolute; left: -20px; top: -20px; width: 40px; height: 40px; border-radius: 50%; background: #e8e4f2; box-shadow: inset -4px -5px 0 #b3adc6, 0 0 0 3px var(--rl-navy); animation: rlPuff .75s ease-out both; }
 @keyframes rlPuff { 0% { transform: rotate(var(--a)) translateX(0) scale(.3); opacity: 1; } 55% { opacity: 1; } 100% { transform: rotate(var(--a)) translateX(var(--d)) scale(1.15); opacity: 0; } }
-#reelFx .puff b { position: absolute; left: 0; top: 0; transform: translate(-50%, -50%); font-family: Gal, Jua, sans-serif; font-size: 50px; color: #fff; white-space: nowrap; text-shadow: 3px 0 0 var(--rl-navy), -3px 0 0 var(--rl-navy), 0 3px 0 var(--rl-navy), 0 -3px 0 var(--rl-navy), 0 5px 0 var(--rl-navy); animation: rlBang .8s cubic-bezier(.2,1.7,.4,1) both; }
+#reelFx .puff b { position: absolute; left: 0; top: 0; transform: translate(-50%, -50%); font-family: Disp, Jua, sans-serif; font-size: 50px; color: #fff; white-space: nowrap; text-shadow: 3px 0 0 var(--rl-navy), -3px 0 0 var(--rl-navy), 0 3px 0 var(--rl-navy), 0 -3px 0 var(--rl-navy), 0 5px 0 var(--rl-navy); animation: rlBang .8s cubic-bezier(.2,1.7,.4,1) both; }
 @keyframes rlBang { 0% { transform: translate(-50%, -50%) scale(.2) rotate(-12deg); } 40% { transform: translate(-50%, -50%) scale(1.25) rotate(4deg); } 70% { transform: translate(-50%, -50%) scale(1) rotate(0); opacity: 1; } 100% { transform: translate(-50%, -60%) scale(1); opacity: 0; } }
 /* 2개 같음: 같은 두 칸 초록 테 · 위에 '2개!' */
 #reelFace .win.hit2 { box-shadow: inset 0 0 0 4px #3fcf5a; animation: rlPop .35s cubic-bezier(.2,1.7,.4,1) 1; }
 #reelFace .win.dim img { opacity: .45; }
 @keyframes rlPop { 0% { transform: scale(1); } 50% { transform: scale(1.18); } 100% { transform: scale(1); } }
 #reelFx .pair { position: absolute; left: 50%; bottom: calc(100% - 4px); transform: translateX(-50%); }
-#reelFx .pair b { display: block; padding: 2px 14px; border-radius: 8px; background: #3fcf5a; border: 3px solid var(--rl-navy); font-family: Gal, Jua, sans-serif; font-size: 26px; color: #fff; text-shadow: 0 2px 0 #1d7a34; animation: rlRise .7s cubic-bezier(.2,1.5,.4,1) both; }
+#reelFx .pair b { display: block; padding: 2px 14px; border-radius: 8px; background: #3fcf5a; border: 3px solid var(--rl-navy); font-family: Disp, Jua, sans-serif; font-size: 26px; color: #fff; text-shadow: 0 2px 0 #1d7a34; animation: rlRise .7s cubic-bezier(.2,1.5,.4,1) both; }
 @keyframes rlRise { 0% { transform: translateY(16px) scale(.5); opacity: 0; } 30% { transform: translateY(-4px) scale(1.1); opacity: 1; } 75% { transform: translateY(-8px) scale(1); opacity: 1; } 100% { transform: translateY(-18px); opacity: 0; } }
 /* 3개 같음(럭키): 칸 금색 깜박 · 단추 뒤 빛살 회전 · 색종이 · 큰 LUCKY! · 화면 번쩍 */
 #reelFace .win.hit3 { background: #fff1a8; box-shadow: inset 0 0 0 4px var(--rl-gold2), 0 0 16px 4px rgba(255,210,58,.95); animation: rlGold .16s steps(1) 6, rlPop .4s cubic-bezier(.2,1.7,.4,1) 1; }
@@ -106,8 +106,8 @@ body.v3 #rollBtn.reel-on:not(.reel-spin) #reelFace .win:nth-child(3) img { anima
 #reelFx .conf i { position: absolute; width: 10px; height: 14px; background: var(--c); border: 2px solid var(--rl-navy); animation: rlConf 1.2s cubic-bezier(.15,.7,.4,1) both; }
 @keyframes rlConf { 0% { transform: translate(0, 0) rotate(0); opacity: 1; } 70% { opacity: 1; } 100% { transform: translate(var(--x), calc(var(--y) + 120px)) rotate(var(--r)); opacity: 0; } }
 #reelFx .lucky { position: absolute; left: 50%; bottom: calc(100% + 6px); transform: translateX(-50%); text-align: center; white-space: nowrap; animation: rlLucky 1.5s cubic-bezier(.2,1.6,.4,1) both; }
-#reelFx .lucky b { display: block; font-family: Gal, Jua, sans-serif; font-size: 58px; line-height: 1; color: var(--rl-gold); text-shadow: 4px 0 0 var(--rl-navy), -4px 0 0 var(--rl-navy), 0 4px 0 var(--rl-navy), 0 -4px 0 var(--rl-navy), 0 8px 0 var(--rl-navy); }
-#reelFx .lucky small { display: inline-block; margin-top: 4px; padding: 2px 12px; border-radius: 8px; background: #c08cff; border: 3px solid var(--rl-navy); font-family: Gal, Jua, sans-serif; font-size: 20px; color: #fff; }
+#reelFx .lucky b { display: block; font-family: Disp, Jua, sans-serif; font-size: 58px; line-height: 1; color: var(--rl-gold); text-shadow: 4px 0 0 var(--rl-navy), -4px 0 0 var(--rl-navy), 0 4px 0 var(--rl-navy), 0 -4px 0 var(--rl-navy), 0 8px 0 var(--rl-navy); }
+#reelFx .lucky small { display: inline-block; margin-top: 4px; padding: 2px 12px; border-radius: 8px; background: #c08cff; border: 3px solid var(--rl-navy); font-family: Disp, Jua, sans-serif; font-size: 20px; color: #fff; }
 @keyframes rlLucky { 0% { transform: translateX(-50%) scale(.2) rotate(-8deg); opacity: 0; } 20% { transform: translateX(-50%) scale(1.3) rotate(3deg); opacity: 1; } 35% { transform: translateX(-50%) scale(1) rotate(0); } 82% { transform: translateX(-50%) scale(1); opacity: 1; } 100% { transform: translateX(-50%) translateY(-24px) scale(1); opacity: 0; } }
 #stage .reelFlash { position: absolute; inset: 0; z-index: 40; pointer-events: none; background: radial-gradient(circle at 50% 85%, rgba(255,240,170,.85), rgba(255,255,255,0) 70%); animation: rlFlash .55s ease-out both; }
 @keyframes rlFlash { 0% { opacity: 0; } 15% { opacity: 1; } 100% { opacity: 0; } }
@@ -115,7 +115,7 @@ body.v3 #rollBtn { overflow: visible; }
 
 /* ---------- AUTO 없앰(v3.10) ---------- */
 #autoBtn { display: none !important; }
-#reelBtn .tip { -webkit-text-stroke: 0 !important; text-shadow: none; position: absolute; z-index: 6; right: 0; bottom: calc(100% + 10px); padding: 4px 10px; border-radius: 6px; background: var(--rl-navy); color: #fff; font-family: Gal, Jua, sans-serif; font-size: 18px; white-space: nowrap; pointer-events: none; opacity: 0; }
+#reelBtn .tip { -webkit-text-stroke: 0 !important; text-shadow: none; position: absolute; z-index: 6; right: 0; bottom: calc(100% + 10px); padding: 4px 10px; border-radius: 6px; background: var(--rl-navy); color: #fff; font-family: Disp, Jua, sans-serif; font-size: 18px; white-space: nowrap; pointer-events: none; opacity: 0; }
 #reelBtn .tip::after { content: ''; position: absolute; right: 22px; top: 100%; border: 6px solid transparent; border-top-color: var(--rl-navy); }
 #reelBtn .tip.show { animation: rlTip .9s ease-out 1; }
 @keyframes rlTip { 0% { opacity: 0; transform: translateY(6px); } 15% { opacity: 1; transform: none; } 70% { opacity: 1; } 100% { opacity: 0; transform: translateY(-4px); } }

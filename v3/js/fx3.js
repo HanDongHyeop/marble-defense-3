@@ -169,7 +169,7 @@
     const max = g >= 5, txt = max ? 'MAX' : 'Lv.' + g; let lift = 0;
     if (age >= 0 && age < 0.4) lift = -Math.sin(age / 0.4 * Math.PI) * 10;
     // [v3.9d] 판(배경) 없이 글씨만: 굵은 남색 테 + 아래 두께 + 등급 색(위는 밝게 · 아래는 짙게 두 톤) — 밝은 칸 · 어두운 칸 모두에서 읽힘
-    c.save(); c.font = '24px Gal, Jua, sans-serif'; c.textAlign = 'center'; c.textBaseline = 'alphabetic'; c.lineJoin = 'round';
+    c.save(); c.font = '24px Disp, Jua, sans-serif'; c.textAlign = 'center'; c.textBaseline = 'alphabetic'; c.lineJoin = 'round';
     const ty = y + lift + 4;
     c.strokeStyle = OUT; c.lineWidth = 7; c.strokeText(txt, x, ty + 2.5); c.strokeText(txt, x, ty);
     c.fillStyle = GT[g][2]; c.fillText(txt, x, ty);

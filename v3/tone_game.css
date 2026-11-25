@@ -1,7 +1,7 @@
 /* 마블 디펜스 3 v3.10 — 톤 전체 적용(사용자 확정). 판 안의 창에 픽셀 톤. 원본 시안 = mock/tone_game.css */
 #upSheet, #v3Sheet, body.v3 #infoBox, .hudbox, #toast, #modal .card, #modal .box, .tipb, .tip, #hint, .hint {
-  font-family: Gal, Jua, sans-serif !important; background: #2b2f63 !important; border: 4px solid #181b3a !important; border-radius: 12px !important; box-shadow: inset 0 4px 0 #474d92 !important; backdrop-filter: none !important; }
-#upSheet *, #v3Sheet *, #infoBox *, .hudbox *, #toast * { font-family: Gal, Jua, sans-serif !important; text-shadow: none !important; }
+  font-family: Disp, Jua, sans-serif !important; background: #2b2f63 !important; border: 4px solid #181b3a !important; border-radius: 12px !important; box-shadow: inset 0 4px 0 #474d92 !important; backdrop-filter: none !important; }
+#upSheet *, #v3Sheet *, #infoBox *, .hudbox *, #toast * { font-family: Disp, Jua, sans-serif !important; text-shadow: none !important; }
 #upSheet .us-hd b, #v3Sheet .us-hd b { -webkit-text-stroke: 5px #181b3a; paint-order: stroke fill; color: #fff; }
 #upClose, #v3SheetX { border: 3px solid #181b3a !important; border-radius: 8px !important; background: #5648a4 !important; box-shadow: inset 0 3px 0 #8274d4, inset 0 -4px 0 #3a2f7a !important; }
 body.v3 .deck.v3card { border: 4px solid #181b3a !important; border-radius: 12px !important; background: #3a3f80 !important; box-shadow: inset 0 4px 0 #5d63b0, inset 0 -7px 0 #262a5c !important; }

@@ -1,6 +1,6 @@
 /* 마블 디펜스 3 v3.10 — 톤 전체 적용(2026-11-24 사용자 확정: 시안 '톤 전체 적용'으로 전부). 로비 · 창에 판 화면의 픽셀 톤. 원본 시안 = mock/tone_og.css */
-@font-face { font-family: Gal; src: url(font/Galmuri11-Bold.woff2) format('woff2'); }
-#wrap, #wrap *, #modal, #modal * { font-family: Gal, Jua, sans-serif !important; font-weight: 400 !important; text-shadow: none !important; letter-spacing: 0 !important; }
+@font-face { font-family: Disp; src: url(font/Jua.woff2) format('woff2'); size-adjust: 115%; font-display: swap; }   /* [v3.10 · 2026-11-25 오너] 글씨 = Jua(둥글고 굵은) 115% — 도트 글꼴 갈무리11(Gal) 대신. 크기 보정 115% = 갈무리11과 같은 겉보기 크기(한글 높이 92 vs 81) */
+#wrap, #wrap *, #modal, #modal * { font-family: Disp, Jua, sans-serif !important; font-weight: 400 !important; text-shadow: none !important; letter-spacing: 0 !important; }
 #wrap *::before, #wrap *::after { text-shadow: none !important; }
 /* 바탕 */
 .bgnavy { background: #23264e !important; }

@@ -231,8 +231,8 @@ body.dragmode #dpad { display: none; }
    [v3.9d] 시안에서 자른 작은 그림(9분할)을 쓰니 ① 이음매에 뜻 없는 검은 선이 생기고 ② 키우면 흐려짐(사용자) → 같은 모양을 CSS로 직접 그림(어느 화면 배율에서도 선명).
    규격(시안에서 잰 값): 테 4px #181b3a · 모서리 12px · 위쪽 밝은 줄 4px · 아래쪽 짙은 두께 8px · 면은 단색(그라데이션 없음) · 글꼴 갈무리11 · 글씨 = 흰색 + 남색 테
    아이콘(더하기 · 화살표 · 동전 · 보석 · 목록)은 벡터(SVG)라 흐려지지 않음. 글씨 라벨은 유지(사용자: '디자인 풍'만 시안으로) */
-@font-face { font-family: Gal; src: url(font/Galmuri11-Bold.woff2) format('woff2'); font-display: swap; }
-body.v3 #panel, body.v3 #topbar, body.v3 #subbar { font-family: Gal, Jua, sans-serif; }
+@font-face { font-family: Disp; src: url(font/Jua.woff2) format('woff2'); size-adjust: 115%; font-display: swap; }   /* [v3.10 · 2026-11-25 오너] 글씨 = Jua(둥글고 굵은) 115% — 도트 글꼴 갈무리11(Gal) 대신. 크기 보정 115% = 갈무리11과 같은 겉보기 크기(한글 높이 92 vs 81) */
+body.v3 #panel, body.v3 #topbar, body.v3 #subbar { font-family: Disp, Jua, sans-serif; }
 body.v3 #panel { background: #262a50; box-shadow: inset 0 4px 0 #3b4180; border-radius: 16px 16px 0 0; border: 0; border-top: 4px solid #181b3a; }
 body.v3 #panel::before { display: none; }
 body.v3 #panel b, body.v3 #topbar b, body.v3 #subbar b { font-weight: 400; color: #fff; -webkit-text-stroke: 5px #181b3a; paint-order: stroke fill; text-shadow: none; letter-spacing: 1px; }
@@ -246,7 +246,7 @@ body.v3 #goldTxt { font-size: 33px; }
 body.v3 #rollBtn { background: #4cb86e; border: 4px solid #181b3a; border-radius: 14px; box-shadow: inset 0 4px 0 #86e6a2, inset 0 -9px 0 #2f9152; height: 118px; }
 body.v3 #rollBtn:active, body.v3 #rollBtn.press { transform: translateY(4px); box-shadow: inset 0 4px 0 #86e6a2, inset 0 -5px 0 #2f9152; filter: none; }
 body.v3 #rollBtn .labSumm { margin: -6px 0 0; height: 46px; gap: 8px; }
-body.v3 #rollBtn .labSumm b { display: inline; font-family: Gal, Jua, sans-serif; font-size: 38px; text-shadow: none; }
+body.v3 #rollBtn .labSumm b { display: inline; font-family: Disp, Jua, sans-serif; font-size: 38px; text-shadow: none; }
 body.v3 #rollBtn .labSumm .sp { width: 38px; height: 38px; background: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 48 48'><path d='M18 6h12v12h12v12H30v12H18V30H6V18h12z' fill='%23fff' stroke='%23181b3a' stroke-width='5' stroke-linejoin='round'/></svg>") center / contain no-repeat; }
 body.v3 #rollBtn .labSumm .sp::before, body.v3 #rollBtn .labSumm .sp::after { display: none; }
 body.v3 #rollBtn .cost { background: #2c7a4a; border: 0; border-radius: 10px; height: 38px; padding: 0 14px 0 8px; margin: 2px 0 4px; gap: 6px; font-size: 32px; text-shadow: none; }
@@ -262,14 +262,14 @@ body.v3 #cmdBtn[data-grade=epic] { background: #8a5ae0; box-shadow: inset 0 4px 
 body.v3 #cmdBtn[data-grade=legend] { background: #f0a420; box-shadow: inset 0 4px 0 #ffd87a, inset 0 -9px 0 #b8700a; }
 body.v3 #cmdBtn img { width: 84px; height: 84px; margin-top: -8px; visibility: visible; }
 body.v3 #cmdBtn .cd { border-radius: 10px; }
-body.v3 #cmdBtn .tag { display: block; bottom: -10px; border: 0; border-radius: 4px; background: #181b3a; box-shadow: none; font-family: Gal, Jua, sans-serif; font-size: 14px; padding: 2px 8px; }
+body.v3 #cmdBtn .tag { display: block; bottom: -10px; border: 0; border-radius: 4px; background: #181b3a; box-shadow: none; font-family: Disp, Jua, sans-serif; font-size: 14px; padding: 2px 8px; }
 /* 아래 줄 */
 body.v3 #subRow { gap: 6px; padding: 6px 14px 0; height: 80px; }
-body.v3 #subRow .sub { height: 68px; border: 4px solid #181b3a; border-radius: 12px; background: #5648a4; box-shadow: inset 0 4px 0 #8274d4, inset 0 -7px 0 #3a2f7a; gap: 5px; font-family: Gal, Jua, sans-serif; }
+body.v3 #subRow .sub { height: 68px; border: 4px solid #181b3a; border-radius: 12px; background: #5648a4; box-shadow: inset 0 4px 0 #8274d4, inset 0 -7px 0 #3a2f7a; gap: 5px; font-family: Disp, Jua, sans-serif; }
 body.v3 #subRow .sub.on { transform: translateY(3px); background: #6a5cc0; box-shadow: inset 0 4px 0 #8274d4, inset 0 -4px 0 #3a2f7a; }
 body.v3 #subRow .sub:active { transform: translateY(3px); }
 body.v3 #subRow .sub b { display: inline; font-size: 21px; -webkit-text-stroke: 4px #181b3a; letter-spacing: 0; white-space: nowrap; margin-top: -4px; }
-body.v3 #subRow .sub small { display: inline; font-family: Gal, Jua, sans-serif; font-size: 13px; color: #d8d2ff; white-space: nowrap; margin-top: -4px; }
+body.v3 #subRow .sub small { display: inline; font-family: Disp, Jua, sans-serif; font-size: 13px; color: #d8d2ff; white-space: nowrap; margin-top: -4px; }
 body.v3 #subRow .sub .si { flex: none; width: 30px; height: 30px; margin-top: -4px; background: center / contain no-repeat; border: 0; border-radius: 0; box-shadow: none; transform: none; }
 body.v3 #subRow .sub .si::before, body.v3 #subRow .sub .si::after { display: none; }
 body.v3 #subRow .si.mis { background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 48 48'><rect x='5' y='7' width='38' height='34' rx='4' fill='%23f3d9a8' stroke='%23181b3a' stroke-width='5'/><path d='M13 17h22M13 24h22M13 31h22' stroke='%238a5a2a' stroke-width='4' stroke-linecap='round'/></svg>"); }
@@ -277,7 +277,7 @@ body.v3 #subRow .si.mix { background-image: url("data:image/svg+xml;utf8,<svg xm
 body.v3 #subRow .si.gem { background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 48 48'><path d='M24 4L42 24L24 44L6 24z' fill='%23d86cff' stroke='%23181b3a' stroke-width='5' stroke-linejoin='round'/><path d='M24 9L11 24h13z' fill='%23f0b8ff'/></svg>"); width: 28px; height: 28px; }
 body.v3 #subRow .chip3 { background: #453a8a; }
 body.v3 #subRow .chip3 b, body.v3 #subRow #spdBtn b { color: #fff; font-size: 26px; }
-body.v3 #subRow .sub i { right: 2px; top: -12px; font-family: Gal, sans-serif; font-size: 13px; border-radius: 4px; background: #181b3a; color: #ffe08a; padding: 1px 5px; }
+body.v3 #subRow .sub i { right: 2px; top: -12px; font-family: Disp, sans-serif; font-size: 13px; border-radius: 4px; background: #181b3a; color: #ffe08a; padding: 1px 5px; }
 body.v3 #subRow #upBtn { flex: 1.08; height: 68px; border: 4px solid #181b3a; border-radius: 12px; background: #ff8c14; box-shadow: inset 0 4px 0 #ffc06a, inset 0 -7px 0 #d0640a; gap: 5px; }
 body.v3 #subRow #upBtn .ico { display: inline-block; width: 28px; height: 28px; margin-top: -4px; background: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 48 48'><path d='M24 5L43 25H32v17H16V25H5z' fill='%23fff' stroke='%23181b3a' stroke-width='5' stroke-linejoin='round'/></svg>") center / contain no-repeat; }
 body.v3 #subRow #upBtn .ico::before, body.v3 #subRow #upBtn .ico::after { display: none; }
@@ -291,5 +291,5 @@ body.v3 #gauge { flex-basis: auto; gap: 8px; }
 body.v3 #pauseBtn { border-radius: 12px; }
 body.v3 #pauseBtn .pz { border-radius: 0; }
 body.v3 #truckBtn { border-radius: 12px; box-shadow: none; border: 4px solid #181b3a; background: #262a50; }
-body.v3 #truckBtn .tag { border-radius: 4px; font-family: Gal, Jua, sans-serif; }
+body.v3 #truckBtn .tag { border-radius: 4px; font-family: Disp, Jua, sans-serif; }
 body.inlock #mainRow, body.inlock #subRow, body.inlock #truckBtn, body.inlock #v3Sheet, body.inlock #upSheet { pointer-events: none; }   /* [v3.9d] 보스 경고 동안 조작 잠금 */
