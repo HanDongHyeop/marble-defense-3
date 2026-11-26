@@ -1,0 +1,58 @@
+/* 마블 디펜스 3 — 준비 · 전투 모드(prep3_ui.js). 규격은 v3.9d 버튼과 같게: 테 4px #181b3a · 모서리 12px · 위 밝은 줄 · 아래 두께 */
+#prepBar { position: absolute; left: 24px; right: 24px; top: 884px; height: 92px; z-index: 12; display: flex; align-items: center; gap: 14px; padding: 0 12px 0 20px;
+  background: #262a50; border: 4px solid #181b3a; border-radius: 16px; box-shadow: inset 0 4px 0 #3b4180, 0 7px 0 #181b3a, 0 12px 24px rgba(0,0,0,.4); font-family: Jua, sans-serif; }
+#prepBar[hidden] { display: none; }
+#prepBar .pb-t { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+#prepBar .pb-t b { font-size: 27px; color: #ffe14a; text-shadow: 0 2px 0 #181b3a; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+#prepBar .pb-t span { font-size: 19px; color: #c9cdf5; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+#prepBar .pb-go { flex: none; width: 210px; height: 70px; border-radius: 12px; border: 4px solid #181b3a; font: 32px Jua, sans-serif; color: #fff; text-shadow: 0 2px 0 #1b5a1e;
+  background: #4cc152; box-shadow: inset 0 4px 0 #8ef08c, 0 7px 0 #181b3a; cursor: pointer; animation: pbBreath 1.6s ease-in-out infinite; }
+#prepBar .pb-go:active { transform: translateY(5px); box-shadow: inset 0 4px 0 #8ef08c, 0 2px 0 #181b3a; }
+#prepBar .pb-go.pend { background: #ffb43a; box-shadow: inset 0 4px 0 #ffe08a, 0 7px 0 #181b3a; text-shadow: 0 2px 0 #7a4a10; font-size: 28px; }
+@keyframes pbBreath { 50% { filter: brightness(1.12); } }
+
+/* 창 공통 */
+#modal.prepm .mbox { width: 660px; padding: 26px 24px 24px; font-family: Jua, sans-serif; text-align: center; }
+#modal.prepm h2 { font-size: 38px; margin: 4px 0 6px; color: #fff; }
+#modal.prepm h2 .g2 { color: #8fd0ff; } #modal.prepm h2 .g3 { color: #d9a8ff; } #modal.prepm h2 .g4 { color: #ffc35a; } #modal.prepm h2 .g5 { color: #ff7a8a; }
+#modal.prepm .sub { font-size: 20px; color: #c9cdf5; margin: 0 0 14px; }
+#modal.prepm .lr-tag { display: inline-block; font-size: 19px; padding: 4px 14px; border-radius: 10px; background: #181b3a; color: #ffe14a; }
+
+/* 먹이기 */
+.prepf .pf-head { display: flex; align-items: center; justify-content: center; gap: 18px; margin: 4px 0 10px; }
+.prepf .pf-face img { width: 84px; height: 84px; object-fit: contain; image-rendering: auto; }
+.prepf .pf-face.big img { width: 112px; height: 112px; }
+.prepf .pf-arrow { font-size: 40px; color: #ffe14a; }
+.prepf .pf-new, .prepf .pf-tr { display: grid; grid-template-columns: 26px 1fr; column-gap: 10px; align-items: center; text-align: left; padding: 10px 14px; border-radius: 12px; background: #181b3a; border: 3px solid var(--c); margin: 0 0 10px; color: #fff; width: 100%; box-sizing: border-box; font-family: Jua, sans-serif; }
+.prepf .pf-new i, .prepf .pf-tr i { grid-row: span 2; width: 22px; height: 22px; border-radius: 50%; background: var(--c); border: 3px solid #0d0f24; }
+.prepf .pf-new b, .prepf .pf-tr b { font-size: 24px; } .prepf .pf-new small, .prepf .pf-tr small { font-size: 18px; color: #c9cdf5; }
+.prepf .pf-tr em { grid-column: 2; font-style: normal; font-size: 18px; color: #ffe14a; margin-top: 2px; }
+.prepf .pf-tr.sw { cursor: pointer; border-style: dashed; } .prepf .pf-tr.sw:active { transform: translateY(3px); }
+.prepf .pf-sec { font-size: 19px; color: #ffe14a; margin: 6px 0 8px; text-align: left; }
+.prepf .pf-btns { display: flex; gap: 14px; margin-top: 8px; }
+.prepf .pf-btns .btn { flex: 1; height: auto; min-height: 84px; font-size: 30px; display: flex; flex-direction: column; align-items: center; justify-content: center; line-height: 1.15; padding: 8px 6px; }
+.prepf .pf-btns .btn small { font-size: 17px; opacity: .95; margin-top: 2px; }
+
+/* 등급업 · 각성 카드 */
+.prepg .gc-wrap { display: flex; gap: 14px; }
+.prepg .gc-card { flex: 1; min-width: 0; display: flex; flex-direction: column; align-items: stretch; gap: 6px; padding: 14px 12px 12px; border-radius: 16px; border: 4px solid #181b3a; background: #2e3366; box-shadow: inset 0 4px 0 #4a52a0, 0 7px 0 #181b3a; color: #fff; font-family: Jua, sans-serif; cursor: pointer; }
+.prepg .gc-card:active { transform: translateY(5px); box-shadow: inset 0 4px 0 #4a52a0, 0 2px 0 #181b3a; }
+.prepg .gc-face img { width: 120px; height: 120px; object-fit: contain; display: block; margin: 0 auto; }
+.prepg .gc-name { font-size: 27px; } .prepg .gc-name span { display: block; font-size: 20px; color: #ffe14a; }
+.prepg .gc-d { font-size: 19px; color: #c9cdf5; margin-bottom: 4px; } .prepg .gc-d.big { font-size: 23px; color: #fff; min-height: 64px; }
+.prepg .gc-row { display: grid; grid-template-columns: 1fr auto auto auto 52px; gap: 6px; align-items: baseline; font-size: 18px; background: #181b3a; border-radius: 8px; padding: 5px 8px; }
+.prepg .gc-row span { text-align: left; color: #c9cdf5; } .prepg .gc-row b { font-size: 20px; } .prepg .gc-row b.nx { color: #8ef08c; } .prepg .gc-row i { font-style: normal; color: #8a90c8; } .prepg .gc-row em { font-style: normal; color: #8ef08c; font-size: 15px; text-align: right; }
+.prepg .gc-pick { margin-top: 6px; padding: 8px; border-radius: 10px; background: #4cc152; border: 3px solid #181b3a; font-size: 24px; text-shadow: 0 2px 0 #1b5a1e; }
+.prepg .gc-wrap.three .gc-card { padding: 12px 8px; } .prepg .aw-ico { font-size: 44px; color: #ff9ad0; text-shadow: 0 3px 0 #181b3a; }
+
+/* 정보 카드 추가 줄 */
+#infoBox .pi-x { margin-top: 8px; font-family: Jua, sans-serif; text-align: left; }
+#infoBox .pi-lv { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; } #infoBox .pi-lv b { font-size: 26px; color: #ffe14a; } #infoBox .pi-lv span { font-size: 18px; color: #c9cdf5; }
+#infoBox .pi-lunch { font-style: normal; font-size: 17px; padding: 1px 8px; border-radius: 8px; background: #ffb04a; color: #181b3a; }
+#infoBox .pi-trs { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; margin-top: 4px; } #infoBox .pi-trs small { font-size: 16px; color: #8a90c8; }
+#infoBox .pi-tr { display: inline-flex; align-items: center; gap: 5px; font-size: 18px; padding: 2px 9px; border-radius: 9px; background: #181b3a; border: 2px solid var(--c); color: #fff; }
+#infoBox .pi-tr i { width: 11px; height: 11px; border-radius: 50%; background: var(--c); } #infoBox .pi-none { font-size: 17px; color: #8a90c8; }
+#infoBox .pi-br { font-size: 17px; color: #ffd27a; margin-top: 4px; }
+/* 창 등장: 투명도 없이 크기만(아이폰이 바쁠 때 투명한 첫 장면에 멈춰 창이 안 보이던 것 방지) */
+#modal.prepm .mbox { animation: pmIn .22s cubic-bezier(.3, 1.4, .5, 1); }
+@keyframes pmIn { from { transform: scale(.9); } to { transform: none; } }

@@ -559,3 +559,4 @@ polygon.press { transform: none; filter: none; }
 .pcardbig .title::after { top: -16px; bottom: -16px; }
 .chip { min-width: 78px; }
 .adice { padding: 0 34px; }
+.rbtn.modetog.on { background: #3b2a12; border-color: #ffb43a; } .rbtn.modetog.on .big { color: #ffd23a; } .rbtn.modetog .big { font-size: 44px; }

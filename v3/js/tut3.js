@@ -103,7 +103,7 @@
   // 첫 판(규칙 카드 자리) → 튜토리얼. 도움말에서 부른 규칙 카드(back 있음)는 그대로
   const baseIntro = U.labIntro;
   U.labIntro = function (back) {
-    if (!back && Q.get('tut') !== '0' && Q.get('qa') !== 'bot' && (!seen() || Q.get('tut') === '1')) { this.close && this.modalOpen() && this.close(); this.app.paused = false; TUT.begin(this); return; }
+    if (!back && Q.get('tut') !== '0' && Q.get('qa') !== 'bot' && !(this.g && this.g.prepOn) && (!seen() || Q.get('tut') === '1')) { this.close && this.modalOpen() && this.close(); this.app.paused = false; TUT.begin(this); return; }
     return baseIntro.call(this, back);
   };
 })(window);

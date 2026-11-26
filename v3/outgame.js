@@ -25,6 +25,7 @@ const tw = (k, t) => `img/px/ally2/${FAM2[k] || 'fire'}_${GR5[t || 1]}.png`;   /
   const tname = k => D.TOWERS[k].name;
   const PIPS = { 1: [5], 2: [1, 9], 3: [1, 5, 9], 4: [1, 3, 7, 9], 5: [1, 3, 5, 7, 9], 6: [1, 3, 4, 6, 7, 9] };
   const flatDie = (v, cls) => `<span class="die ${cls || ''}">${PIPS[v].map(p => `<i style="grid-area:${Math.ceil(p / 3)}/${(p - 1) % 3 + 1}"></i>`).join('')}</span>`;
+  const prepMode = () => { try { return localStorage.getItem('mdv3_mode') === 'prep'; } catch (e) { return false; } };   // [2026-11-26] 준비 · 전투 모드(v3/js/prep3.js)
   const B = (act, arg, cls, inner) => `<button class="${cls || ''}" data-act="${act}"${arg != null ? ` data-arg="${arg}"` : ''}>${inner}</button>`;
   const DIFFS = ['normal', 'hard', 'hell'], DIFFN = ['보통', '어려움', '지옥'];
 
@@ -213,7 +214,7 @@ const tw = (k, t) => `img/px/ally2/${FAM2[k] || 'fire'}_${GR5[t || 1]}.png`;   /
   function home() {
     const n = S.chapter, C = M.CHAPTERS[n - 1], open = chOpen(n), di = DIFFS.indexOf(S.diff), st = S.stars[n];
     const dOpen = diffOpen(n, di), ok = open && dOpen;
-    const startSub = !open ? `🔒 ${n - 1}장 보통을 깨면 열려요` : !dOpen ? `🔒 ${DIFFN[di]} = ${diffNeed(n, di)}` : '같은 캐릭터를 합쳐 수정을 지켜요';
+    const startSub = !open ? `🔒 ${n - 1}장 보통을 깨면 열려요` : !dOpen ? `🔒 ${DIFFN[di]} = ${diffNeed(n, di)}` : prepMode() ? '⚔ 준비 · 전투 — 먹여서 키우고 한 무리씩' : '같은 캐릭터를 합쳐 수정을 지켜요';
     return `<div class="hbig">${C.name}</div>
     ${topbar()}
     <div class="sidecol l">
@@ -238,7 +239,7 @@ const tw = (k, t) => `img/px/ally2/${FAM2[k] || 'fire'}_${GR5[t || 1]}.png`;   /
       ${B('chap', 1, 'arrow' + (n === 6 ? ' dim' : ''), '▶')}
     </div>
     <div class="startrow">
-      ${B('coop', null, 'rbtn', '<span class="big">2P</span>협동')}
+      ${B('modeTog', null, 'rbtn modetog' + (prepMode() ? ' on' : ''), prepMode() ? '<span class="big">⚔</span>준비·전투' : '<span class="big">▶</span>실시간')}   ${''/* [2026-11-26] 2P 협동(준비 중 자리) → 모드 고르기 */}
       ${B('start', null, 'btn startbtn ' + (ok ? 'green breath' : 'off'), `${ok ? '시작!' : '잠김'}<small>${startSub}</small>`)}
       ${B('endless', null, 'rbtn' + (chOpen(4) ? '' : ' lockd'), `<span class="big v">∞</span>${chOpen(4) ? '무한' : '🔒 무한'}`)}
     </div>
@@ -697,6 +698,7 @@ const tw = (k, t) => `img/px/ally2/${FAM2[k] || 'fire'}_${GR5[t || 1]}.png`;   /
     },
     pickCh(nn) { const n = +nn; if (!chOpen(n)) { toast(`🔒 ${n}장은 ${n - 1}장 보통을 깨면 열려요`); return; } if (S.chapter === n) { close(); return; } S.chapter = n; if (!diffOpen(n, DIFFS.indexOf(S.diff))) S.diff = 'normal'; render(); renderModal(false); toast(`${n}장 ${M.CHAPTERS[n - 1].name}`); },
     coop() { toast('2P 협동은 준비 중이에요'); },
+    modeTog() { const on = !prepMode(); try { if (on) localStorage.setItem('mdv3_mode', 'prep'); else localStorage.removeItem('mdv3_mode'); } catch (e) { /* 저장 막힘 */ } render(); toast(on ? '⚔ 준비 · 전투 모드 — 웨이브 사이 준비 시간에 키우고, [전투 시작]으로 한 무리씩' : '▶ 실시간 모드 — 지금까지 방식(같은 등급 합치기)'); },
     coopOld() { open({ type: 'pop', title: '협동', msg: '둘이 한 판을 함께 지켜요.<small>AI 동료는 바로 · 친구는 초대 링크로</small>', html: `<div class="btns" style="margin-top:16px">${B('coopAi', null, 'btn green', 'AI와 함께')}${B('coopFriend', null, 'btn blue', '친구 초대')}</div>` }); },
     coopAi() { close(); setTimeout(() => A.start('coop'), 200); },
     coopFriend() { close(); toast('초대 링크를 만들었어요 (시안 — 실제 연결 없음)'); },
@@ -966,7 +968,7 @@ const tw = (k, t) => `img/px/ally2/${FAM2[k] || 'fire'}_${GR5[t || 1]}.png`;   /
     const og = { choice: { commander: S.cmd, pawn: S.pawn, mode: mode === 'endless' ? 'endless' : 'conquest', coop: mode === 'coop', deck: deck().slice(), diff: mode === 'endless' ? 'normal' : DIFFS[di], chapter: n },
       bonus: sb ? sb.fx : null, bonusTxt: sb ? { d: sb.d.join('·'), txt: sb.txt } : null, meta: { nodes: S.nodes, unlocked: S.unlocked, relics: S.relics } };
     const fr = G0.fr = document.createElement('iframe'); fr.id = 'game'; fr.className = 'pre'; fr.title = '마블 디펜스 판'; fr.setAttribute('allow', 'autoplay; fullscreen');
-    fr.src = 'game.html?v=202611251533&embed=1&og=' + encodeURIComponent(JSON.stringify(og));
+    fr.src = 'game.html?v=202611261556&embed=1&og=' + encodeURIComponent(JSON.stringify(og));
     G0.attach = () => { if (!fr.isConnected && ui.inGame === G0) document.body.appendChild(fr); };
     // 크롬(안드로이드 · PC)은 판을 불러와도 이 화면이 거의 안 멈춤 → 착지 직후 바로. 아이폰(WebKit)은 같은 줄에서 돌아 로비가 멈칫 → 진입 막 아래에서(enterGame)
     const UA = navigator.userAgent, WK = /iPhone|iPad|iPod/.test(UA) || (/AppleWebKit/.test(UA) && !/Chrome|Chromium|Android|Edg/.test(UA)) || (navigator.maxTouchPoints > 1 && /Macintosh/.test(UA));
