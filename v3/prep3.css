@@ -56,3 +56,49 @@
 /* 창 등장: 투명도 없이 크기만(아이폰이 바쁠 때 투명한 첫 장면에 멈춰 창이 안 보이던 것 방지) */
 #modal.prepm .mbox { animation: pmIn .22s cubic-bezier(.3, 1.4, .5, 1); }
 @keyframes pmIn { from { transform: scale(.9); } to { transform: none; } }
+
+/* [2026-11-26] 준비 10초: 남은 시간 막대 · 3초 남으면 빨갛게 */
+#prepBar { overflow: hidden; }
+#prepBar .pb-fill { position: absolute; left: 0; bottom: 0; height: 7px; background: #4cc152; border-radius: 0 4px 0 0; transition: width .1s linear; }
+#prepBar.hurry .pb-fill { background: #ff5a6a; } #prepBar.hurry .pb-t b { color: #ff8a8a; }
+
+/* 더 센 캐릭터 먹이기 확인 */
+.prepf .fw-row { display: flex; align-items: center; justify-content: center; gap: 14px; margin: 6px 0 10px; }
+.prepf .fw-c { display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 10px 14px; border-radius: 14px; background: #181b3a; border: 3px solid #3b4180; min-width: 150px; }
+.prepf .fw-c.eat { border-color: #ff5a6a; } .prepf .fw-c b { font-size: 24px; } .prepf .fw-c small { font-size: 17px; color: #c9cdf5; }
+.prepf .fw-res { font-size: 21px; color: #fff; margin-bottom: 6px; } .prepf .fw-res span { color: #ff9a9a; } .prepf .fw-res b { color: #8ef08c; }
+.prepf b.g1, .pc-tags .g1, .pc-stars.g1 { color: #ffffff; } .prepf b.g2, .pc-tags .g2, .pc-stars.g2, .pc-lv .g2 { color: #8fd0ff; } .prepf b.g3, .pc-tags .g3, .pc-stars.g3, .pc-lv .g3 { color: #d9a8ff; } .prepf b.g4, .pc-tags .g4, .pc-stars.g4, .pc-lv .g4 { color: #ffc35a; } .prepf b.g5, .pc-tags .g5, .pc-stars.g5, .pc-lv .g5 { color: #ff7a8a; }
+
+/* 정보 카드(준비 · 전투 모드) */
+body.v3 #infoBox.pinfo { width: 440px; padding: 16px 16px 14px; font-family: Jua, sans-serif; text-align: left; }
+#infoBox.pinfo .pc-top { display: flex; gap: 12px; align-items: center; }
+#infoBox.pinfo .pc-pic { flex: none; width: 92px; height: 92px; border-radius: 18px; background: #181b3a; border: 3px solid #3b4180; display: flex; align-items: center; justify-content: center; }
+#infoBox.pinfo .pc-pic.g2 { border-color: #5aa8e8; } #infoBox.pinfo .pc-pic.g3 { border-color: #a86ae8; } #infoBox.pinfo .pc-pic.g4 { border-color: #f0a030; } #infoBox.pinfo .pc-pic.g5 { border-color: #ff5a6a; box-shadow: 0 0 14px #ff5a6a88; }
+#infoBox.pinfo .pc-pic img { width: 80px; height: 80px; object-fit: contain; }
+#infoBox.pinfo .pc-name { min-width: 0; display: flex; flex-direction: column; gap: 3px; }
+#infoBox.pinfo .pc-name > b { font-size: 28px; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+#infoBox.pinfo .pc-tags { display: flex; gap: 6px; } #infoBox.pinfo .pc-tags em { font-style: normal; font-size: 18px; padding: 1px 10px; border-radius: 8px; background: #181b3a; }
+#infoBox.pinfo .pc-tags em.fam { color: #ffe14a; }
+#infoBox.pinfo .pc-stars { font-size: 22px; letter-spacing: 1px; } #infoBox.pinfo .pc-stars i { font-style: normal; color: #3b4180; }
+#infoBox.pinfo .pc-lv { display: grid; grid-template-columns: auto 1fr; column-gap: 10px; align-items: center; margin-top: 10px; }
+#infoBox.pinfo .pc-lv > b { grid-row: span 2; font-size: 36px; color: #ffe14a; text-shadow: 0 2px 0 #181b3a; }
+#infoBox.pinfo .pc-bar { height: 12px; border-radius: 6px; background: #181b3a; overflow: hidden; } #infoBox.pinfo .pc-bar i { display: block; height: 100%; background: linear-gradient(90deg, #ffb43a, #ffe14a); }
+#infoBox.pinfo .pc-lv > span { font-size: 18px; color: #c9cdf5; }
+#infoBox.pinfo .pc-stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; margin-top: 10px; }
+#infoBox.pinfo .pc-stats > div { background: #181b3a; border-radius: 10px; padding: 5px 8px; display: flex; flex-direction: column; }
+#infoBox.pinfo .pc-stats span { font-size: 15px; color: #8a90c8; } #infoBox.pinfo .pc-stats b { font-size: 23px; color: #fff; }
+#infoBox.pinfo .pc-sec { margin-top: 10px; font-size: 18px; color: #c9cdf5; } #infoBox.pinfo .pc-sec b { color: #fff; }
+#infoBox.pinfo .pc-slots { display: flex; flex-direction: column; gap: 5px; margin-top: 4px; }
+#infoBox.pinfo .pc-slot { display: grid; grid-template-columns: 18px auto 1fr; column-gap: 8px; align-items: center; padding: 6px 10px; border-radius: 10px; background: #181b3a; border: 2px solid var(--c, #3b4180); }
+#infoBox.pinfo .pc-slot i { width: 14px; height: 14px; border-radius: 50%; background: var(--c); }
+#infoBox.pinfo .pc-slot b { font-size: 20px; color: #fff; } #infoBox.pinfo .pc-slot small { grid-column: 2 / 4; font-size: 15px; color: #c9cdf5; }
+#infoBox.pinfo .pc-slot .pips { display: flex; gap: 4px; } #infoBox.pinfo .pc-slot .pips u { width: 12px; height: 12px; border-radius: 3px; background: #2e3366; border: 2px solid #0d0f24; } #infoBox.pinfo .pc-slot .pips u.f { background: var(--c); }
+#infoBox.pinfo .pc-slot.empty { border-style: dashed; border-color: #6a70b8; grid-template-columns: 1fr; } #infoBox.pinfo .pc-slot.empty small, #infoBox.pinfo .pc-slot.lock small { grid-column: 1; }
+#infoBox.pinfo .pc-slot.empty b { color: #c9cdf5; }
+#infoBox.pinfo .pc-slot.lock { grid-template-columns: 1fr; opacity: .55; border-color: #2e3366; } #infoBox.pinfo .pc-slot.lock b { color: #8a90c8; font-size: 18px; }
+#infoBox.pinfo .pc-chips { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 8px; }
+#infoBox.pinfo .pc-chip { font-size: 16px; padding: 2px 9px; border-radius: 8px; background: #181b3a; color: #fff; border: 2px solid #3b4180; }
+#infoBox.pinfo .pc-chip.main { border-color: #ffe9a8; } #infoBox.pinfo .pc-chip.lunch { background: #ffb04a; color: #181b3a; border-color: #181b3a; } #infoBox.pinfo .pc-chip.br { color: #ffd27a; }
+#infoBox.pinfo .pc-awk { display: flex; gap: 5px; margin-top: 8px; } #infoBox.pinfo .pc-awk span { flex: 1; font-size: 15px; text-align: center; padding: 4px; border-radius: 8px; background: #181b3a; color: #8a90c8; border: 2px dashed #3b4180; }
+#infoBox.pinfo .pc-awk span.on { color: #fff; border: 2px solid #ff9ad0; } #infoBox.pinfo .pc-awk em { font-style: normal; color: #ff9ad0; margin-right: 4px; }
+#infoBox.pinfo .pc-chip.br em { font-style: normal; } #infoBox.pinfo .pc-chip .g2 { color: #8fd0ff; } #infoBox.pinfo .pc-chip .g3 { color: #d9a8ff; } #infoBox.pinfo .pc-chip .g4 { color: #ffc35a; } #infoBox.pinfo .pc-chip .g5 { color: #ff7a8a; }

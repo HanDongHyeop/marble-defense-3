@@ -1,6 +1,6 @@
 // 마블 디펜스 3 — 준비 · 전투 모드(2026-11-26 사용자 확정 · 슬롯바운드 흐름 참고). 지금 방식(실시간)은 그대로 두고 로비에서 고르는 모드.
-//   흐름: 준비(시간 제한 없음 · 소환 · 먹이기 · 등급업 카드 · 각성) → [전투 시작] → 한 웨이브(적은 많이 · 다 잡으면 끝) → 웨이브 보상 금화 + 이자 → 준비
-//   전투 중에도 소환 · 먹이기는 된다(P.battleSummon, 로비 설정으로 끌 수 있음). 고르는 창(갈래 카드 · 각성)은 준비 시간에만 — 전투 중엔 머리 위 '!'
+//   흐름: 웨이브 몬스터가 판에서 다 없어지면(처치 · 수정 도착) 준비 10초(P.prepTime · [바로 시작]으로 건너뜀) → 다음 웨이브(적은 많이) → 다시 준비
+//   [2026-11-26 사용자] 준비 시간 제한 없음 → 10초로 · 전투 중 소환 끄기 설정은 없앰(소환은 늘 됨). 고르는 창(갈래 카드 · 각성)은 준비 시간에만(창이 떠 있는 동안 시계 멈춤) — 전투 중엔 머리 위 '!'
 //   성장: 합치기 없음. 아무 캐릭터나 끌어 놓으면 '먹이기' = 레벨 +1(+ 도시락) + 먹힌 캐릭터 계열의 흔적 하나.
 //         그 등급의 정해진 레벨(P.thr)에 닿으면 갈래 카드 2장 → 한 등급 오름. 신화(최고)가 된 뒤에도 먹이면 P.awk 레벨마다 각성 카드 3장 중 1장
 //   흔적: 계열마다 정해진 흔적 하나(05 확정안 표). 칸 = 등급별 P.slots. 빈 칸 = [받기 · 취소] / 같은 흔적 = 자동 레벨업(Lv3이면 자동으로 레벨로) / 칸이 가득 = [바꾸기 · 레벨로 · 취소]
@@ -28,16 +28,14 @@
     startGold: 60,                    // 준비 시간에 먼저 소환하라고 시작 금화 +60
     hpMul: 0.9,                       // 밸런스(봇: 0.85 → 1장 보통 94% · 1.0 → 58%)
     interestPer: 25, interestMax: 8,  // 이자 = 가진 금화 25마다 +1(최대 +8)
-    battleSummon: true,               // 전투 중 소환 · 먹이기(false = 슬롯바운드처럼 준비 시간에만)
+    prepTime: 10, firstPrep: 15,      // 웨이브 사이 준비 시간(초) · 첫 웨이브 전
   };
   let on = false;
   if (isNode) { on = !!process.env.PREP; if (process.env.PREPX) Object.assign(P, JSON.parse(process.env.PREPX)); }
   else try {
     const q = new URLSearchParams(location.search);
     const md = q.get('mode'); if (md) { if (md === 'prep') localStorage.setItem('mdv3_mode', 'prep'); else localStorage.removeItem('mdv3_mode'); }
-    const bs = q.get('bsum'); if (bs) localStorage.setItem('mdv3_bsum', bs === '0' ? '0' : '1');
     on = localStorage.getItem('mdv3_mode') === 'prep';
-    if (localStorage.getItem('mdv3_bsum') === '0') P.battleSummon = false;
   } catch (e) { /* 저장 막힘 */ }
 
   // 흔적(05 확정안) — 확률형(화상 · 얼음 · 저주 · 튐 · 한 번 더)과 공속형(기계 · 기사)
@@ -87,17 +85,26 @@
         super(opt);
         this.prepOn = opt.prep != null ? !!opt.prep : on;
         if (!this.prepOn) return;
-        this.phase = 'prep'; this.debt = 0; this.kAcc = 0; this.battleSummon = P.battleSummon;
+        this.phase = 'prep'; this.debt = 0; this.kAcc = 0; this.prepEnd = this.t + P.firstPrep;
         this.stats.feeds = 0; this.stats.gradeUps = 0; this.stats.battleT = []; this.battleT0 = 0;
         this.gold += P.startGold;
       }
       // ---------------------------------------------------------------- 흐름: 준비 ↔ 전투
       step(dt) {
-        if (!this.prepOn || this.phase !== 'prep') return super.step(dt);
+        if (!this.prepOn) return super.step(dt);
+        if (this.phase !== 'prep') { super.step(dt); this.stepBattle(); return; }
         if (this.over || this.paused) return;
-        this.t += dt;   // 준비 시간: 몬스터 · 시계 멈춤(남은 탄만 마저 날아감)
+        this.t += dt;   // 준비 시간: 몬스터 없음(남은 탄만 마저 날아감) · 시간이 다 되면 다음 웨이브
         this.updateShots(dt);
+        if (this.t >= this.prepEnd) this.startBattle();
       }
+      // 전투: 판에 몬스터가 하나도 안 남으면(처치 · 수정 도착) 바로 준비 시간으로(실험실의 '3초 뒤 다음 라운드'를 기다리지 않음)
+      stepBattle() {
+        if (this.phase !== 'battle' || this.over || this.round < 1) return;
+        if (this.spawnQ.length || this.bossWait != null || (this.bossesLeft && this.bossesLeft()) || this.monsters.some(m => m.alive && m.kind !== 'truck')) return;
+        this.endBattle();
+      }
+      prepLeft() { return this.prepOn && this.phase === 'prep' ? Math.max(0, this.prepEnd - this.t) : 0; }
       startBattle() {
         if (!this.prepOn || this.phase !== 'prep' || this.over) return false;
         this.phase = 'battle'; this.battleT0 = this.t;
@@ -126,7 +133,7 @@
         const pay = Math.round(this.debt); this.debt = 0;
         const it = Math.min(P.interestMax, Math.floor(this.gold / P.interestPer));
         this.gold += pay + it;
-        this.stats.battleT.push(+(this.t - this.battleT0).toFixed(1));
+        this.stats.battleT.push(+(this.t - this.battleT0).toFixed(1)); this.prepEnd = this.t + P.prepTime;
         this.emit('prep', { round: this.round, pay, interest: it, next: this.round + 1, boss: (this.round + 1) % 5 === 0 });
       }
       // 보스 라운드: 준비 시간을 이미 가졌으니 기다리지 않고 바로 등장
@@ -144,8 +151,6 @@
         const got = (this.gold - g0) / this.cntMul();
         if (got > 0) { this.gold = g0; this.kAcc += got * P.killGold; const k = Math.floor(this.kAcc); this.kAcc -= k; this.gold += k; this.debt += got * (1 - P.killGold); }
       }
-      blocked() { return this.prepOn && this.phase === 'battle' && !this.battleSummon; }
-      summon() { if (this.blocked()) { this.emit('prepOnly', { what: '소환' }); return false; } return super.summon(); }
 
       // ---------------------------------------------------------------- 캐릭터 상태
       build(i, type, tier) {
@@ -191,7 +196,7 @@
       // ---------------------------------------------------------------- 먹이기(끌어 놓기 = 아무 캐릭터나)
       canMerge(a, b) {
         if (!this.prepOn) return super.canMerge(a, b);
-        if (a === b || this.blocked()) return false;
+        if (a === b) return false;
         const A = this.tiles[a] && this.tiles[a].tower, B = this.tiles[b] && this.tiles[b].tower;
         return !!(A && B && !this.tiles[a].occ && !this.tiles[b].occ);
       }
@@ -293,7 +298,7 @@
     }
     const D = g.constructor.__D || (isNode ? require('../../js/data.js') : root.DATA);
     if (g.cmdReady && g.cmdReady() && D.COMMANDERS[g.cmd.id] && D.COMMANDERS[g.cmd.id].mode === 'tap' && g.phase === 'battle') g.useCommander();
-    if (g.phase === 'prep' || g.battleSummon) {
+    {
       const empty = g.tiles.filter(t => !t.tower && !t.blocked).length;
       if (g.round >= 2) {   // 강화: 판에 가장 많은 계열
         const cnt = {}; for (const t of g.towersList()) cnt[t.tower.type] = (cnt[t.tower.type] || 0) + (t.tower.lv || 1);

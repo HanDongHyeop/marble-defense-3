@@ -698,7 +698,7 @@ const tw = (k, t) => `img/px/ally2/${FAM2[k] || 'fire'}_${GR5[t || 1]}.png`;   /
     },
     pickCh(nn) { const n = +nn; if (!chOpen(n)) { toast(`🔒 ${n}장은 ${n - 1}장 보통을 깨면 열려요`); return; } if (S.chapter === n) { close(); return; } S.chapter = n; if (!diffOpen(n, DIFFS.indexOf(S.diff))) S.diff = 'normal'; render(); renderModal(false); toast(`${n}장 ${M.CHAPTERS[n - 1].name}`); },
     coop() { toast('2P 협동은 준비 중이에요'); },
-    modeTog() { const on = !prepMode(); try { if (on) localStorage.setItem('mdv3_mode', 'prep'); else localStorage.removeItem('mdv3_mode'); } catch (e) { /* 저장 막힘 */ } render(); toast(on ? '⚔ 준비 · 전투 모드 — 웨이브 사이 준비 시간에 키우고, [전투 시작]으로 한 무리씩' : '▶ 실시간 모드 — 지금까지 방식(같은 등급 합치기)'); },
+    modeTog() { const on = !prepMode(); try { if (on) localStorage.setItem('mdv3_mode', 'prep'); else localStorage.removeItem('mdv3_mode'); } catch (e) { /* 저장 막힘 */ } render(); toast(on ? '⚔ 준비 · 전투 모드 — 웨이브가 끝나면 10초 준비 시간(먹여서 키우기 · 바로 시작 가능)' : '▶ 실시간 모드 — 지금까지 방식(같은 등급 합치기)'); },
     coopOld() { open({ type: 'pop', title: '협동', msg: '둘이 한 판을 함께 지켜요.<small>AI 동료는 바로 · 친구는 초대 링크로</small>', html: `<div class="btns" style="margin-top:16px">${B('coopAi', null, 'btn green', 'AI와 함께')}${B('coopFriend', null, 'btn blue', '친구 초대')}</div>` }); },
     coopAi() { close(); setTimeout(() => A.start('coop'), 200); },
     coopFriend() { close(); toast('초대 링크를 만들었어요 (시안 — 실제 연결 없음)'); },
@@ -968,7 +968,7 @@ const tw = (k, t) => `img/px/ally2/${FAM2[k] || 'fire'}_${GR5[t || 1]}.png`;   /
     const og = { choice: { commander: S.cmd, pawn: S.pawn, mode: mode === 'endless' ? 'endless' : 'conquest', coop: mode === 'coop', deck: deck().slice(), diff: mode === 'endless' ? 'normal' : DIFFS[di], chapter: n },
       bonus: sb ? sb.fx : null, bonusTxt: sb ? { d: sb.d.join('·'), txt: sb.txt } : null, meta: { nodes: S.nodes, unlocked: S.unlocked, relics: S.relics } };
     const fr = G0.fr = document.createElement('iframe'); fr.id = 'game'; fr.className = 'pre'; fr.title = '마블 디펜스 판'; fr.setAttribute('allow', 'autoplay; fullscreen');
-    fr.src = 'game.html?v=202611261556&embed=1&og=' + encodeURIComponent(JSON.stringify(og));
+    fr.src = 'game.html?v=202611261633&embed=1&og=' + encodeURIComponent(JSON.stringify(og));
     G0.attach = () => { if (!fr.isConnected && ui.inGame === G0) document.body.appendChild(fr); };
     // 크롬(안드로이드 · PC)은 판을 불러와도 이 화면이 거의 안 멈춤 → 착지 직후 바로. 아이폰(WebKit)은 같은 줄에서 돌아 로비가 멈칫 → 진입 막 아래에서(enterGame)
     const UA = navigator.userAgent, WK = /iPhone|iPad|iPod/.test(UA) || (/AppleWebKit/.test(UA) && !/Chrome|Chromium|Android|Edg/.test(UA)) || (navigator.maxTouchPoints > 1 && /Macintosh/.test(UA));

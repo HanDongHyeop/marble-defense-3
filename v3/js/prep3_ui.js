@@ -18,7 +18,7 @@
   function bar() {
     let b = $('prepBar'); if (b) return b;
     b = document.createElement('div'); b.id = 'prepBar'; b.hidden = true;
-    b.innerHTML = '<div class="pb-t"><b id="pbTitle">준비 시간</b><span id="pbSub">시간 제한 없음</span></div><button id="pbGo" class="pb-go">전투 시작</button>';
+    b.innerHTML = '<i class="pb-fill" id="pbFill"></i><div class="pb-t"><b id="pbTitle">준비 시간</b><span id="pbSub"></span></div><button id="pbGo" class="pb-go">바로 시작</button>';
     $('stage').appendChild(b);
     $('pbGo').addEventListener('click', e => {
       e.stopPropagation(); const A = root.App, ui = A.ui; if (!A.game || ui.inputLocked && ui.inputLocked()) return;
@@ -40,11 +40,13 @@
     if (b.hidden === prep) b.hidden = !prep;
     if (prep) {
       const nx = g.round + 1, boss = nx % 5 === 0, pend = g.towersList().filter(t => t.tower.ready || t.tower.awkReady).length;
-      const t1 = `준비 시간 · 다음 ${nx}웨이브${boss ? ' 보스' : ''}`, t2 = pend ? `고를 카드 ${pend}장 — 캐릭터 위 ! 를 누르세요` : '시간 제한 없음 · 소환하고 먹여서 키우세요', t3 = pend ? '카드 고르기' : '전투 시작';
+      const left = g.prepLeft(), sec = Math.ceil(left), full = g.round ? PR.P.prepTime : PR.P.firstPrep;
+      const t1 = `다음 ${nx}웨이브${boss ? '(보스)' : ''}까지 ${sec}초`, t2 = pend ? `고를 카드 ${pend}장 — 캐릭터 위 ! 를 누르세요` : '조합 준비 · 소환하고 먹여서 키우세요', t3 = pend ? '카드 고르기' : '바로 시작';
+      $('pbFill').style.width = Math.max(0, Math.min(100, left / full * 100)) + '%'; $('prepBar').classList.toggle('hurry', sec <= 3);
       if ($('pbTitle').textContent !== t1) $('pbTitle').textContent = t1;
       if ($('pbSub').textContent !== t2) $('pbSub').textContent = t2;
       if ($('pbGo').textContent !== t3) { $('pbGo').textContent = t3; $('pbGo').classList.toggle('pend', !!pend); }
-      const tt = $('timerTxt'); if (tt && tt.textContent !== '준비') tt.textContent = '준비';
+      const tt = $('timerTxt'), tx = '0:' + String(sec).padStart(2, '0'); if (tt && tt.textContent !== tx) tt.textContent = tx;
     }
   };
 
@@ -55,6 +57,9 @@
     A.cmd = function (name, a) {
       const g = this.game;
       if (name === 'merge' && g && g.prepOn && a && g.canMerge(a[0], a[1])) {
+        const A = g.tiles[a[0]].tower, B = g.tiles[a[1]].tower;
+        // 더 센 캐릭터(등급 또는 레벨이 높음)를 약한 쪽에 먹이려 하면 한 번 확인 — 먹힌 쪽 레벨은 넘어오지 않음(슬롯바운드와 같음)
+        if (!this.bot && !(a[2] === 'ok') && (gOf(A) > gOf(B) || A.lv > B.lv)) { this.ui.feedWarn(a[0], a[1]); return true; }
         const I = g.feedInfo(a[0], a[1]);
         if (I.ask && g.phase === 'prep' && !this.bot) { this.ui.feedAsk(a[0], a[1], I); return true; }
         return base.call(this, 'feed', [a[0], a[1], I.auto || null]);
@@ -65,6 +70,18 @@
   };
   if (!hookCmd()) { const iv = setInterval(() => { if (hookCmd()) clearInterval(iv); }, 150); }
 
+  U.feedWarn = function (a, b) {
+    const g = this.g, A = g.tiles[a].tower, B = g.tiles[b].tower, gain = 1 + (A.lunch || 0);
+    const card = (tw, cls) => `<div class="fw-c ${cls}"><span class="pf-face">${face(tw.type, gOf(tw))}</span><b class="g${gOf(tw)}">${GN[gOf(tw)]} Lv ${tw.lv}</b><small>${nameOf(tw)}</small></div>`;
+    const m = this.open(`<div class="mbox prepf"><h2>더 센 캐릭터예요!</h2><p class="sub">먹힌 캐릭터의 레벨은 넘어오지 않아요</p>
+      <div class="fw-row">${card(A, 'eat')}<span class="pf-arrow">→</span>${card(B, 'keep')}</div>
+      <div class="fw-res">받는 쪽: Lv ${B.lv} → <b>${B.lv + gain}</b> · <span>${GN[gOf(A)]} Lv ${A.lv}는 사라져요</span></div>
+      <div class="pf-btns"><button class="btn green" data-act="no">취소<small>먹이지 않음</small></button><button class="btn sec" data-act="yes">그래도 먹이기<small>${GN[gOf(A)]}를 먹여요</small></button></div></div>`, 'prepm');
+    m.onclick = e => {
+      const btn = e.target.closest('[data-act]'); if (!btn) return; e.stopPropagation(); root.SFX.click && root.SFX.click();
+      this.close(); if (btn.dataset.act === 'yes') this.app.cmd('merge', [a, b, 'ok']);
+    };
+  };
   U.feedAsk = function (a, b, I) {
     const g = this.g, A = g.tiles[a].tower, B = g.tiles[b].tower, T = PR.TR[I.k];
     const gain = I.base, lvTo = B.lv + gain, lvConv = B.lv + gain + I.conv;
@@ -139,17 +156,31 @@
     const g = this.g, tw = g && g.tiles[i] && g.tiles[i].tower;
     if (g && g.prepOn && tw && (tw.ready || tw.awkReady) && g.phase === 'prep') { this.hideInfo && this.hideInfo(); this.prepCard(i); return; }
     baseShow.call(this, i);
-    if (!g || !g.prepOn || !tw) return;
     const box = $('infoBox'); if (!box) return;
-    box.querySelectorAll('.pi-x').forEach(el => el.remove());
-    const nx = g.nextLv(tw), gg = gOf(tw);
-    const tr = tw.tr.length ? tw.tr.map(t => `<span class="pi-tr" style="--c:${TRC[t.k]}"><i></i>${PR.TR[t.k].n} Lv${t.lv}</span>`).join('') : '<span class="pi-none">없음</span>';
-    const el = document.createElement('div'); el.className = 'pi-x';
-    el.innerHTML = `<div class="pi-lv"><b>Lv ${tw.lv}</b><span>${nx ? (gg < 5 ? `Lv ${nx}에 ${GN[gg + 1]} 등급업` : `Lv ${nx}에 각성 ${['Ⅰ', 'Ⅱ', 'Ⅲ'][tw.awk.length]}`) : '각성 완료'}</span>${tw.lunch ? `<em class="pi-lunch">도시락 +${tw.lunch}</em>` : ''}</div>
-      <div class="pi-trs"><small>흔적 ${tw.tr.length}/${P.slots[gg]}</small>${tr}${tw.mainUp ? `<span class="pi-tr" style="--c:#fff"><i></i>메인 강화 ${tw.mainUp}</span>` : ''}</div>
-      ${tw.br.length || tw.awk.length ? `<div class="pi-br">${tw.br.map(b => PR.BR[b].n).join(' · ')}${tw.awk.length ? ' · 각성 ' + tw.awk.map(a => PR.AWK_BY[a.id].n).join(' · ') : ''}</div>` : ''}`;
-    box.appendChild(el);
-    const nm = box.querySelector('.ib-name b'); if (nm) nm.textContent = FAMN[tw.type] + ' ' + GN[gg];
+    box.classList.toggle('pinfo', !!(g && g.prepOn && tw));
+    if (!g || !g.prepOn || !tw) return;
+    // [2026-11-26 사용자] 정보가 많아져 정보 카드를 새로: 이름 · 계열 · 등급(★) · Lv와 다음 문턱 막대 · 힘/공속/반경 · 흔적 칸(찬 칸 · 빈 칸 · 잠긴 칸) · 메인 강화 · 도시락 · 갈래 · 각성
+    const gg = gOf(tw), nx = g.nextLv(tw), st = g.statOf(i), lo = gg < 5 ? PR.P.lvStart[gg] : (tw.awk.length ? PR.P.awk[tw.awk.length - 1] : PR.P.lvStart[5]);
+    const k = nx ? Math.max(0, Math.min(1, (tw.lv - lo) / Math.max(1, nx - lo))) : 1;
+    const goal = !nx ? '각성 완료' : gg < 5 ? `Lv ${nx}에 <b class="g${gg + 1}">${GN[gg + 1]}</b> 등급업` : `Lv ${nx}에 각성 ${['Ⅰ', 'Ⅱ', 'Ⅲ'][tw.awk.length]}`;
+    const unlockAt = n => { for (let q = 1; q <= 5; q++) if (PR.P.slots[q] >= n) return GN[q]; return ''; };
+    const slots = [0, 1, 2].map(n => {
+      const t = tw.tr[n];
+      if (t) return `<div class="pc-slot on" style="--c:${TRC[t.k]}"><i></i><b>${PR.TR[t.k].n}</b><span class="pips">${[1, 2, 3].map(q => `<u class="${q <= t.lv ? 'f' : ''}"></u>`).join('')}</span><small>${PR.TR[t.k].d(t.lv)}</small></div>`;
+      if (n < PR.P.slots[gg]) return '<div class="pc-slot empty"><b>빈 칸</b><small>다른 계열을 먹이면 흔적이 들어와요</small></div>';
+      return `<div class="pc-slot lock"><b>🔒 ${unlockAt(n + 1)}</b><small>${unlockAt(n + 1)} 등급부터 열려요</small></div>`;
+    }).join('');
+    const chips = [];
+    if (tw.mainUp) chips.push(`<span class="pc-chip main">메인 강화 ${tw.mainUp}/3 · 피해 +${tw.mainUp * 10}%</span>`);
+    if (tw.lunch) chips.push(`<span class="pc-chip lunch">도시락 +${tw.lunch} · 먹이면 레벨 +${1 + tw.lunch}</span>`);
+    tw.br.forEach((b2, q) => chips.push(`<span class="pc-chip br"><em class="g${q + 2}">${GN[q + 2]}</em> ${PR.BR[b2].n}</span>`));
+    const awk = gg >= 5 ? `<div class="pc-awk">${[0, 1, 2].map(q => { const a = tw.awk[q], c = a && PR.AWK_BY[a.id]; return `<span class="${a ? 'on' : ''}"><em>${['Ⅰ', 'Ⅱ', 'Ⅲ'][q]}</em>${c ? c.n : 'Lv ' + PR.P.awk[q]}</span>`; }).join('')}</div>` : '';
+    box.innerHTML = `<div class="pc-top"><div class="pc-pic g${gg}">${face(tw.type, gg)}</div>
+        <div class="pc-name"><b>${nameOf(tw)}</b><span class="pc-tags"><em class="fam">${FAMN[tw.type]}</em><em class="g${gg}">${GN[gg]}</em></span><span class="pc-stars g${gg}">${'★'.repeat(gg)}<i>${'★'.repeat(5 - gg)}</i></span></div></div>
+      <div class="pc-lv"><b>Lv ${tw.lv}</b><div class="pc-bar"><i style="width:${(k * 100).toFixed(0)}%"></i></div><span>${goal}</span></div>
+      <div class="pc-stats"><div><span>힘</span><b>×${st.dps >= 100 ? Math.round(st.dps) : st.dps.toFixed(1)}</b></div><div><span>공격 속도</span><b>${st.aps.toFixed(2)}</b></div><div><span>반경</span><b>${st.rng.toFixed(1)}칸</b></div></div>
+      <div class="pc-sec">흔적 칸 <b>${tw.tr.length} / ${PR.P.slots[gg]}</b></div><div class="pc-slots">${slots}</div>
+      ${chips.length ? `<div class="pc-chips">${chips.join('')}</div>` : ''}${awk}`;
   };
 
   // ---------------------------------------------------------------- 알림
@@ -169,16 +200,15 @@
     if (e.ev === 'awkReady') { const p = posOf(e.i); if (p) R.say('각성 준비!', '#ff9ad0', p[0], p[1] - 170, 1.4, 26); if (g.phase === 'prep') setTimeout(() => this.prepNext(), 400); }
     if (e.ev === 'gradeUp' && e.g <= 3) R.banner(GN[e.g] + ' 등급업!', e.g === 2 ? '#7fb8ff' : '#c08cff');
     if (e.ev === 'awaken') R.banner('각성 ' + ['Ⅰ', 'Ⅱ', 'Ⅲ'][e.s] + '!', '#ff9ad0');
-    if (e.ev === 'battle') { this.toast(e.round + ' 웨이브', e.boss ? '보스 등장!' : '전투 시작!', g.battleSummon ? '전투 중에도 소환 · 먹이기는 돼요' : '전투 중엔 지켜보기', false, 1.6); this.hideInfo && this.hideInfo(); }
-    if (e.ev === 'prep') { this.toast(e.round + ' 웨이브 승리!', '금화 +' + (e.pay + e.interest), `웨이브 보상 ${e.pay} · 이자 ${e.interest}`, false, 2.2); root.SFX.good && root.SFX.good(); setTimeout(() => this.prepNext(), 900); }
-    if (e.ev === 'prepOnly') { this.toast('준비 시간에만', e.what + '은(는) 웨이브 사이에 해요', '', true, 1.3); root.SFX.error && root.SFX.error(); }
+    if (e.ev === 'battle') { this.toast(e.round + ' 웨이브', e.boss ? '보스 등장!' : '전투 시작!', '전투 중에도 소환 · 먹이기는 돼요', false, 1.6); this.hideInfo && this.hideInfo(); }
+    if (e.ev === 'prep') { this.toast(e.round + ' 웨이브 끝!', '금화 +' + (e.pay + e.interest), `웨이브 보상 ${e.pay} · 이자 ${e.interest} · 준비 ${PR.P.prepTime}초`, false, 2.2); root.SFX.good && root.SFX.good(); setTimeout(() => this.prepNext(), 900); }
   };
 
   // ---------------------------------------------------------------- 규칙 카드(첫 판) · 튜토리얼 끄기
   const baseIntro = U.labIntro;
   U.labIntro = function (back) {
     if (!on()) return baseIntro.call(this, back);
-    const R = ['<b>준비 시간</b>에는 시계가 멈춰요. 소환하고 키운 뒤 <b>[전투 시작]</b>을 누르세요.', '전투 = 몬스터 한 무리. <b>다 잡으면 웨이브 승리</b> → 금화 보상 + 이자(가진 금화 25마다 +1).',
+    const R = [`웨이브 몬스터가 판에서 다 없어지면 <b>준비 시간 ${P.prepTime}초</b>. 소환하고 먹여서 조합을 맞추세요. 빨리 끝났으면 <b>[바로 시작]</b>.`, '웨이브가 끝나면 금화 보상 + 이자(가진 금화 25마다 +1). 전투 중에도 소환 · 먹이기는 돼요.',
       '아무 캐릭터나 <b>끌어서 다른 캐릭터에 놓으면 먹이기</b>: 레벨 +1, 먹힌 캐릭터의 <b>계열 흔적</b>을 받아요.', `레벨이 문턱(일반 ${P.thr[1]} · 희귀 ${P.thr[2]} · 영웅 ${P.thr[3]} · 전설 ${P.thr[4]})에 닿으면 <b>갈래 카드 2장</b> 중 골라 한 등급 올라요. 신화가 된 뒤에도 먹이면 <b>각성 카드</b>.`,
       '같은 흔적은 자동으로 레벨업(최대 Lv3). 흔적 칸이 가득 차면 <b>[바꾸기]</b> 또는 <b>[레벨로]</b>.'];
     const m = this.open(`<div class="mbox labrule"><div class="lr-tag">준비 · 전투 모드</div><h2>마블 디펜스 3</h2><ol class="howto">${R.map(s => `<li>${s}</li>`).join('')}</ol><div class="btns"><button class="btn green" data-act="go">${back ? '계속하기' : '시작!'}</button></div></div>`, 'labrule');
