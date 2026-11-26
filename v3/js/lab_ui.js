@@ -220,7 +220,7 @@
         const d = R.drag; R.drag = null;
         if (d.target != null) { if (this.app.cmd('merge', [d.from, d.target]) && root.HAPTIC) root.HAPTIC.play('select'); return; }
         if (d.moveTo != null) { if (this.app.cmd('moveTo', [d.from, d.moveTo])) { if (root.HAPTIC) root.HAPTIC.play('select'); this.sfx().click && this.sfx().click(); } return; }
-        if (d.wrong) { this.sfx().error(); if (root.HAPTIC) root.HAPTIC.play('deny'); if (g.prepOn) this.toast('🔒 잠긴 캐릭터', '자기보다 낮은 등급에는 못 먹여요', '정보 카드에서 잠금을 풀 수 있어요', true, 1.4); else this.toast('합칠 수 없어요', '같은 등급끼리만', '', true, 1.1); }
+        if (d.wrong && !g.prepOn) { this.sfx().error(); if (root.HAPTIC) root.HAPTIC.play('deny'); this.toast('합칠 수 없어요', '같은 등급끼리만', '', true, 1.1); }
         return;
       }
       if (!p || performance.now() - p.t > 450) return;
