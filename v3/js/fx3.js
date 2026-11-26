@@ -35,8 +35,27 @@
   };
   const motOf = (f, g) => (MOT[f] || MOT.fire)[Math.max(0, Math.min(4, g - 1))];
   R.atkPic = function (type, tier) { const f = famOf(type), g = GRADE[tier] || 1; return FAM[type] ? this.pic('a2k_' + f + g, 'v3/img/px/ally2/' + f + '_' + g + '_atk.png') : null; };
+  // [2026-11-26 사용자] 등급 테두리: 희귀 짙은 하늘 · 영웅 보라 · 전설 노랑 · 신화 주황(일반 없음). 미리 구운 그림(tools/bake_outline.py → *_ol.png)을 캐릭터와 같은 자리 · 같은 변환으로 바로 뒤에 그림 → 몸짓 · 공격 자세 · 들기에도 그대로 따라감
+  R.olPic = function (type, tier, atk) { const f = famOf(type), g = GRADE[tier] || 1; if (g < 2 || !FAM[type]) return null; return this.pic('ol' + (atk ? 'k_' : '_') + f + g, 'v3/img/px/ally2/' + f + '_' + g + (atk ? '_atk' : '') + '_ol.png'); };
+  // 전설(노랑 반짝이 6개) · 신화(주황 불씨 10개 + 빛 맥박) — 상태 없이 시간으로만 계산(위로 떠오르며 사라짐)
+  R.gradeAura = function (c, x, y, g, h, seed, front) {
+    if (g < 4) return;
+    const T = this.time, n = g >= 5 ? 10 : 6, sp = g >= 5 ? 0.55 : 0.4;
+    c.save();
+    if (!front && g >= 5) { const k = 0.5 + 0.5 * Math.sin(T * 3 + seed); const gl = c.createRadialGradient(x, y - h * 0.45, 4, x, y - h * 0.45, h * 0.75); gl.addColorStop(0, 'rgba(255,140,40,' + (0.22 + 0.12 * k) + ')'); gl.addColorStop(1, 'rgba(255,90,20,0)'); c.fillStyle = gl; c.beginPath(); c.arc(x, y - h * 0.45, h * 0.75, 0, TAU); c.fill(); }
+    for (let k = 0; k < n; k++) {
+      if ((k % 2 === 0) !== !!front) continue;   // 반은 몸 뒤 · 반은 몸 앞
+      const ph = (T * sp + k / n + seed * 0.13) % 1, a = Math.sin(ph * Math.PI), ang = k * 2.39996 + seed;
+      const px = x + Math.cos(ang) * h * (0.32 + 0.12 * Math.sin(T + k)), py = y - h * 0.08 - ph * h * 0.95;
+      const r = (g >= 5 ? 3.6 : 3.0) * (0.6 + 0.4 * a);
+      c.globalAlpha = a * 0.95;
+      if (g >= 5) { c.fillStyle = k % 3 === 0 ? '#fff1a0' : k % 3 === 1 ? '#ff9a2a' : '#ff5a1a'; c.beginPath(); c.arc(px, py, r, 0, TAU); c.fill(); }
+      else this.star(c, px, py, r * 1.5, k % 2 ? '#fff6c0' : '#ffd21e');
+    }
+    c.restore();
+  };
   const basePre = R.preload;
-  R.preload = function () { basePre.call(this); for (const n in (root.FXSHEETS || {})) root.FXSHEETS[n].sheets.forEach((s, k) => this.pic('fx_' + n + k, 'v3/img/fx/' + s)); for (const f of Object.values(FAM)) for (let g = 1; g <= 5; g++) this.pic('a2k_' + f + g, 'v3/img/px/ally2/' + f + '_' + g + '_atk.png'); };
+  R.preload = function () { basePre.call(this); for (const n in (root.FXSHEETS || {})) root.FXSHEETS[n].sheets.forEach((s, k) => this.pic('fx_' + n + k, 'v3/img/fx/' + s)); for (const f of Object.values(FAM)) for (let g = 1; g <= 5; g++) { this.pic('a2k_' + f + g, 'v3/img/px/ally2/' + f + '_' + g + '_atk.png'); if (g >= 2) { this.pic('ol_' + f + g, 'v3/img/px/ally2/' + f + '_' + g + '_ol.png'); this.pic('olk_' + f + g, 'v3/img/px/ally2/' + f + '_' + g + '_atk_ol.png'); } } };
   // 발사 위치(화면 좌표): 공격 그림 안의 점(입 · 손 · 총구 · 무기 끝)을 그 캐릭터가 보는 방향에 맞춰 옮김
   R.muzzle = function (game, i) {
     const t = game.tiles[i], tw = t && t.tower; if (!tw || !FAM[tw.type]) return null;
@@ -141,14 +160,18 @@
     c.restore();
     // 몸
     const im = this.allyPic(tw.type, tw.tier), ima = atk && im ? this.atkPic(tw.type, tw.tier) : null;
+    const auH = size * 0.62; this.gradeAura(c, x + ox, y - 4 + oy, g, auH, t.i, false);
     c.save(); c.translate(x + ox, y - 4 + oy);
     if (dir > 0) c.scale(-1, 1);   // 그림은 왼쪽을 본다
     c.rotate(dir > 0 ? -rot : rot); c.scale(sx, sy);
     if (dis || stop) c.filter = 'grayscale(0.85) brightness(0.8)';
     let top = 84;
+    const ol = im ? this.olPic(tw.type, tw.tier, !!(ima && im.src.indexOf('ally2') >= 0)) : null;
+    if (im && ol) { const two = im.src.indexOf('ally2') >= 0, w = size * (two ? SPR : 1), h = w * im.naturalHeight / im.naturalWidth; if (ima && two) c.drawImage(ol, -w * 0.7, -(h * 1.4 - h * 0.06), w * 1.4, h * 1.4); else c.drawImage(ol, -w / 2, -h * 0.94, w, h); }
     if (im) { const two = im.src.indexOf('ally2') >= 0, w = size * (two ? SPR : 1), h = w * im.naturalHeight / im.naturalWidth; if (ima && two) c.drawImage(ima, -w * 0.7, -(h * 1.4 - h * 0.06), w * 1.4, h * 1.4); else c.drawImage(im, -w / 2, -h * 0.94, w, h); top = two ? h * 0.9 : h * 0.72; }
     c.filter = 'none';
     c.restore();
+    this.gradeAura(c, x + ox, y - 4 + oy, g, auH, t.i, true);
     // [v3.9d] 든 아군 위 화살표(통통 튀는 ▼) — 아군이 많을 때 무엇을 들었는지 보이게
     if (drg) { const b = Math.abs(Math.sin(T * 6)) * 8, ax = x + ox, ay = y - 4 + oy - top - 44 - b; c.save(); c.lineJoin = 'round'; c.fillStyle = '#ffe14a'; c.strokeStyle = OUT; c.lineWidth = 5; c.beginPath(); c.moveTo(ax - 15, ay - 12); c.lineTo(ax + 15, ay - 12); c.lineTo(ax, ay + 8); c.closePath(); c.stroke(); c.fill(); c.restore(); }
     // 레벨 배지(머리 위)

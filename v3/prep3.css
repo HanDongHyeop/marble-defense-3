@@ -102,3 +102,9 @@ body.v3 #infoBox.pinfo { width: 440px; padding: 16px 16px 14px; font-family: Jua
 #infoBox.pinfo .pc-awk { display: flex; gap: 5px; margin-top: 8px; } #infoBox.pinfo .pc-awk span { flex: 1; font-size: 15px; text-align: center; padding: 4px; border-radius: 8px; background: #181b3a; color: #8a90c8; border: 2px dashed #3b4180; }
 #infoBox.pinfo .pc-awk span.on { color: #fff; border: 2px solid #ff9ad0; } #infoBox.pinfo .pc-awk em { font-style: normal; color: #ff9ad0; margin-right: 4px; }
 #infoBox.pinfo .pc-chip.br em { font-style: normal; } #infoBox.pinfo .pc-chip .g2 { color: #8fd0ff; } #infoBox.pinfo .pc-chip .g3 { color: #d9a8ff; } #infoBox.pinfo .pc-chip .g4 { color: #ffc35a; } #infoBox.pinfo .pc-chip .g5 { color: #ff7a8a; }
+/* [2026-11-26] 높은 등급 먹이기 확인 · 묻지 않기 · 잠금 버튼 */
+.prepf .fw-mute { display: flex; align-items: center; justify-content: center; gap: 8px; margin-top: 12px; font-size: 18px; color: #c9cdf5; cursor: pointer; }
+.prepf .fw-mute input { width: 22px; height: 22px; accent-color: #4cc152; }
+#infoBox.pinfo { position: absolute; } #infoBox.pinfo .pc-lock { position: absolute; right: 12px; top: 12px; z-index: 2; font: 17px Jua, sans-serif; padding: 5px 10px; border-radius: 10px; border: 3px solid #181b3a; background: #3b4180; color: #fff; box-shadow: 0 4px 0 #181b3a; cursor: pointer; }
+#infoBox.pinfo .pc-lock.on { background: #ffe14a; color: #181b3a; }
+#infoBox.pinfo .pc-name { padding-right: 84px; }

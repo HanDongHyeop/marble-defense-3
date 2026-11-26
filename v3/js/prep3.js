@@ -198,8 +198,11 @@
         if (!this.prepOn) return super.canMerge(a, b);
         if (a === b) return false;
         const A = this.tiles[a] && this.tiles[a].tower, B = this.tiles[b] && this.tiles[b].tower;
-        return !!(A && B && !this.tiles[a].occ && !this.tiles[b].occ);
+        if (!(A && B && !this.tiles[a].occ && !this.tiles[b].occ)) return false;
+        if (A.locked && gOf(B) < gOf(A)) return false;   // [2026-11-26] 잠금: 자기보다 낮은 등급에는 먹여지지 않음(드래그 때 짝으로 안 보이고 놓아도 제자리)
+        return true;
       }
+      lockUnit(i) { const tw = this.tiles[i] && this.tiles[i].tower; if (!tw || !this.prepOn) return false; tw.locked = !tw.locked; this.emit('lock', { i, on: tw.locked }); return true; }
       dragMerge(a, b) { return this.prepOn ? this.feed(a, b) : super.dragMerge(a, b); }
       // 먹이면 어떻게 되는지(화면이 고르는 창을 띄울지 정함): kind = main · mainMax · up · max · empty · full
       feedInfo(a, b) {
@@ -223,8 +226,15 @@
         else if (pick === 'swap') { const j = sw != null && B.tr[sw] ? sw : 0; B.tr[j] = { k: I.k, lv: 1 }; res = 'swap'; }
         else { gain += I.conv; res = 'level'; }
         this.tiles[a].tower = null; this.tiles[a].warn = null;
+        // [2026-11-26 사용자] 높은 등급을 먹이면 등급 차이 d만큼 흔적 +1(최대가 아닌 흔적 중 무작위로 하나씩 · 한 흔적에 한 번만 · 남는 몫은 버려짐)
+        const d = gOf(A) - gOf(B), bonus = [];
+        if (d > 0) {
+          const el = B.tr.filter(t => t.lv < 3);
+          for (let n = el.length - 1; n > 0; n--) { const j = this.rand(n + 1); [el[n], el[j]] = [el[j], el[n]]; }
+          for (const t of el.slice(0, d)) { t.lv++; bonus.push(t.k); }
+        }
         B.lv += gain; this.stats.feeds++; this.stats.merges++;
-        this.emit('feed', { i: b, a, gain, lv: B.lv, k: I.k, res, lunch: A.lunch || 0, type: B.type, typeA: A.type, tierA: A.tier });
+        this.emit('feed', { i: b, a, gain, lv: B.lv, k: I.k, res, lunch: A.lunch || 0, type: B.type, typeA: A.type, tierA: A.tier, d: Math.max(0, d), bonus });
         this.misAdd('merge20', 1);
         this.checkUp(b);
         return true;

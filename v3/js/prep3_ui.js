@@ -59,7 +59,7 @@
       if (name === 'merge' && g && g.prepOn && a && g.canMerge(a[0], a[1])) {
         const A = g.tiles[a[0]].tower, B = g.tiles[a[1]].tower;
         // 더 센 캐릭터(등급 또는 레벨이 높음)를 약한 쪽에 먹이려 하면 한 번 확인 — 먹힌 쪽 레벨은 넘어오지 않음(슬롯바운드와 같음)
-        if (!this.bot && !(a[2] === 'ok') && (gOf(A) > gOf(B) || A.lv > B.lv)) { this.ui.feedWarn(a[0], a[1]); return true; }
+        if (!this.bot && !(a[2] === 'ok') && gOf(A) > gOf(B) && !warnMuted()) { this.ui.feedWarn(a[0], a[1]); return true; }
         const I = g.feedInfo(a[0], a[1]);
         if (I.ask && g.phase === 'prep' && !this.bot) { this.ui.feedAsk(a[0], a[1], I); return true; }
         return base.call(this, 'feed', [a[0], a[1], I.auto || null]);
@@ -70,16 +70,22 @@
   };
   if (!hookCmd()) { const iv = setInterval(() => { if (hookCmd()) clearInterval(iv); }, 150); }
 
+  // '오늘은 더 이상 묻지 않기' — 지금은 1시간(나중에 하루로 바꿀 것: WARN_MUTE)
+  const WARN_MUTE = 60 * 60 * 1000;
+  const warnMuted = () => { try { return Date.now() < +(localStorage.getItem('mdv3_feedwarn') || 0); } catch (e) { return false; } };
   U.feedWarn = function (a, b) {
-    const g = this.g, A = g.tiles[a].tower, B = g.tiles[b].tower, gain = 1 + (A.lunch || 0);
+    const g = this.g, A = g.tiles[a].tower, B = g.tiles[b].tower, gain = 1 + (A.lunch || 0), d = gOf(A) - gOf(B), up = B.tr.filter(t => t.lv < 3).length;
     const card = (tw, cls) => `<div class="fw-c ${cls}"><span class="pf-face">${face(tw.type, gOf(tw))}</span><b class="g${gOf(tw)}">${GN[gOf(tw)]} Lv ${tw.lv}</b><small>${nameOf(tw)}</small></div>`;
-    const m = this.open(`<div class="mbox prepf"><h2>더 센 캐릭터예요!</h2><p class="sub">먹힌 캐릭터의 레벨은 넘어오지 않아요</p>
+    const bon = up ? `흔적 ${Math.min(d, up)}개 +1${d > up ? ` (${d - up}개는 올릴 흔적이 없어 버려져요)` : ''}` : '올릴 흔적이 없어요(모두 최대이거나 없음)';
+    const m = this.open(`<div class="mbox prepf"><h2>높은 등급을 먹일까요?</h2><p class="sub">${GN[gOf(A)]}는 ${GN[gOf(B)]}보다 ${d}등급 높아요 → 레벨 +${gain} · 흔적 최대 ${d}개 +1</p>
       <div class="fw-row">${card(A, 'eat')}<span class="pf-arrow">→</span>${card(B, 'keep')}</div>
-      <div class="fw-res">받는 쪽: Lv ${B.lv} → <b>${B.lv + gain}</b> · <span>${GN[gOf(A)]} Lv ${A.lv}는 사라져요</span></div>
-      <div class="pf-btns"><button class="btn green" data-act="no">취소<small>먹이지 않음</small></button><button class="btn sec" data-act="yes">그래도 먹이기<small>${GN[gOf(A)]}를 먹여요</small></button></div></div>`, 'prepm');
+      <div class="fw-res">받는 쪽: Lv ${B.lv} → <b>${B.lv + gain}</b> · <b>${bon}</b><br><span>${GN[gOf(A)]} Lv ${A.lv}는 사라지고 레벨은 넘어오지 않아요</span></div>
+      <div class="pf-btns"><button class="btn sec" data-act="no">취소<small>먹이지 않음</small></button><button class="btn green" data-act="yes">먹이기<small>${GN[gOf(A)]}를 먹여요</small></button></div>
+      <label class="fw-mute"><input type="checkbox" id="fwMute"> 오늘은 더 이상 묻지 않기</label></div>`, 'prepm');
     m.onclick = e => {
       const btn = e.target.closest('[data-act]'); if (!btn) return; e.stopPropagation(); root.SFX.click && root.SFX.click();
-      this.close(); if (btn.dataset.act === 'yes') this.app.cmd('merge', [a, b, 'ok']);
+      const mute = $('fwMute') && $('fwMute').checked;
+      this.close(); if (btn.dataset.act === 'yes') { if (mute) try { localStorage.setItem('mdv3_feedwarn', String(Date.now() + WARN_MUTE)); } catch (er) { /* 저장 막힘 */ } this.app.cmd('merge', [a, b, 'ok']); }
     };
   };
   U.feedAsk = function (a, b, I) {
@@ -175,7 +181,8 @@
     if (tw.lunch) chips.push(`<span class="pc-chip lunch">도시락 +${tw.lunch} · 먹이면 레벨 +${1 + tw.lunch}</span>`);
     tw.br.forEach((b2, q) => chips.push(`<span class="pc-chip br"><em class="g${q + 2}">${GN[q + 2]}</em> ${PR.BR[b2].n}</span>`));
     const awk = gg >= 5 ? `<div class="pc-awk">${[0, 1, 2].map(q => { const a = tw.awk[q], c = a && PR.AWK_BY[a.id]; return `<span class="${a ? 'on' : ''}"><em>${['Ⅰ', 'Ⅱ', 'Ⅲ'][q]}</em>${c ? c.n : 'Lv ' + PR.P.awk[q]}</span>`; }).join('')}</div>` : '';
-    box.innerHTML = `<div class="pc-top"><div class="pc-pic g${gg}">${face(tw.type, gg)}</div>
+    if (!box._lk) { box._lk = 1; box.addEventListener('click', ev => { const lb = ev.target.closest('[data-lock]'); if (!lb) return; ev.stopPropagation(); root.SFX.click && root.SFX.click(); this.app.cmd('lockUnit', [this.infoI]); }); }
+    box.innerHTML = `<button class="pc-lock ${tw.locked ? 'on' : ''}" data-lock="1">${tw.locked ? '🔒 잠김' : '🔓 잠금'}</button><div class="pc-top"><div class="pc-pic g${gg}">${face(tw.type, gg)}</div>
         <div class="pc-name"><b>${nameOf(tw)}</b><span class="pc-tags"><em class="fam">${FAMN[tw.type]}</em><em class="g${gg}">${GN[gg]}</em></span><span class="pc-stars g${gg}">${'★'.repeat(gg)}<i>${'★'.repeat(5 - gg)}</i></span></div></div>
       <div class="pc-lv"><b>Lv ${tw.lv}</b><div class="pc-bar"><i style="width:${(k * 100).toFixed(0)}%"></i></div><span>${goal}</span></div>
       <div class="pc-stats"><div><span>힘</span><b>×${st.dps >= 100 ? Math.round(st.dps) : st.dps.toFixed(1)}</b></div><div><span>공격 속도</span><b>${st.aps.toFixed(2)}</b></div><div><span>반경</span><b>${st.rng.toFixed(1)}칸</b></div></div>
@@ -192,6 +199,7 @@
     if (e.ev === 'feed') {
       const p = posOf(e.i); if (p) R.say('Lv ' + e.lv + '  (+' + e.gain + ')', e.lunch ? '#ffd23a' : '#ffffff', p[0], p[1] - 120, 1.0, 26);
       if (e.res === 'up' || e.res === 'empty' || e.res === 'swap') { const t = g.tiles[e.i].tower.tr.find(x => x.k === e.k); if (p && t) R.say(PR.TR[e.k].n + ' Lv' + t.lv, TRC[e.k], p[0], p[1] - 150, 1.1, 22); }
+      if (e.bonus && e.bonus.length && p) R.say('흔적 보너스 ' + e.bonus.map(k => PR.TR[k].n).join(' · ') + ' +1', '#ffe14a', p[0], p[1] - 180, 1.4, 22);
       if (e.res === 'main' && p) R.say('메인 강화 ' + g.tiles[e.i].tower.mainUp, '#ffe9a8', p[0], p[1] - 150, 1.1, 22);
       if (R.mergeFx) R.mergeFx(g, e.i, g.tiles[e.i].tower.tier);
       root.SFX.merge && root.SFX.merge(1);
@@ -199,6 +207,7 @@
     if (e.ev === 'upReady') { const p = posOf(e.i); if (p) R.say(GN[e.g + 1] + ' 등급업 준비!', '#ffe14a', p[0], p[1] - 170, 1.4, 26); if (g.phase === 'prep') setTimeout(() => this.prepNext(), 400); }
     if (e.ev === 'awkReady') { const p = posOf(e.i); if (p) R.say('각성 준비!', '#ff9ad0', p[0], p[1] - 170, 1.4, 26); if (g.phase === 'prep') setTimeout(() => this.prepNext(), 400); }
     if (e.ev === 'gradeUp' && e.g <= 3) R.banner(GN[e.g] + ' 등급업!', e.g === 2 ? '#7fb8ff' : '#c08cff');
+    if (e.ev === 'lock') { this.toast(e.on ? '🔒 잠금' : '잠금 풀림', e.on ? '자기보다 낮은 등급에는 먹여지지 않아요' : '이제 아무 캐릭터에게나 먹일 수 있어요', '', false, 1.4); if (this.infoI === e.i && !$('infoBox').hidden) this.showInfo(e.i); }
     if (e.ev === 'awaken') R.banner('각성 ' + ['Ⅰ', 'Ⅱ', 'Ⅲ'][e.s] + '!', '#ff9ad0');
     if (e.ev === 'battle') { this.toast(e.round + ' 웨이브', e.boss ? '보스 등장!' : '전투 시작!', '전투 중에도 소환 · 먹이기는 돼요', false, 1.6); this.hideInfo && this.hideInfo(); }
     if (e.ev === 'prep') { this.toast(e.round + ' 웨이브 끝!', '금화 +' + (e.pay + e.interest), `웨이브 보상 ${e.pay} · 이자 ${e.interest} · 준비 ${PR.P.prepTime}초`, false, 2.2); root.SFX.good && root.SFX.good(); setTimeout(() => this.prepNext(), 900); }
@@ -229,15 +238,17 @@
       const tw = this._ptw; if (!tw) return baseBadge.call(this, c, x, y, g, age, seed);
       const GT = { 1: '#ffffff', 2: '#8fd0ff', 3: '#d9a8ff', 4: '#ffc35a', 5: '#ff7a8a' }, OUT = '#181b3a';
       let lift = 0; if (age >= 0 && age < 0.4) lift = -Math.sin(age / 0.4 * Math.PI) * 10;
-      const txt = 'Lv.' + tw.lv, ty = y + lift + 4;
+      // [2026-11-26 사용자] 레벨 글씨는 지움(등급은 캐릭터 테두리 색으로 · 레벨이 높은 일반이 더 좋아 보이는 착각 방지). 흔적 점 · ! · 도시락 · 잠금만
+      const txt = '', ty = y + lift - 6;
       c.save(); c.font = '24px Disp, Jua, sans-serif'; c.textAlign = 'center'; c.textBaseline = 'alphabetic'; c.lineJoin = 'round';
-      c.strokeStyle = OUT; c.lineWidth = 7; c.strokeText(txt, x, ty + 2.5); c.strokeText(txt, x, ty); c.fillStyle = GT[g] || '#fff'; c.fillText(txt, x, ty);
       // 흔적 점(계열 색 · 레벨만큼 진하게) — 글씨 아래
-      const n = tw.tr.length; if (n) { const w = 14, x0 = x - (n - 1) * w / 2; for (let k = 0; k < n; k++) { const t = tw.tr[k]; c.beginPath(); c.arc(x0 + k * w, ty + 12, 5.5, 0, Math.PI * 2); c.fillStyle = OUT; c.fill(); c.beginPath(); c.arc(x0 + k * w, ty + 12, 4, 0, Math.PI * 2); c.globalAlpha = 0.45 + 0.55 * t.lv / 3; c.fillStyle = TRC[t.k]; c.fill(); c.globalAlpha = 1; if (t.lv >= 3) { c.strokeStyle = '#fff'; c.lineWidth = 1.5; c.stroke(); } } }
+      const n = tw.tr.length; if (n) { const w = 14, x0 = x - (n - 1) * w / 2; if (tw.locked) { /* 자물쇠 아래로 */ } for (let k = 0; k < n; k++) { const t = tw.tr[k]; c.beginPath(); c.arc(x0 + k * w, ty + 12, 5.5, 0, Math.PI * 2); c.fillStyle = OUT; c.fill(); c.beginPath(); c.arc(x0 + k * w, ty + 12, 4, 0, Math.PI * 2); c.globalAlpha = 0.45 + 0.55 * t.lv / 3; c.fillStyle = TRC[t.k]; c.fill(); c.globalAlpha = 1; if (t.lv >= 3) { c.strokeStyle = '#fff'; c.lineWidth = 1.5; c.stroke(); } } }
       // '!' = 고를 카드 있음(통통 튐)
-      if (tw.ready || tw.awkReady) { const b = Math.abs(Math.sin(this.time * 5)) * 6, cx = x + c.measureText(txt).width / 2 + 16, cy = ty - 14 - b; c.beginPath(); c.arc(cx, cy, 13, 0, Math.PI * 2); c.fillStyle = OUT; c.fill(); c.beginPath(); c.arc(cx, cy, 10.5, 0, Math.PI * 2); c.fillStyle = tw.awkReady ? '#ff9ad0' : '#ffe14a'; c.fill(); c.font = '18px Disp, Jua, sans-serif'; c.fillStyle = OUT; c.fillText('!', cx, cy + 6.5); }
+      if (tw.ready || tw.awkReady) { const b = Math.abs(Math.sin(this.time * 5)) * 6, cx = x + 24, cy = ty - 10 - b; c.beginPath(); c.arc(cx, cy, 13, 0, Math.PI * 2); c.fillStyle = OUT; c.fill(); c.beginPath(); c.arc(cx, cy, 10.5, 0, Math.PI * 2); c.fillStyle = tw.awkReady ? '#ff9ad0' : '#ffe14a'; c.fill(); c.font = '18px Disp, Jua, sans-serif'; c.fillStyle = OUT; c.fillText('!', cx, cy + 6.5); }
       // 도시락(먹이면 레벨 +값)
-      if (tw.lunch) { const cx = x - c.measureText(txt).width / 2 - 18, cy = ty - 10; c.fillStyle = OUT; this.rr(c, cx - 12, cy - 10, 24, 20, 5); c.fill(); c.fillStyle = '#ffb04a'; this.rr(c, cx - 9.5, cy - 7.5, 19, 15, 3); c.fill(); c.fillStyle = '#fff4d0'; c.fillRect(cx - 9.5, cy - 2, 19, 3); c.font = '13px Disp, Jua, sans-serif'; c.fillStyle = OUT; c.fillText('+' + tw.lunch, cx, cy + 14 + 6); }
+      if (tw.lunch) { const cx = x - 26, cy = ty - 6; c.fillStyle = OUT; this.rr(c, cx - 12, cy - 10, 24, 20, 5); c.fill(); c.fillStyle = '#ffb04a'; this.rr(c, cx - 9.5, cy - 7.5, 19, 15, 3); c.fill(); c.fillStyle = '#fff4d0'; c.fillRect(cx - 9.5, cy - 2, 19, 3); c.font = '13px Disp, Jua, sans-serif'; c.fillStyle = OUT; c.fillText('+' + tw.lunch, cx, cy + 14 + 6); }
+      // 잠금(작은 자물쇠 · 머리 위 가운데)
+      if (tw.locked) { const lx = x, ly = ty - 8; c.lineWidth = 3; c.strokeStyle = OUT; c.beginPath(); c.arc(lx, ly - 7, 6, Math.PI, 0); c.stroke(); c.strokeStyle = '#ffe14a'; c.lineWidth = 2; c.beginPath(); c.arc(lx, ly - 7, 5, Math.PI, 0); c.stroke(); c.fillStyle = OUT; this.rr(c, lx - 10, ly - 8, 20, 16, 4); c.fill(); c.fillStyle = '#ffe14a'; this.rr(c, lx - 8, ly - 6, 16, 12, 3); c.fill(); c.fillStyle = OUT; c.fillRect(lx - 1.5, ly - 3, 3, 5); }
       c.restore();
     };
   };
